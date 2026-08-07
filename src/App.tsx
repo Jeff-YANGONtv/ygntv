@@ -6,16 +6,11 @@ import {
   BookOpen, 
   Info, 
   Link as LinkIcon, 
-  Search, 
   Play, 
-  Star, 
   ChevronRight, 
   ChevronLeft, 
   ExternalLink, 
-  MessageCircle, 
-  Share2, 
-  X,
-  Menu
+  X
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -40,7 +35,6 @@ const GENRES = [
 export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'movies' | 'series' | 'blog' | 'about' | 'links'>('home');
   const [selectedGenre, setSelectedGenre] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
   const [movies, setMovies] = useState<any[]>([]);
   const [shows, setShows] = useState<any[]>([]);
   const [blogs, setBlogs] = useState<any[]>([]);
@@ -92,44 +86,18 @@ export default function App() {
   };
 
   const filteredMovies = movies.filter(m => {
-    const matchesGenre = selectedGenre === 'All' || (m.genre && m.genre.toLowerCase().includes(selectedGenre.toLowerCase()));
-    const matchesSearch = !searchQuery || m.title?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesGenre && matchesSearch;
+    return selectedGenre === 'All' || (m.genre && m.genre.toLowerCase().includes(selectedGenre.toLowerCase()));
   });
 
   const filteredShows = shows.filter(s => {
-    const matchesGenre = selectedGenre === 'All' || (s.genre && s.genre.toLowerCase().includes(selectedGenre.toLowerCase()));
-    const matchesSearch = !searchQuery || s.title?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesGenre && matchesSearch;
+    return selectedGenre === 'All' || (s.genre && s.genre.toLowerCase().includes(selectedGenre.toLowerCase()));
   });
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 pb-24">
-      {/* Top Header */}
-      <header className="sticky top-0 z-50 bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-2 cursor-pointer" onClick={() => setActiveTab('home')}>
-          <div className="bg-red-600 text-white font-black px-3 py-1 rounded text-xl tracking-tighter shadow-lg shadow-red-600/30">
-            YGN TV
-          </div>
-          <span className="text-xs uppercase tracking-widest text-neutral-400 font-semibold hidden sm:inline">Streaming Platform</span>
-        </div>
-
-        {/* Search bar */}
-        <div className="relative max-w-xs w-full mx-4">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
-          <input 
-            type="text" 
-            placeholder="Search movies, series..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-neutral-900 border border-neutral-800 rounded-full pl-9 pr-4 py-1.5 text-sm focus:outline-none focus:border-red-600 transition"
-          />
-        </div>
-      </header>
-
       {/* Header Scrollable Genre Tabs (Visible for Movies & Series pages) */}
       {(activeTab === 'movies' || activeTab === 'series' || activeTab === 'home') && (
-        <div className="sticky top-[57px] z-40 bg-neutral-950/95 backdrop-blur border-b border-neutral-900 py-2.5 px-4">
+        <div className="sticky top-0 z-40 bg-neutral-950/95 backdrop-blur border-b border-neutral-900 py-3 px-4">
           <div className="max-w-7xl mx-auto flex items-center space-x-2">
             <button onClick={() => scrollGenres('left')} className="p-1 rounded-full bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hidden md:block">
               <ChevronLeft className="w-5 h-5" />
