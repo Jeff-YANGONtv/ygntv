@@ -95,10 +95,17 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 pb-24">
-      {/* Header Scrollable Genre Tabs (Visible for Movies & Series pages) */}
-      {(activeTab === 'movies' || activeTab === 'series' || activeTab === 'home') && (
-        <div className="sticky top-0 z-40 bg-neutral-950/95 backdrop-blur border-b border-neutral-900 py-3 px-4">
-          <div className="max-w-7xl mx-auto flex items-center space-x-2">
+      {/* Header with Brand Logo & Scrollable Genre Tabs */}
+      <header className="sticky top-0 z-40 bg-neutral-950/95 backdrop-blur border-b border-neutral-900">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="cursor-pointer font-black text-xl tracking-wider flex items-center space-x-1" onClick={() => setActiveTab('home')}>
+            <span className="text-red-600">YANGON</span>
+            <span className="text-white">TV</span>
+          </div>
+        </div>
+
+        {(activeTab === 'movies' || activeTab === 'series' || activeTab === 'home') && (
+          <div className="px-4 pb-3 flex items-center space-x-2 border-t border-neutral-900 pt-2.5">
             <button onClick={() => scrollGenres('left')} className="p-1 rounded-full bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hidden md:block">
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -121,8 +128,8 @@ export default function App() {
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </header>
 
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 py-6">
