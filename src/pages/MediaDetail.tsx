@@ -69,6 +69,7 @@ function directMediaUrl(value: string): string {
 function VideoPlayer({ source, poster, title }: { source: string; poster?: string; title: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playerError, setPlayerError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const sourceUrl = mediaUrl(source);
   const resolvedSource = directMediaUrl(sourceUrl);
   const resolvedPoster = poster ? mediaUrl(poster) : undefined;
@@ -78,8 +79,26 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
     const video = videoRef.current;
     if (isUnsupportedWatchPage || !video || !resolvedSource) return;
     let hls: Hls | null = null;
+    let timeoutId = 0;
     const isHls = /\.m3u8(?:$|[?#])/i.test(resolvedSource);
-    const showError = () => setPlayerError('This video source could not be played. Please check the streaming URL in the admin panel.');
+    const markLoaded = () => {
+      setIsLoading(false);
+      window.clearTimeout(timeoutId);
+    };
+    const showError = () => {
+      setIsLoading(false);
+      window.clearTimeout(timeoutId);
+      setPlayerError('This video server did not return playable data. Please replace the streaming URL in the admin panel.');
+    };
+
+    setPlayerError('');
+    setIsLoading(true);
+    timeoutId = window.setTimeout(() => {
+      setIsLoading(false);
+      setPlayerError('The streaming server did not send video data. Please add a new direct MP4 or HLS URL.');
+    }, 15000);
+    video.addEventListener('loadedmetadata', markLoaded);
+    video.addEventListener('canplay', markLoaded);
     video.addEventListener('error', showError);
 
     if (isHls && Hls.isSupported()) {
@@ -97,10 +116,13 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
       video.src = resolvedSource;
       video.load();
     } else {
-      setPlayerError('This browser does not support HLS playback. Please use a current Chrome, Safari, Edge, or Firefox browser.');
+      showError();
     }
 
     return () => {
+      window.clearTimeout(timeoutId);
+      video.removeEventListener('loadedmetadata', markLoaded);
+      video.removeEventListener('canplay', markLoaded);
       video.removeEventListener('error', showError);
       hls?.destroy();
       video.removeAttribute('src');
@@ -131,7 +153,8 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
   return (
     <div className="player-frame">
       <video ref={videoRef} className="video-player" controls playsInline preload="metadata" poster={resolvedPoster} aria-label={`Play ${title}`} />
-      {playerError && <div className="player-error" role="alert">{playerError}</div>}
+      {isLoading && <div className="player-loading" aria-live="polite">Connecting to the streaming server…</div>}
+      {playerError && <div className="player-error" role="alert"><span>{playerError}</span> <a href={resolvedSource} target="_blank" rel="noreferrer">Open source</a></div>}
     </div>
   );
 }
