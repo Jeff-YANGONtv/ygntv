@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, Copy, ExternalLink, Instagram, MessageCircle, Send, Share2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Copy, ExternalLink, Facebook, Music2, Send, Share2 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { getBlogBySlug, getBlogs, mediaUrl } from '../lib/api';
-import type { BlogPost } from '../lib/types';
+import { getBlogBySlug, getBlogs, getSocials, mediaUrl } from '../lib/api';
+import type { BlogPost, SocialLink } from '../lib/types';
 import { EmptyState, ErrorState, SearchField, SectionHeading, SkeletonGrid } from '../components/ui/Primitives';
 
 export function BlogPage() {
@@ -52,8 +52,42 @@ export function BlogDetail() {
 }
 
 export function LinksPage() {
-  const links = [{ label: 'Yangon TV on Telegram', detail: 'Updates, releases, and community notes', icon: Send, href: 'https://t.me/' }, { label: 'Yangon TV on Instagram', detail: 'Behind the scenes and daily inspiration', icon: Instagram, href: 'https://instagram.com/' }, { label: 'Join the conversation', detail: 'Tell us what you want to watch next', icon: MessageCircle, href: 'mailto:hello@yangontv.com' }];
-  return <div className="page page-links"><section className="container links-heading"><span className="eyebrow">Stay in the loop</span><h1>Find us<br /><em>everywhere.</em></h1><p>Follow along for new releases, watchlist ideas, and the stories we cannot stop talking about.</p></section><section className="container link-list">{links.map(({ label, detail, icon: Icon, href }) => <a className="external-link-card" key={label} href={href} target="_blank" rel="noopener noreferrer"><span className="external-icon"><Icon size={22} /></span><span><b>{label}</b><small>{detail}</small></span><ExternalLink size={18} /></a>)}</section></div>;
+  const [links, setLinks] = useState<SocialLink[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [retryToken, setRetryToken] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    setError(false);
+    getSocials().then((items) => {
+      if (mounted) setLinks(items);
+    }).catch(() => {
+      if (mounted) setError(true);
+    }).finally(() => {
+      if (mounted) setLoading(false);
+    });
+    return () => { mounted = false; };
+  }, [retryToken]);
+
+  const iconFor = (social: SocialLink) => {
+    const value = `${social.name} ${social.icon} ${social.url}`.toLowerCase();
+    if (value.includes('facebook')) return Facebook;
+    if (value.includes('tiktok') || value.includes('music')) return Music2;
+    if (value.includes('telegram') || value.includes('send')) return Send;
+    return ExternalLink;
+  };
+
+  const detailFor = (social: SocialLink) => {
+    const value = `${social.name} ${social.icon}`.toLowerCase();
+    if (value.includes('telegram')) return 'Updates, releases, and community notes';
+    if (value.includes('facebook')) return 'News, announcements, and community updates';
+    if (value.includes('tiktok') || value.includes('music')) return 'Short clips, highlights, and entertainment';
+    return 'Follow Yangon TV for the latest updates';
+  };
+
+  return <div className="page page-links"><section className="container links-heading"><span className="eyebrow">Stay in the loop</span><h1>Find us<br /><em>everywhere.</em></h1><p>Follow along for new releases, watchlist ideas, and the stories we cannot stop talking about.</p></section><section className="container link-list">{loading ? <div className="state-card"><div className="skeleton state-icon" /><p>Loading social links...</p></div> : error ? <ErrorState onRetry={() => setRetryToken((value) => value + 1)} /> : links.length === 0 ? <EmptyState title="No social links yet" copy="Social accounts added from the panel will appear here." /> : links.map((social) => { const Icon = iconFor(social); return <a className="external-link-card" key={social.id} href={social.url} target="_blank" rel="noopener noreferrer"><span className="external-icon"><Icon size={22} /></span><span><b>{social.name}</b><small>{detailFor(social)}</small></span><ExternalLink size={18} /></a>; })}</section></div>;
 }
 
 export function AboutPage() {

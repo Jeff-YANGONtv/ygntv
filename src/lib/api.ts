@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiPage, BlogPost, MediaItem } from './types';
+import type { ApiPage, BlogPost, MediaItem, SocialLink } from './types';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
 export const mediaBaseUrl = import.meta.env.VITE_MEDIA_BASE_URL || 'https://khaki-yak-457838.hostingersite.com';
@@ -76,4 +76,10 @@ export async function getBlogs(params: { page?: number; search?: string } = {}):
 export async function getBlogBySlug(slug: string): Promise<BlogPost | null> {
   const response = await api.get(`/public/blogs/${slug}`);
   return unwrap<BlogPost | null>(response.data) || null;
+}
+
+export async function getSocials(): Promise<SocialLink[]> {
+  const response = await api.get('/socials');
+  const rows = unwrap<SocialLink[] | null>(response.data);
+  return Array.isArray(rows) ? rows : [];
 }

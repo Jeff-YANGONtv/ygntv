@@ -49,6 +49,15 @@ export interface BlogPost {
   featured?: boolean;
 }
 
+export interface SocialLink {
+  id: number | string;
+  name: string;
+  icon: string;
+  url: string;
+  display_order?: number;
+  is_active?: boolean;
+}
+
 export interface ApiPage<T> {
   data: T[];
   currentPage: number;
