@@ -52,16 +52,31 @@ function DownloadAction({ links, title }: { links: string[]; title: string }) {
   );
 }
 
+function directMediaUrl(value: string): string {
+  try {
+    const parsed = new URL(value);
+    const match = parsed.pathname.match(/^\/watch\/([^/]+)\//i);
+    if (match && /filescloud\.workers\.dev$/i.test(parsed.hostname)) {
+      parsed.pathname = `/${match[1]}`;
+      return parsed.href;
+    }
+  } catch {
+    // Keep the original value and let the player surface any invalid URL error.
+  }
+  return value;
+}
+
 function VideoPlayer({ source, poster, title }: { source: string; poster?: string; title: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playerError, setPlayerError] = useState('');
-  const resolvedSource = mediaUrl(source);
+  const sourceUrl = mediaUrl(source);
+  const resolvedSource = directMediaUrl(sourceUrl);
   const resolvedPoster = poster ? mediaUrl(poster) : undefined;
-  const isWrappedPage = /\/watch(?:\/|$)/i.test(resolvedSource);
+  const isUnsupportedWatchPage = /\/watch(?:\/|$)/i.test(resolvedSource);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (isWrappedPage || !video || !resolvedSource) return;
+    if (isUnsupportedWatchPage || !video || !resolvedSource) return;
     let hls: Hls | null = null;
     const isHls = /\.m3u8(?:$|[?#])/i.test(resolvedSource);
     const showError = () => setPlayerError('This video source could not be played. Please check the streaming URL in the admin panel.');
@@ -91,7 +106,7 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
       video.removeAttribute('src');
       video.load();
     };
-  }, [isWrappedPage, resolvedSource]);
+  }, [isUnsupportedWatchPage, resolvedSource]);
 
   if (!source) {
     return (
@@ -103,8 +118,14 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
     );
   }
 
-  if (isWrappedPage) {
-    return <iframe className="external-player-frame" src={resolvedSource} title={`Play ${title}`} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="no-referrer" />;
+  if (isUnsupportedWatchPage) {
+    return (
+      <div className="player-placeholder player-empty">
+        <div className="player-play"><Play size={26} fill="currentColor" /></div>
+        <span>Unsupported watch-page link</span>
+        <small>Please save a direct MP4 or HLS (.m3u8) streaming URL in the admin panel.</small>
+      </div>
+    );
   }
 
   return (
