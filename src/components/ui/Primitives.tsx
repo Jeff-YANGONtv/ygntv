@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Children, type ReactNode } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, Play, Search, Star } from 'lucide-react';
 import type { MediaItem } from '../../lib/types';
 import { mediaUrl } from '../../lib/api';
@@ -48,4 +50,33 @@ export function ErrorState({ onRetry }: { onRetry?: () => void }) {
 
 export function SkeletonGrid({ count = 6 }: { count?: number }) {
   return <div className="media-grid">{Array.from({ length: count }).map((_, index) => <div className="skeleton-card" key={index}><div className="skeleton skeleton-poster" /><div className="skeleton skeleton-line" /><div className="skeleton skeleton-line skeleton-line--short" /></div>)}</div>;
+}
+
+export function AutoSlider({ eyebrow, title, action, children, className = '', interval = 4200 }: { eyebrow?: string; title: string; action?: { label: string; to: string }; children: ReactNode; className?: string; interval?: number }) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [paused, setPaused] = useState(false);
+  const items = Children.toArray(children);
+
+  const move = (direction: 'next' | 'previous') => {
+    const track = trackRef.current;
+    if (!track) return;
+    const firstSlide = track.querySelector('.auto-slider__slide') as HTMLElement | null;
+    const step = firstSlide ? firstSlide.getBoundingClientRect().width + 21 : track.clientWidth * 0.86;
+    const nextLeft = direction === 'next' ? track.scrollLeft + step : track.scrollLeft - step;
+    const maxLeft = track.scrollWidth - track.clientWidth;
+    const target = direction === 'next' && nextLeft >= maxLeft - 2 ? 0 : direction === 'previous' && nextLeft <= 2 ? maxLeft : nextLeft;
+    track.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (paused) return;
+    const timer = window.setInterval(() => move('next'), interval);
+    return () => window.clearInterval(timer);
+  }, [paused, interval]);
+
+  return <section className={`auto-slider ${className}`} onPointerEnter={() => setPaused(true)} onPointerLeave={() => setPaused(false)} onFocusCapture={() => setPaused(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false); }}>
+    <div className="auto-slider__heading"><SectionHeading eyebrow={eyebrow} title={title} action={action} /><div className="auto-slider__controls"><button className="icon-button" type="button" onClick={() => move('previous')} aria-label={`Previous ${title.toLowerCase()}`}><ChevronLeft size={18} /></button><button className="icon-button" type="button" onClick={() => move('next')} aria-label={`Next ${title.toLowerCase()}`}><ChevronRight size={18} /></button></div></div>
+    <div className="auto-slider__viewport" ref={trackRef} role="region" aria-roledescription="carousel" aria-label={title} tabIndex={0} onKeyDown={(event) => { if (event.key === 'ArrowLeft') move('previous'); if (event.key === 'ArrowRight') move('next'); }}><div className="auto-slider__track">{items.map((content, index) => <div className="auto-slider__slide" key={index}>{content}</div>)}</div></div>
+    <span className="auto-slider__status" aria-live="polite">{paused ? 'Paused' : 'Auto-scrolling'}</span>
+  </section>;
 }

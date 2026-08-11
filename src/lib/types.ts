@@ -10,6 +10,8 @@ export interface MediaItem {
   rating: number;
   runtime?: string;
   genres: string[];
+  casts?: string[];
+  synopsis?: string;
   description: string;
   poster: string;
   backdrop: string;
