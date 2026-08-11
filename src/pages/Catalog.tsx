@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Filter, SlidersHorizontal } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { genres } from '../data/mock';
 import { getMovies, getSeries } from '../lib/api';
 import type { MediaItem } from '../lib/types';
 import { EmptyState, ErrorState, MediaCard, Pagination, Pill, SearchField, SectionHeading, SkeletonGrid } from '../components/ui/Primitives';
@@ -11,7 +10,7 @@ export function CatalogPage({ kind }: { kind: 'movie' | 'series' }) {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [search, setSearch] = useState(params.get('search') || '');
   const [query, setQuery] = useState(params.get('search') || '');
-  const [genre, setGenre] = useState(params.get('genre') || 'All');
+  const [genre, setGenre] = useState(params.get('genre') || '');
   const [page, setPage] = useState(Number(params.get('page') || 1));
   const [lastPage, setLastPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -20,20 +19,42 @@ export function CatalogPage({ kind }: { kind: 'movie' | 'series' }) {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true); setError(false);
+    setLoading(true);
+    setError(false);
     const loader = kind === 'movie' ? getMovies : getSeries;
-    loader({ page, search: query, genre: genre === 'All' ? undefined : genre }).then((result) => {
+    loader({ page, search: query, genre: genre || undefined }).then((result) => {
       if (cancelled) return;
-      setItems(result.data); setLastPage(result.lastPage); setTotal(result.total); setLoading(false);
-    }).catch(() => { if (!cancelled) { setError(true); setLoading(false); } });
+      setItems(result.data);
+      setLastPage(result.lastPage);
+      setTotal(result.total);
+      setLoading(false);
+    }).catch(() => {
+      if (!cancelled) {
+        setError(true);
+        setLoading(false);
+      }
+    });
     return () => { cancelled = true; };
   }, [kind, page, query, genre]);
 
   const title = kind === 'movie' ? 'Movies' : 'Series';
   const description = kind === 'movie' ? 'A considered collection of movies for every kind of night.' : 'Long-form stories, sharp episodes, and new worlds to settle into.';
-  const activeGenre = useMemo(() => genres.includes(genre) ? genre : 'All', [genre]);
-  const updateFilters = (nextGenre: string) => { setGenre(nextGenre); setPage(1); setParams({ ...(query ? { search: query } : {}), ...(nextGenre !== 'All' ? { genre: nextGenre } : {}) }); };
-  const submitSearch = () => { setQuery(search); setPage(1); setParams({ ...(search ? { search } : {}), ...(activeGenre !== 'All' ? { genre: activeGenre } : {}) }); };
+  const availableGenres = useMemo(() => {
+    const values = items.flatMap((item) => item.genres || []).filter(Boolean);
+    return Array.from(new Set(['All', ...(genre ? [genre] : []), ...values])).sort((a, b) => a === 'All' ? -1 : b === 'All' ? 1 : a.localeCompare(b));
+  }, [items, genre]);
+  const activeGenre = genre || 'All';
+  const updateFilters = (nextGenre: string) => {
+    const next = nextGenre === 'All' ? '' : nextGenre;
+    setGenre(next);
+    setPage(1);
+    setParams({ ...(query ? { search: query } : {}), ...(next ? { genre: next } : {}) });
+  };
+  const submitSearch = () => {
+    setQuery(search);
+    setPage(1);
+    setParams({ ...(search ? { search } : {}), ...(genre ? { genre } : {}) });
+  };
 
-  return <div className="page page-catalog"><section className="container page-heading"><div><span className="eyebrow">The collection</span><h1>{title}</h1><p>{description}</p></div><div className="heading-count"><b>{total || items.length}</b><span>titles<br />to explore</span></div></section><section className="container catalog-toolbar"><SearchField value={search} onChange={setSearch} onSubmit={submitSearch} placeholder={`Search ${title.toLowerCase()}...`} /><div className="toolbar-label"><Filter size={16} /> Filter by genre</div><div className="pills">{genres.map((item) => <Pill key={item} active={activeGenre === item} onClick={() => updateFilters(item)}>{item}</Pill>)}</div><button className="sort-button"><SlidersHorizontal size={16} /> Recently added</button></section><section className="container catalog-results">{loading ? <SkeletonGrid count={6} /> : error ? <ErrorState onRetry={() => submitSearch()} /> : items.length === 0 ? <EmptyState title={`No ${title.toLowerCase()} found`} copy="Try clearing your filters or searching for another title." /> : <><div className="results-bar"><span>Showing <b>{items.length}</b> {title.toLowerCase()}</span><span className="results-context">Curated for your next watch</span></div><div className="media-grid">{items.map((item) => <MediaCard key={item.id} item={item} />)}</div><Pagination page={page} lastPage={lastPage} onChange={(next) => { setPage(next); setParams({ ...(query ? { search: query } : {}), ...(activeGenre !== 'All' ? { genre: activeGenre } : {}), page: String(next) }); }} /></>}</section></div>;
+  return <div className="page page-catalog"><section className="container page-heading"><div><span className="eyebrow">The collection</span><h1>{title}</h1><p>{description}</p></div><div className="heading-count"><b>{total || items.length}</b><span>titles<br />to explore</span></div></section><section className="container catalog-toolbar"><SearchField value={search} onChange={setSearch} onSubmit={submitSearch} placeholder={`Search ${title.toLowerCase()}...`} /><div className="toolbar-label"><Filter size={16} /> Filter by genre</div>{availableGenres.length > 1 ? <div className="pills">{availableGenres.map((item) => <Pill key={item} active={activeGenre === item} onClick={() => updateFilters(item)}>{item}</Pill>)}</div> : <p className="results-context">Genres will appear when the backend returns catalog metadata.</p>}<button className="sort-button"><SlidersHorizontal size={16} /> Recently added</button></section><section className="container catalog-results">{loading ? <SkeletonGrid count={6} /> : error ? <ErrorState onRetry={submitSearch} /> : items.length === 0 ? <EmptyState title={`No ${title.toLowerCase()} found`} copy="Try clearing your filters or searching for another title." /> : <><div className="results-bar"><span>Showing <b>{items.length}</b> {title.toLowerCase()}</span><span className="results-context">Curated for your next watch</span></div><div className="media-grid">{items.map((item) => <MediaCard key={item.id} item={item} />)}</div><Pagination page={page} lastPage={lastPage} onChange={(next) => { setPage(next); setParams({ ...(query ? { search: query } : {}), ...(genre ? { genre } : {}), page: String(next) }); }} /></>}</section></div>;
 }

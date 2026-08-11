@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Create a local `.env` from `.env.example` when connecting the Laravel backend. If the API is unavailable, the UI falls back to curated demo content so each route remains usable.
+Create a local `.env` from `.env.example` when connecting the Laravel backend. The UI now uses backend responses only; if the API is unavailable, the relevant route shows an error or empty state instead of demo content.
 
 ## Routes
 
@@ -29,9 +29,8 @@ Create a local `.env` from `.env.example` when connecting the Laravel backend. I
 
 - `src/layouts/AppLayout.tsx` — responsive navigation, footer, notifications, and mobile navigation
 - `src/components/ui/Primitives.tsx` — reusable cards, fields, pills, states, skeletons, and pagination
-- `src/lib/api.ts` — Axios client, media URL resolver, API envelope normalization, and resilient fallbacks
+- `src/lib/api.ts` — Axios client, media URL resolver, API envelope normalization, and backend-only requests
 - `src/pages/` — route-level screens
-- `src/data/mock.ts` — development/demo content used when the public API is unavailable
 - `src/styles.css` — responsive dark design system
 - `vercel.json` and `public/.htaccess` — SPA fallback rewrites for nested routes
 - `public/yangon-tv-logo.jpg` — the supplied original Yangon TV logo
@@ -40,4 +39,4 @@ Create a local `.env` from `.env.example` when connecting the Laravel backend. I
 - `public/site.webmanifest` — installable web-app metadata
 - `public/robots.txt` and `public/sitemap.xml` — basic crawl configuration for production deployments
 
-The demo catalog artwork is intentionally loaded from remote Unsplash URLs, while production media is resolved from `VITE_MEDIA_BASE_URL` or the backend media host. The `public` folder therefore contains deployment and identity assets rather than the catalog artwork itself.
+Production artwork and media are resolved from API response URLs and `VITE_MEDIA_BASE_URL` or the backend media host. No mock catalog or blog data is bundled in the frontend.
