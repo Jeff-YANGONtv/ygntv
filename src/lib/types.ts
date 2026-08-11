@@ -15,6 +15,8 @@ export interface MediaItem {
   description: string;
   poster: string;
   backdrop: string;
+  streamingLinks: string[];
+  downloadLinks: string[];
   featured?: boolean;
   badge?: string;
   seasons?: number;
@@ -27,6 +29,8 @@ export interface Episode {
   title: string;
   duration: string;
   thumbnail: string;
+  streamingLinks?: string[];
+  downloadLinks?: string[];
   available?: boolean;
 }
 
