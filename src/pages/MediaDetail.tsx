@@ -55,44 +55,16 @@ function DownloadAction({ links, title }: { links: string[]; title: string }) {
 function VideoPlayer({ source, poster, title }: { source: string; poster?: string; title: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playerError, setPlayerError] = useState('');
-  const [resolvedSource, setResolvedSource] = useState('');
+  const resolvedSource = mediaUrl(source);
   const resolvedPoster = poster ? mediaUrl(poster) : undefined;
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const originalSource = mediaUrl(source);
-    setPlayerError('');
-    setResolvedSource('');
-    if (!originalSource) return () => controller.abort();
-
-    async function resolveWrappedSource() {
-      try {
-        const response = await fetch(originalSource, { signal: controller.signal });
-        const contentType = response.headers.get('content-type') || '';
-        if (!contentType.includes('text/html')) {
-          setResolvedSource(originalSource);
-          return;
-        }
-        const html = await response.text();
-        const document = new DOMParser().parseFromString(html, 'text/html');
-        const embeddedVideo = document.querySelector('video[src], video source[src]')?.getAttribute('src');
-        if (!embeddedVideo) throw new Error('No playable media URL was found in the watch page.');
-        setResolvedSource(new URL(embeddedVideo, originalSource).href);
-      } catch (error) {
-        if ((error as DOMException).name !== 'AbortError') setPlayerError('The streaming link could not be resolved. Please check the media URL in the admin panel.');
-      }
-    }
-
-    void resolveWrappedSource();
-    return () => controller.abort();
-  }, [source]);
+  const isWrappedPage = /\/watch(?:\/|$)/i.test(resolvedSource);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !resolvedSource) return;
+    if (isWrappedPage || !video || !resolvedSource) return;
     let hls: Hls | null = null;
     const isHls = /\.m3u8(?:$|[?#])/i.test(resolvedSource);
-    const showError = () => setPlayerError('This video source could not be played. Please try another source or check the media URL.');
+    const showError = () => setPlayerError('This video source could not be played. Please check the streaming URL in the admin panel.');
     video.addEventListener('error', showError);
 
     if (isHls && Hls.isSupported()) {
@@ -119,7 +91,7 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
       video.removeAttribute('src');
       video.load();
     };
-  }, [resolvedSource]);
+  }, [isWrappedPage, resolvedSource]);
 
   if (!source) {
     return (
@@ -131,9 +103,13 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
     );
   }
 
+  if (isWrappedPage) {
+    return <iframe className="external-player-frame" src={resolvedSource} title={`Play ${title}`} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="no-referrer" />;
+  }
+
   return (
     <div className="player-frame">
-      {resolvedSource ? <video ref={videoRef} className="video-player" controls playsInline preload="metadata" poster={resolvedPoster} aria-label={`Play ${title}`} /> : <div className="player-loading">{playerError ? 'Video source unavailable' : 'Loading video source…'}</div>}
+      <video ref={videoRef} className="video-player" controls playsInline preload="metadata" poster={resolvedPoster} aria-label={`Play ${title}`} />
       {playerError && <div className="player-error" role="alert">{playerError}</div>}
     </div>
   );
