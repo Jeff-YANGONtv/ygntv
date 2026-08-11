@@ -38,7 +38,7 @@ export function CatalogPage({ kind }: { kind: 'movie' | 'series' }) {
   }, [kind, page, query, genre]);
 
   const title = kind === 'movie' ? 'Movies' : 'Series';
-  const description = kind === 'movie' ? 'မြန်မာစာတန်းထိုးနိုင်ငံတကာရုပ်ရှင်ဇာတ်ကားကောင်းများ' : 'မြန်မာစာတန်းထိုး နိုင်ငံတကာရုပ်သံစီးရီးဇာတ်လမ်းတွဲများ';
+  const description = kind === 'movie' ? 'မြန်မာစာတန်းထိုးနိုင်ငံတကာရုပ်ရှင်ဇာတ်ကားများ' : 'မြန်မာစာတန်းထိုး နိုင်ငံတကာရုပ်သံဇာတ်လမ်းတွဲများ';
   const availableGenres = useMemo(() => {
     const values = items.flatMap((item) => item.genres || []).filter(Boolean);
     return Array.from(new Set(['All', ...(genre ? [genre] : []), ...values])).sort((a, b) => a === 'All' ? -1 : b === 'All' ? 1 : a.localeCompare(b));
