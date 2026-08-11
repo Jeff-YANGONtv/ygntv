@@ -52,7 +52,7 @@ export function SkeletonGrid({ count = 6 }: { count?: number }) {
   return <div className="media-grid">{Array.from({ length: count }).map((_, index) => <div className="skeleton-card" key={index}><div className="skeleton skeleton-poster" /><div className="skeleton skeleton-line" /><div className="skeleton skeleton-line skeleton-line--short" /></div>)}</div>;
 }
 
-export function AutoSlider({ eyebrow, title, action, children, className = '', interval = 4200 }: { eyebrow?: string; title: string; action?: { label: string; to: string }; children: ReactNode; className?: string; interval?: number }) {
+export function AutoSlider({ eyebrow, title, action, children, className = '', interval = 4200, hideHeadingText = false }: { eyebrow?: string; title: string; action?: { label: string; to: string }; children: ReactNode; className?: string; interval?: number; hideHeadingText?: boolean }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [paused, setPaused] = useState(false);
   const items = Children.toArray(children);
@@ -75,7 +75,7 @@ export function AutoSlider({ eyebrow, title, action, children, className = '', i
   }, [paused, interval]);
 
   return <section className={`auto-slider ${className}`} onPointerEnter={() => setPaused(true)} onPointerLeave={() => setPaused(false)} onFocusCapture={() => setPaused(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false); }}>
-    <div className="auto-slider__heading"><SectionHeading eyebrow={eyebrow} title={title} action={action} /><div className="auto-slider__controls"><button className="icon-button" type="button" onClick={() => move('previous')} aria-label={`Previous ${title.toLowerCase()}`}><ChevronLeft size={18} /></button><button className="icon-button" type="button" onClick={() => move('next')} aria-label={`Next ${title.toLowerCase()}`}><ChevronRight size={18} /></button></div></div>
+    <div className="auto-slider__heading">{hideHeadingText ? <div className="auto-slider__action-only">{action && <Link className="text-link" to={action.to}>{action.label}<ArrowRight size={15} /></Link>}</div> : <SectionHeading eyebrow={eyebrow} title={title} action={action} />}<div className="auto-slider__controls"><button className="icon-button" type="button" onClick={() => move('previous')} aria-label={`Previous ${title.toLowerCase()}`}><ChevronLeft size={18} /></button><button className="icon-button" type="button" onClick={() => move('next')} aria-label={`Next ${title.toLowerCase()}`}><ChevronRight size={18} /></button></div></div>
     <div className="auto-slider__viewport" ref={trackRef} role="region" aria-roledescription="carousel" aria-label={title} tabIndex={0} onKeyDown={(event) => { if (event.key === 'ArrowLeft') move('previous'); if (event.key === 'ArrowRight') move('next'); }}><div className="auto-slider__track">{items.map((content, index) => <div className="auto-slider__slide" key={index}>{content}</div>)}</div></div>
     <span className="auto-slider__status" aria-live="polite">{paused ? 'Paused' : 'Auto-scrolling'}</span>
   </section>;
