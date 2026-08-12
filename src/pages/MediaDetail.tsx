@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, CalendarDays, Clock3, Download, Play, Share2, Star, Tv, Users } from 'lucide-react';
+import { ArrowLeft, Download, MessageCircle, Play, Share2, Star, Tags, Users } from 'lucide-react';
 import Hls from 'hls.js';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { MediaCard, Pill, SectionHeading, EmptyState, ErrorState } from '../components/ui/Primitives';
@@ -230,11 +230,14 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
               </div>
               <h1>{item.title}</h1>
               <div className="detail-meta">
-                <span><Star size={14} fill="currentColor" /> {item.rating.toFixed(1)}</span>
-                <span><CalendarDays size={14} /> {item.year}</span>
-                <span>{kind === 'movie' ? <><Clock3 size={14} /> {item.runtime || 'Feature'}</> : <><Tv size={14} /> {item.seasons || 0} seasons</>}</span>
+                <span><Star size={14} fill="currentColor" /> Rating {item.rating.toFixed(1)}</span>
+                <span><MessageCircle size={14} /> Review</span>
+                <span><Tags size={14} /> {(item.genres || []).join(', ') || 'Genre unavailable'}</span>
               </div>
-              <p>{item.synopsis || item.description}</p>
+              <div className="detail-review">
+                <span className="eyebrow">Review</span>
+                <p>{item.synopsis || item.description || 'No review available.'}</p>
+              </div>
               <div className="button-row">
                 <Link className="button button--primary" to={`/${kind === 'movie' ? 'movies' : 'series'}/${item.slug}/watch`}><Play size={17} fill="currentColor" /> {kind === 'movie' ? 'Watch movie' : 'Start watching'}</Link>
                 <DownloadAction links={item.downloadLinks} title={item.title} />
