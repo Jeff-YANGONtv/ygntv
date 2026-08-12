@@ -245,7 +245,6 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
         </div>
       </section>
       <section className="container detail-section detail-extra-grid">
-        <div className="detail-extra-card"><span className="eyebrow">Synopsis</span><p>{item.synopsis || item.description || 'No synopsis available.'}</p></div>
         <div className="detail-extra-card"><span className="eyebrow">Cast</span>{item.casts?.length ? <div className="cast-list">{item.casts.map((cast) => <span className="cast-chip" key={cast}>{cast}</span>)}</div> : <p>No cast information available.</p>}</div>
       </section>
       {kind === 'series' && <section className="container detail-section"><SectionHeading eyebrow="Keep watching" title="Episodes" /><EmptyState title="Episodes are managed by the backend" copy={item.episodes ? `${item.episodes} episodes are available for this series.` : 'Episode information will appear when the backend provides it.'} /></section>}
