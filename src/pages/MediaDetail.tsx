@@ -66,11 +66,23 @@ function directMediaUrl(value: string): string {
   return value;
 }
 
+function providerEmbedUrl(value: string): string | null {
+  try {
+    const parsed = new URL(value);
+    if (!/(^|\.)nstream\.cc$/i.test(parsed.hostname)) return null;
+    const match = parsed.pathname.match(/^\/(?:v|e)\/([^/]+)\/?$/i);
+    return match ? `https://nstream.cc/e/${match[1]}` : null;
+  } catch {
+    return null;
+  }
+}
+
 function VideoPlayer({ source, poster, title }: { source: string; poster?: string; title: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playerError, setPlayerError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const sourceUrl = mediaUrl(source);
+  const embedUrl = providerEmbedUrl(sourceUrl);
   const resolvedSource = directMediaUrl(sourceUrl);
   const resolvedPoster = poster ? mediaUrl(poster) : undefined;
   const isUnsupportedWatchPage = /\/watch(?:\/|$)/i.test(resolvedSource);
@@ -136,6 +148,21 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
         <div className="player-play"><Play size={26} fill="currentColor" /></div>
         <span>Video source is not available</span>
         <small>The backend has not provided a streaming URL for this title yet.</small>
+      </div>
+    );
+  }
+
+  if (embedUrl) {
+    return (
+      <div className="player-frame player-frame--embed">
+        <iframe
+          className="video-embed"
+          src={embedUrl}
+          title={`Play ${title}`}
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
       </div>
     );
   }
