@@ -66,7 +66,25 @@ function directMediaUrl(value: string): string {
   return value;
 }
 
+function youtubeVideoId(value: string): string | null {
+  try {
+    const parsed = new URL(value);
+    const hostname = parsed.hostname.toLowerCase().replace(/^www\./, '');
+    let id = '';
+    if (hostname === 'youtu.be') {
+      id = parsed.pathname.split('/').filter(Boolean)[0] || '';
+    } else if (hostname === 'youtube.com' || hostname === 'm.youtube.com' || hostname === 'youtube-nocookie.com') {
+      id = parsed.searchParams.get('v') || parsed.pathname.match(/^\/(?:embed|shorts|live)\/([^/?]+)/i)?.[1] || '';
+    }
+    return /^[A-Za-z0-9_-]{6,}$/.test(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+
 function providerEmbedUrl(value: string): string | null {
+  const youtubeId = youtubeVideoId(value);
+  if (youtubeId) return `https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&modestbranding=1&playsinline=1`;
   try {
     const parsed = new URL(value);
     if (!/(^|\.)nstream\.cc$/i.test(parsed.hostname)) return null;
@@ -159,7 +177,7 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
           className="video-embed"
           src={embedUrl}
           title={`Play ${title}`}
-          allow="autoplay; fullscreen; picture-in-picture"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
           referrerPolicy="strict-origin-when-cross-origin"
         />
