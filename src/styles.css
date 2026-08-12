@@ -25,3 +25,7 @@
 .player-frame--embed{aspect-ratio:16/9;background:#000;position:relative}.video-embed{border:0;display:block;height:100%;width:100%}
 
 .detail-review{color:#d1ccca;font-size:14px;line-height:1.75;margin-top:21px;max-width:580px}.detail-review p{margin:4px 0 0}
+
+/* Series season guide */
+.season-content{padding:0 3px 4px}.season-review{color:#d4d0cc;font-size:13px;line-height:1.7;margin:0;padding:0 0 8px;max-width:760px}.season-year{color:var(--muted-2);display:block;font-size:11px;margin-bottom:10px}.season-heading svg{color:var(--muted);transition:transform .2s ease}.season-heading[aria-expanded="true"] svg{transform:rotate(180deg)}.season-heading strong{font-family:var(--display);font-weight:600}.season-empty{color:var(--muted);font-size:12px;padding:0 0 18px}.episode-row{color:var(--text);text-decoration:none}.episode-row>svg{color:var(--red);justify-self:end}.episode-row:hover>svg{color:#fff}
+@media (max-width:640px){.season-heading{font-size:14px;gap:10px;padding:17px 3px}.season-heading>span:first-child{gap:10px}.season-heading>span:last-child{align-items:center;display:flex;gap:4px}.season-review{font-size:12px}.season-content{padding-left:0;padding-right:0}}

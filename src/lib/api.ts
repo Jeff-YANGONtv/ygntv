@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiPage, BlogPost, MediaItem, SocialLink } from './types';
+import type { ApiPage, BlogPost, Episode, MediaItem, Season, SocialLink } from './types';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
 export const mediaBaseUrl = import.meta.env.VITE_MEDIA_BASE_URL || 'https://khaki-yak-457838.hostingersite.com';
@@ -35,6 +35,43 @@ function stringArray(value: unknown): string[] {
   return [value.trim()];
 }
 
+function numericValue(value: unknown, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function normalizeEpisode(raw: unknown, index: number): Episode {
+  const source = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  const title = String(source.title ?? source.name ?? `Episode ${index + 1}`);
+  const number = numericValue(source.number ?? source.episode_number ?? title.match(/\d+/)?.[0], index + 1);
+  return {
+    id: (source.id as number | string | undefined) ?? `${number}-${title}`,
+    number,
+    title,
+    duration: source.duration ? String(source.duration) : undefined,
+    thumbnail: source.thumbnail ? String(source.thumbnail) : undefined,
+    review: source.review ? String(source.review) : undefined,
+    streamingLinks: stringArray(source.streamingLinks ?? source.streaming_links ?? source.stream_url ?? source.stream),
+    downloadLinks: stringArray(source.downloadLinks ?? source.download_links ?? source.download_url ?? source.download),
+    available: source.available == null ? true : Boolean(source.available),
+  };
+}
+
+function normalizeSeason(raw: unknown, index: number): Season {
+  const source = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  const title = String(source.title ?? source.name ?? `Season ${index + 1}`);
+  const number = numericValue(source.number ?? source.season_number ?? title.match(/\d+/)?.[0], index + 1);
+  const rawEpisodes = Array.isArray(source.episodes) ? source.episodes : [];
+  return {
+    id: (source.id as number | string | undefined) ?? `${number}-${title}`,
+    number,
+    title,
+    year: source.year ? String(source.year) : undefined,
+    review: source.review ? String(source.review) : undefined,
+    episodes: rawEpisodes.map((episode, episodeIndex) => normalizeEpisode(episode, episodeIndex)),
+  };
+}
+
 export function normalizeMediaItem(raw: unknown, fallbackKind: 'movie' | 'series'): MediaItem {
   const source = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   const releaseDate = String(source.release_date ?? source.date ?? '');
@@ -48,6 +85,12 @@ export function normalizeMediaItem(raw: unknown, fallbackKind: 'movie' | 'series
   const casts = stringArray(source.casts ?? source.cast);
   const streamingLinks = stringArray(source.streamingLinks ?? source.streaming_links ?? source.stream_url ?? source.stream);
   const downloadLinks = stringArray(source.downloadLinks ?? source.download_links ?? source.download_url ?? source.download);
+  const rawSeasons = Array.isArray(source.seasons) ? source.seasons : [];
+  const seasons = rawSeasons.map((season, seasonIndex) => normalizeSeason(season, seasonIndex));
+  const seasonFallback = seasons.length || (Array.isArray(source.seasons) ? 0 : numericValue(source.seasons, 0));
+  const episodeFallback = seasons.length ? seasons.reduce((total, season) => total + season.episodes.length, 0) : numericValue(source.episodes, 0);
+  const seasonCount = numericValue(source.season_count ?? source.seasonCount, seasonFallback);
+  const episodeCount = numericValue(source.episode_count ?? source.episodeCount, episodeFallback);
 
   return {
     id: (source.id as number | string | undefined) ?? title,
@@ -68,8 +111,9 @@ export function normalizeMediaItem(raw: unknown, fallbackKind: 'movie' | 'series
     downloadLinks,
     featured: Boolean(source.featured),
     badge: source.badge ? String(source.badge) : undefined,
-    seasons: source.seasons == null ? undefined : Number(source.seasons),
-    episodes: source.episodes == null ? undefined : Number(source.episodes),
+    seasons: seasons.length ? seasons : undefined,
+    seasonCount,
+    episodes: episodeCount,
   };
 }
 

@@ -22,7 +22,7 @@ export function MediaCard({ item, compact = false }: { item: MediaItem; compact?
       <span className="poster-play"><Play size={16} fill="currentColor" /></span>
       <span className="card-rating"><Star size={12} fill="currentColor" /> {item.rating.toFixed(1)}</span>
     </div>
-    <div className="media-card__body"><h3>{item.title}</h3><div className="media-meta"><span>{item.year}</span><i /> <span>{item.kind === 'series' ? `${item.seasons} seasons` : item.runtime}</span></div></div>
+    <div className="media-card__body"><h3>{item.title}</h3><div className="media-meta"><span>{item.year}</span><i /> <span>{item.kind === 'series' ? `${item.seasonCount ?? item.seasons?.length ?? 0} seasons` : item.runtime}</span></div></div>
   </Link>;
 }
 

@@ -19,7 +19,8 @@ export interface MediaItem {
   downloadLinks: string[];
   featured?: boolean;
   badge?: string;
-  seasons?: number;
+  seasons?: Season[];
+  seasonCount?: number;
   episodes?: number;
 }
 
@@ -27,10 +28,11 @@ export interface Episode {
   id: number | string;
   number: number;
   title: string;
-  duration: string;
-  thumbnail: string;
-  streamingLinks?: string[];
-  downloadLinks?: string[];
+  duration?: string;
+  thumbnail?: string;
+  review?: string;
+  streamingLinks: string[];
+  downloadLinks: string[];
   available?: boolean;
 }
 
@@ -38,6 +40,8 @@ export interface Season {
   id: number | string;
   number: number;
   title: string;
+  year?: string;
+  review?: string;
   episodes: Episode[];
 }
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, CalendarDays, Download, Play, Share2, Star, Tags, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ChevronDown, Download, Play, Share2, Star, Tags, Users } from 'lucide-react';
 import Hls from 'hls.js';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { MediaCard, Pill, SectionHeading, EmptyState, ErrorState } from '../components/ui/Primitives';
 import { getMediaBySlug, getMovies, getSeries, mediaUrl } from '../lib/api';
 import type { MediaItem } from '../lib/types';
@@ -186,6 +186,69 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
   );
 }
 
+function SeriesEpisodes({ item }: { item: MediaItem }) {
+  const seasons = [...(item.seasons ?? [])].sort((left, right) => left.number - right.number);
+  const [openSeasons, setOpenSeasons] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setOpenSeasons(Object.fromEntries(seasons.map((season) => [String(season.id), true])));
+  }, [item.id]);
+
+  if (!seasons.length) {
+    return <EmptyState title="No seasons available" copy="Season and episode information will appear when the backend provides it." />;
+  }
+
+  return (
+    <div className="season-list">
+      {seasons.map((season) => {
+        const key = String(season.id);
+        const episodes = [...season.episodes].sort((left, right) => left.number - right.number);
+        const isOpen = openSeasons[key] ?? true;
+        return (
+          <div className="season" key={key}>
+            <button
+              className="season-heading"
+              type="button"
+              aria-expanded={isOpen}
+              onClick={() => setOpenSeasons((current) => ({ ...current, [key]: !isOpen }))}
+            >
+              <span><b>Season {season.number}</b><strong>{season.title}</strong></span>
+              <span>{episodes.length} {episodes.length === 1 ? 'episode' : 'episodes'} <ChevronDown size={16} /></span>
+            </button>
+            {isOpen && (
+              <div className="season-content">
+                {season.review && <p className="season-review">{season.review}</p>}
+                {season.year && <span className="season-year">{season.year}</span>}
+                {episodes.length ? (
+                  <div className="episode-list">
+                    {episodes.map((episode) => (
+                      <Link
+                        className="episode-row"
+                        key={String(episode.id)}
+                        to={`/series/${item.slug}/watch?season=${season.number}&episode=${episode.number}`}
+                      >
+                        <img src={mediaUrl(episode.thumbnail, item.poster)} alt="" />
+                        <span className="episode-number">{String(episode.number).padStart(2, '0')}</span>
+                        <span className="episode-title">
+                          <b>{episode.title}</b>
+                          <small>{episode.review || episode.duration || `Season ${season.number} · Episode ${episode.number}`}</small>
+                        </span>
+                        <Play size={16} fill="currentColor" />
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="season-empty">No episodes have been added to this season yet.</p>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
   const { slug = '' } = useParams();
   const navigate = useNavigate();
@@ -212,8 +275,12 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
   }, [kind, slug]);
 
   if (loading) return <div className="container page-loading"><div className="skeleton skeleton-detail" /></div>;
-  if (error || !item) return <div className="container page-state"><ErrorState onRetry={() => window.location.reload()} /></div>;
-
+    if (error || !item) return <div className="container page-state"><ErrorState onRetry={() => window.location.reload()} /></div>;
+  const firstEpisode = kind === 'series' ? [...(item.seasons?.[0]?.episodes ?? [])].sort((left, right) => left.number - right.number)[0] : undefined;
+  const firstSeason = item.seasons?.[0];
+  const watchPath = firstEpisode && firstSeason
+    ? `/series/${item.slug}/watch?season=${firstSeason.number}&episode=${firstEpisode.number}`
+    : `/series/${item.slug}/watch`;
   return (
     <div className="page page-detail">
       <section className="detail-hero">
@@ -239,7 +306,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
                 <p>{item.synopsis || item.description || 'No review available.'}</p>
               </div>
               <div className="button-row">
-                <Link className="button button--primary" to={`/${kind === 'movie' ? 'movies' : 'series'}/${item.slug}/watch`}><Play size={17} fill="currentColor" /> {kind === 'movie' ? 'Watch movie' : 'Start watching'}</Link>
+                <Link className="button button--primary" to={kind === 'movie' ? `/movies/${item.slug}/watch` : watchPath}><Play size={17} fill="currentColor" /> {kind === 'movie' ? 'Watch movie' : 'Start watching'}</Link>
                 <DownloadAction links={item.downloadLinks} title={item.title} />
                 <button className="button button--icon" aria-label="Share title"><Share2 size={17} /></button>
               </div>
@@ -250,7 +317,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
       <section className="container detail-section detail-extra-grid">
         <div className="detail-extra-card"><span className="eyebrow">Cast</span>{item.casts?.length ? <div className="cast-list">{item.casts.map((cast) => <span className="cast-chip" key={cast}>{cast}</span>)}</div> : <p>No cast information available.</p>}</div>
       </section>
-      {kind === 'series' && <section className="container detail-section"><SectionHeading eyebrow="Keep watching" title="Episodes" /><EmptyState title="Episodes are managed by the backend" copy={item.episodes ? `${item.episodes} episodes are available for this series.` : 'Episode information will appear when the backend provides it.'} /></section>}
+      {kind === 'series' && <section className="container detail-section"><SectionHeading eyebrow="Season guide" title="Seasons & episodes" /><SeriesEpisodes item={item} /></section>}
       <section className="container detail-section"><SectionHeading eyebrow="You might also like" title="More to discover" />{related.length ? <div className="media-grid">{related.map((entry) => <MediaCard key={entry.id} item={entry} />)}</div> : <EmptyState title="No related titles" copy="Explore the catalog for more stories." />}</section>
     </div>
   );
@@ -258,6 +325,9 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
 
 export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const { slug = '' } = useParams();
+  const [searchParams] = useSearchParams();
+  const selectedSeasonNumber = Number(searchParams.get('season'));
+  const selectedEpisodeNumber = Number(searchParams.get('episode'));
   const [item, setItem] = useState<MediaItem | null>(null);
   const [sourceIndex, setSourceIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -283,20 +353,25 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   if (loading) return <div className="container page-loading"><div className="skeleton skeleton-player" /></div>;
   if (error || !item) return <div className="container page-state"><ErrorState onRetry={() => window.location.reload()} /></div>;
 
-  const sources = item.streamingLinks;
+  const selectedEpisode = kind === 'series'
+    ? item.seasons?.flatMap((season) => season.episodes.map((episode) => ({ season, episode }))).find(({ season, episode }) => season.number === selectedSeasonNumber && episode.number === selectedEpisodeNumber)?.episode
+    : undefined;
+  const sources = selectedEpisode?.streamingLinks?.length ? selectedEpisode.streamingLinks : item.streamingLinks;
+  const downloadLinks = selectedEpisode?.downloadLinks?.length ? selectedEpisode.downloadLinks : item.downloadLinks;
   const currentSource = sources[sourceIndex] || '';
+  const currentTitle = selectedEpisode ? `${item.title} — ${selectedEpisode.title}` : item.title;
 
   return (
     <div className="page page-watch">
       <section className="container watch-top">
         <Link className="back-link" to={`/${kind === 'movie' ? 'movies' : 'series'}/${slug}`}><ArrowLeft size={15} /> Back to details</Link>
-        <div className="player-shell">
-          <VideoPlayer source={currentSource} poster={item.backdrop || item.poster} title={item.title} />
-        </div>
+          <div className="player-shell">
+          <VideoPlayer source={currentSource} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} />
+          </div>
         {sources.length > 1 && <div className="player-sources" aria-label="Video sources">{sources.map((_, index) => <button key={index} className={index === sourceIndex ? 'player-source player-source--active' : 'player-source'} onClick={() => setSourceIndex(index)}>Source {index + 1}</button>)}</div>}
         <div className="watch-heading">
-          <div><span className="eyebrow">Now watching</span><h1>{item.title}</h1></div>
-          <DownloadAction links={item.downloadLinks} title={item.title} />
+          <div><span className="eyebrow">Now watching</span><h1>{currentTitle}</h1></div>
+          <DownloadAction links={downloadLinks} title={currentTitle} />
         </div>
       </section>
       <section className="container watch-lower"><div className="watch-note"><Users size={18} /><div><b>Make it a Yangon TV night.</b><p>{sources.length ? 'Choose the video controls above to start playback.' : 'Playback will appear when the backend provides a streaming URL.'}</p></div></div></section>
