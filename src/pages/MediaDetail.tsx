@@ -82,11 +82,31 @@ function youtubeVideoId(value: string): string | null {
   }
 }
 
+function providerLabel(value: string): string | null {
+  try {
+    const hostname = new URL(value).hostname.toLowerCase().replace(/^www\./, '');
+    if (hostname === 'youtu.be' || hostname === 'youtube.com' || hostname === 'm.youtube.com' || hostname === 'youtube-nocookie.com') return 'YouTube';
+    if (hostname === 'nstream.cc') return 'nstream.cc';
+    if (hostname === 'drive.google.com' || hostname === 'docs.google.com') return 'Google Drive';
+    if (hostname === 'mega.nz' || hostname.endsWith('.mega.nz')) return 'MEGA';
+    if (hostname === 'terabox.com' || hostname.endsWith('.terabox.com') || hostname === 'teraboxapp.com' || hostname.endsWith('.teraboxapp.com') || hostname === '1024terabox.com' || hostname.endsWith('.1024terabox.com')) return 'TeraBox';
+    if (hostname === 'megaup.net' || hostname.endsWith('.megaup.net') || hostname === 'megaup.cc' || hostname.endsWith('.megaup.cc')) return 'MegaUp';
+  } catch {
+    // Invalid URLs are handled by the regular player error state.
+  }
+  return null;
+}
+
 function providerEmbedUrl(value: string): string | null {
   const youtubeId = youtubeVideoId(value);
   if (youtubeId) return `https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&modestbranding=1&playsinline=1`;
   try {
     const parsed = new URL(value);
+    const hostname = parsed.hostname.toLowerCase();
+    if (hostname === 'drive.google.com' || hostname === 'docs.google.com') {
+      const id = parsed.pathname.match(/\/file\/d\/([^/]+)/i)?.[1] || parsed.searchParams.get('id') || '';
+      if (id) return `https://drive.google.com/file/d/${id}/preview`;
+    }
     if (!/(^|\.)nstream\.cc$/i.test(parsed.hostname)) return null;
     const match = parsed.pathname.match(/^\/(?:v|e)\/([^/]+)\/?$/i);
     return match ? `https://nstream.cc/e/${match[1]}` : null;
@@ -103,6 +123,7 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
   const embedUrl = providerEmbedUrl(sourceUrl);
   const resolvedSource = directMediaUrl(sourceUrl);
   const resolvedPoster = poster ? mediaUrl(poster) : undefined;
+  const provider = providerLabel(sourceUrl);
   const isUnsupportedWatchPage = /\/watch(?:\/|$)/i.test(resolvedSource);
 
   useEffect(() => {
@@ -185,12 +206,13 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
     );
   }
 
-  if (isUnsupportedWatchPage) {
+  if (isUnsupportedWatchPage || (provider && !embedUrl)) {
     return (
       <div className="player-placeholder player-empty">
         <div className="player-play"><Play size={26} fill="currentColor" /></div>
-        <span>Unsupported watch-page link</span>
-        <small>Please save a direct MP4 or HLS (.m3u8) streaming URL in the admin panel.</small>
+        <span>{provider ? `${provider} link` : 'Unsupported watch-page link'}</span>
+        <small>{provider ? `${provider} does not expose a universal browser player. Open the provider page to watch or download it.` : 'Please save a direct MP4 or HLS (.m3u8) streaming URL in the admin panel.'}</small>
+        <a className="button button--outline" href={resolvedSource} target="_blank" rel="noreferrer">Open {provider || 'source'}</a>
       </div>
     );
   }
