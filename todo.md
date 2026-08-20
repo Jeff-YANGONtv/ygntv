@@ -1,2 +1,6 @@
 - [x] Add public website authentication with a reusable Login/Sign Up page and popup
 - [x] Keep Movie/Series catalog and review pages public, but require authentication before entering the player
+- [x] Delete the confirmed Expo/EAS Mobile project record and remaining Mobile-only cloud metadata while preserving website, Hostinger backend/database, scheduler, and Telegram bots
+- [x] Delete the remaining Expo/EAS Mobile project record through the confirmed Expo dashboard operation after CLI deletion was blocked
+- [x] Design and implement a public Website auth page plus responsive Login/Sign Up popup
+- [x] Keep Movie/Series browsing and reviews public while gating player/watch/download entry behind authentication
