@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, CalendarDays, ChevronDown, Download, Play, Share2, Star, Tags, Users } from 'lucide-react';
 import Hls from 'hls.js';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../lib/auth';
 import { MediaCard, Pill, SectionHeading, EmptyState, ErrorState } from '../components/ui/Primitives';
 import { getMediaBySlug, getMovies, getSeries, mediaUrl } from '../lib/api';
 import type { MediaItem } from '../lib/types';
@@ -10,11 +11,15 @@ function safeFilename(title: string): string {
   return `${title.replace(/[^a-z0-9ก-๙\u1000-\u109f]+/gi, '-').replace(/^-|-$/g, '') || 'yangon-tv-video'}.mp4`;
 }
 
-function DownloadAction({ links, title }: { links: string[]; title: string }) {
+function DownloadAction({ links, title, canDownload = true, onRequireAuth }: { links: string[]; title: string; canDownload?: boolean; onRequireAuth?: () => void }) {
   const [downloading, setDownloading] = useState(false);
 
   async function handleDownload() {
     const source = links[0];
+    if (!canDownload) {
+      onRequireAuth?.();
+      return;
+    }
     if (!source || downloading) return;
     const url = mediaUrl(source);
     setDownloading(true);
@@ -227,6 +232,7 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
 }
 
 function SeriesEpisodes({ item }: { item: MediaItem }) {
+  const { user, openAuth } = useAuth();
   const seasons = [...(item.seasons ?? [])].sort((left, right) => left.number - right.number);
   const [openSeasons, setOpenSeasons] = useState<Record<string, boolean>>({});
 
@@ -266,6 +272,12 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
                         className="episode-row"
                         key={String(episode.id)}
                         to={`/series/${item.slug}/watch?season=${season.number}&episode=${episode.number}`}
+                        onClick={(event) => {
+                          if (!user) {
+                            event.preventDefault();
+                            openAuth('login', `/series/${item.slug}/watch?season=${season.number}&episode=${episode.number}`);
+                          }
+                        }}
                       >
                         <img src={mediaUrl(episode.thumbnail, item.poster)} alt="" />
                         <span className="episode-number">{String(episode.number).padStart(2, '0')}</span>
@@ -292,6 +304,7 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
 export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
   const { slug = '' } = useParams();
   const navigate = useNavigate();
+  const { user, openAuth } = useAuth();
   const [item, setItem] = useState<MediaItem | null>(null);
   const [related, setRelated] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -316,6 +329,10 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
 
   if (loading) return <div className="container page-loading"><div className="skeleton skeleton-detail" /></div>;
     if (error || !item) return <div className="container page-state"><ErrorState onRetry={() => window.location.reload()} /></div>;
+  const startWatching = (path: string) => {
+    if (user) navigate(path);
+    else openAuth('login', path);
+  };
   const firstEpisode = kind === 'series' ? [...(item.seasons?.[0]?.episodes ?? [])].sort((left, right) => left.number - right.number)[0] : undefined;
   const firstSeason = item.seasons?.[0];
   const watchPath = firstEpisode && firstSeason
@@ -346,8 +363,8 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
                 <p>{item.synopsis || item.description || 'No review available.'}</p>
               </div>
               <div className="button-row">
-                <Link className="button button--primary" to={kind === 'movie' ? `/movies/${item.slug}/watch` : watchPath}><Play size={17} fill="currentColor" /> {kind === 'movie' ? 'Watch movie' : 'Start watching'}</Link>
-                <DownloadAction links={item.downloadLinks} title={item.title} />
+                <button className="button button--primary" type="button" onClick={() => startWatching(kind === 'movie' ? `/movies/${item.slug}/watch` : watchPath)}><Play size={17} fill="currentColor" /> {kind === 'movie' ? 'Watch movie' : 'Start watching'}</button>
+                <DownloadAction links={item.downloadLinks} title={item.title} canDownload={Boolean(user)} onRequireAuth={() => openAuth('login', kind === 'movie' ? `/movies/${item.slug}/watch` : watchPath)} />
                 <button className="button button--icon" aria-label="Share title"><Share2 size={17} /></button>
               </div>
             </div>
@@ -365,6 +382,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
 
 export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const { slug = '' } = useParams();
+  const { user, openAuth } = useAuth();
   const [searchParams] = useSearchParams();
   const selectedSeasonNumber = Number(searchParams.get('season'));
   const selectedEpisodeNumber = Number(searchParams.get('episode'));
@@ -372,6 +390,10 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const [sourceIndex, setSourceIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !user) openAuth('login', `${window.location.pathname}${window.location.search}`);
+  }, [loading, user, openAuth]);
 
   useEffect(() => {
     let mounted = true;
@@ -411,7 +433,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
         {sources.length > 1 && <div className="player-sources" aria-label="Video sources">{sources.map((_, index) => <button key={index} className={index === sourceIndex ? 'player-source player-source--active' : 'player-source'} onClick={() => setSourceIndex(index)}>Source {index + 1}</button>)}</div>}
         <div className="watch-heading">
           <div><span className="eyebrow">Now watching</span><h1>{currentTitle}</h1></div>
-          <DownloadAction links={downloadLinks} title={currentTitle} />
+          <DownloadAction links={downloadLinks} title={currentTitle} canDownload={Boolean(user)} onRequireAuth={() => openAuth('login', `${window.location.pathname}${window.location.search}`)} />
         </div>
       </section>
       <section className="container watch-lower"><div className="watch-note"><Users size={18} /><div><b>Make it a Yangon TV night.</b><p>{sources.length ? 'Choose the video controls above to start playback.' : 'Playback will appear when the backend provides a streaming URL.'}</p></div></div></section>

@@ -1,0 +1,2 @@
+- [x] Add public website authentication with a reusable Login/Sign Up page and popup
+- [x] Keep Movie/Series catalog and review pages public, but require authentication before entering the player
