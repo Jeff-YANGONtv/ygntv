@@ -2,7 +2,9 @@ import axios from 'axios';
 import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvNotificationFeed, TvProfileData, UserNotification } from './types';
 import { publicMediaSlug } from './paths';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
+const remoteApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
+const isVercelWebsite = typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app');
+const apiBaseUrl = isVercelWebsite ? '/api' : remoteApiBaseUrl;
 export const mediaBaseUrl = import.meta.env.VITE_MEDIA_BASE_URL || 'https://khaki-yak-457838.hostingersite.com';
 
 export const api = axios.create({
