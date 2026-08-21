@@ -169,3 +169,5 @@
 - [x] Rename the Review tab content from Synopsis to Review and show rating, release year, genre, and Yangon TV Production Unit credit beneath each movie title
 - [x] Add a signed-in-only header notification bell backed by live user-specific notifications, unread counts, and read-state APIs
 - [x] Replace opaque public content slugs with clean human-readable URLs while preserving existing shared links where feasible
+- [x] Document the verified Admin Bot workflow for creating a series and repeatedly adding seasons and episodes
+- [x] Render Facebook, TikTok, and Telegram using their official brand icons in the live social-link UI

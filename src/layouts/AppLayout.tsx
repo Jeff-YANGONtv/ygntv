@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Bell, CheckCheck, Clapperboard, Crown, Facebook, Film, Home, Info, Mail, Menu, Music2, Newspaper, Send, UserRound, X } from 'lucide-react';
+import { Bell, CheckCheck, Clapperboard, Crown, Film, Home, Info, Mail, Menu, Newspaper, Send, UserRound, X } from 'lucide-react';
+import { FaFacebookF, FaTelegram, FaTiktok } from 'react-icons/fa6';
 import { Logo } from '../components/ui/Primitives';
 import { getSocials, getTvNotifications, markAllTvNotificationsRead, markTvNotificationRead } from '../lib/api';
 import { AuthDialog, useAuth } from '../lib/auth';
@@ -51,7 +52,7 @@ export function AppLayout() {
         <div className="header-actions">{user && <NotificationBell />}</div>
       </div>
     </header>
-    {menuOpen && <><button className="drawer-backdrop" type="button" aria-label="Close navigation menu" onClick={() => setMenuOpen(false)} /><aside className="mobile-drawer" aria-label="Website menu"><div className="mobile-drawer__top"><span className="profile-card-label">Welcome To Yangon TV</span><button className="icon-button" type="button" onClick={() => setMenuOpen(false)} aria-label="Close navigation menu"><X size={20} /></button></div><nav className="mobile-drawer__nav"><NavLink to={user ? '/profile' : '/auth'} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__account mobile-drawer__link--active' : 'mobile-drawer__link mobile-drawer__account'}><UserRound size={18} />{accountLabel}</NavLink>{navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__link--active' : 'mobile-drawer__link'}><Icon size={18} />{label}</NavLink>)}</nav>{drawerSocials.length > 0 && <div className="mobile-drawer__socials"><span className="profile-card-label">Follow Yangon TV</span>{drawerSocials.map((social) => { const Icon = socialIcon(social); return <a className="mobile-drawer__social" href={social.url} key={social.id} target="_blank" rel="noopener noreferrer"><Icon size={17} /><span>{social.name}</span></a>; })}</div>}</aside></>}
+    {menuOpen && <><button className="drawer-backdrop" type="button" aria-label="Close navigation menu" onClick={() => setMenuOpen(false)} /><aside className="mobile-drawer" aria-label="Website menu"><div className="mobile-drawer__top"><span className="profile-card-label">Welcome To Yangon TV</span><button className="icon-button" type="button" onClick={() => setMenuOpen(false)} aria-label="Close navigation menu"><X size={20} /></button></div><nav className="mobile-drawer__nav"><NavLink to={user ? '/profile' : '/auth'} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__account mobile-drawer__link--active' : 'mobile-drawer__link mobile-drawer__account'}><UserRound size={18} />{accountLabel}</NavLink>{navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__link--active' : 'mobile-drawer__link'}><Icon size={18} />{label}</NavLink>)}</nav>{drawerSocials.length > 0 && <div className="mobile-drawer__socials"><span className="profile-card-label">Follow Yangon TV</span>{drawerSocials.map((social) => { const Icon = socialIcon(social); return <a className="mobile-drawer__social" href={social.url} key={social.id} target="_blank" rel="noopener noreferrer"><Icon size={17} className={`mobile-drawer__social-icon mobile-drawer__social-icon--${socialIconName(social)}`} /><span>{social.name}</span></a>; })}</div>}</aside></>}
     <main><Outlet /></main>
     <footer className={`site-footer ${isHomePage ? 'site-footer--minimal' : ''}`}>{!isHomePage && <div className="container footer-grid"><div><Logo /><p className="footer-copy">Stories worth staying up for. Discover movies, series, recaps, and the people behind them.</p></div><div><span className="footer-label">Explore</span><Link to="/movies">Movies</Link><Link to="/series">Series</Link><Link to="/blog">Blog</Link></div><div><span className="footer-label">Yangon TV</span><Link to="/about">About us</Link><Link to="/links">Useful links</Link><a href="mailto:hello@yangontv.com">Contact</a></div></div>}<div className="container footer-bottom"><span>© 2026 Yangon TV. Made for Myanmar audiences.</span><span>All content is for entertainment purposes.</span></div></footer>
     <AuthDialog />
@@ -60,10 +61,19 @@ export function AppLayout() {
 }
 
 function socialIcon(social: SocialLink) {
-  const value = `${social.name} ${social.icon} ${social.url}`.toLowerCase();
-  if (value.includes('facebook')) return Facebook;
-  if (value.includes('tiktok') || value.includes('music')) return Music2;
+  const name = socialIconName(social);
+  if (name === 'facebook') return FaFacebookF;
+  if (name === 'tiktok') return FaTiktok;
+  if (name === 'telegram') return FaTelegram;
   return Send;
+}
+
+function socialIconName(social: SocialLink): 'facebook' | 'tiktok' | 'telegram' | 'other' {
+  const value = `${social.name} ${social.icon} ${social.url}`.toLowerCase();
+  if (value.includes('facebook')) return 'facebook';
+  if (value.includes('tiktok') || value.includes('music')) return 'tiktok';
+  if (value.includes('telegram') || value.includes('t.me')) return 'telegram';
+  return 'other';
 }
 
 function NotificationBell() {
