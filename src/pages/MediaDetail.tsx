@@ -413,7 +413,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
         <img src={mediaUrl(item.backdrop, item.poster)} alt="" />
         <div className="detail-shade" />
         <div className="container detail-hero-content">
-          <button className="back-link" onClick={() => navigate(-1)}><ArrowLeft size={15} /> Back</button>
+          <button className="back-link detail-back-button" type="button" aria-label="Go back" onClick={() => navigate(-1)}><ArrowLeft size={16} /> <span>Back</span></button>
           <div className="detail-layout">
             <img className="detail-poster" src={mediaUrl(item.poster)} alt={`${item.title} poster`} />
             <div className="detail-copy">
@@ -491,7 +491,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   return (
     <div className="page page-watch">
       <section className="container watch-top">
-        <Link className="back-link" to={`/${kind === 'movie' ? 'movies' : 'series'}/${slug}`}><ArrowLeft size={15} /> Back to details</Link>
+        <Link className="back-link watch-back-link" to={`/${kind === 'movie' ? 'movies' : 'series'}/${slug}`}><ArrowLeft size={16} /> <span>Back to details</span></Link>
           <div className="player-shell">
           <VideoPlayer source={currentSource} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} />
           </div>
