@@ -114,7 +114,7 @@ export function useAuth() {
 export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: AuthMode; redirectTo?: string }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, openAuth, setSession } = useAuth();
+  const { user, openAuth, closeAuth, setSession } = useAuth();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -123,6 +123,7 @@ export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: 
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     if (user && location.pathname === '/auth') navigate(redirectTo || '/', { replace: true });
@@ -136,6 +137,7 @@ export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: 
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError('');
+    setSuccess('');
     if (mode === 'register' && password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
@@ -147,7 +149,11 @@ export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: 
       const nextUser = extractUser(response.data);
       if (!nextToken) throw new Error('The server did not return a login session.');
       setSession(nextToken, nextUser);
-      navigate(redirectTo || '/', { replace: true });
+      setSuccess(mode === 'register' ? 'Account created successfully.' : 'Signed in successfully.');
+      window.setTimeout(() => {
+        closeAuth();
+        navigate(redirectTo || '/', { replace: true });
+      }, 900);
     } catch (cause) {
       if (axios.isAxiosError(cause)) {
         const data = cause.response?.data as { message?: string; errors?: Record<string, string[]> } | undefined;
@@ -168,7 +174,8 @@ export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: 
       <label><span>Password</span><div className="auth-input"><LockKeyhole size={17} /><input type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} required minLength={8} placeholder="At least 8 characters" /><button type="button" className="auth-input-action" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label>
       {mode === 'register' && <label><span>Confirm password</span><div className="auth-input"><LockKeyhole size={17} /><input type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" required minLength={8} placeholder="Repeat your password" /></div></label>}
       {error && <div className="auth-error" role="alert">{error}</div>}
-      <button className="button button--primary auth-submit" type="submit" disabled={submitting}>{submitting ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'} <ArrowRight size={17} /></button>
+      {success && <div className="auth-success" role="status"><CheckCircle2 size={18} /><div><strong>{success}</strong><span>Redirecting you now…</span></div></div>}
+      <button className="button button--primary auth-submit" type="submit" disabled={submitting || Boolean(success)}>{submitting ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'} <ArrowRight size={17} /></button>
     </form>
     <p className="auth-switch">{mode === 'login' ? 'New to Yangon TV?' : 'Already have an account?'} <button type="button" onClick={() => { const next = mode === 'login' ? 'register' : 'login'; switchMode(next); openAuth(next, redirectTo); }}>{mode === 'login' ? 'Sign up' : 'Sign in'}</button></p>
   </div>;
