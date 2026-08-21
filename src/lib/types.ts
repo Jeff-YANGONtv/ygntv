@@ -98,6 +98,17 @@ export interface PaymentOrder {
   created_at?: string | null;
 }
 
+export interface PremiumPlan {
+  id: number | string;
+  key?: string;
+  name?: string;
+  label?: string;
+  price_ks?: number;
+  duration_days?: number;
+  features?: string[];
+  is_active?: boolean;
+}
+
 export interface ApiPage<T> {
   data: T[];
   currentPage: number;

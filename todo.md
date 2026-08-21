@@ -124,3 +124,6 @@
 - [x] Build and verify the authenticated Profile display in production
 - [x] Remove the notification bell, blog notification polling, and notification popover while keeping Blog navigation intact
 - [x] Build and verify the simplified website header in production
+- [x] Replace the main menu entries with User Profiles, About Us, Links, and Premium Subscription
+- [x] Move the menu icon to the right side of the header and keep the header navigation sticky
+- [x] Build and verify the simplified sticky menu in production
