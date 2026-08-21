@@ -173,3 +173,5 @@
 - [x] Render Facebook, TikTok, and Telegram using their official brand icons in the live social-link UI
 - [x] Keep the primary Header Navigation sticky and visibly layered above page content while scrolling
 - [x] Diagnose and repair the production sign-in failure that currently shows a generic unavailable message
+- [x] Simplify and repair the Admin Bot Series workflow for adding a series with multiple seasons and episodes
+- [ ] Show exactly one Account Name and one Account Number for each Premium payment method, with no duplicate account-number prompt or field

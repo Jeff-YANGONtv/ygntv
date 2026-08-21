@@ -167,6 +167,7 @@ export interface PremiumPlan {
 export interface PaymentAccount {
   id: number | string;
   name: string;
+  account_name?: string | null;
   description?: string | null;
   phone_number?: string | null;
   account_number?: string | null;
