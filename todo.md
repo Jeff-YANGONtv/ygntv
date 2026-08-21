@@ -172,3 +172,4 @@
 - [x] Document the verified Admin Bot workflow for creating a series and repeatedly adding seasons and episodes
 - [x] Render Facebook, TikTok, and Telegram using their official brand icons in the live social-link UI
 - [x] Keep the primary Header Navigation sticky and visibly layered above page content while scrolling
+- [x] Diagnose and repair the production sign-in failure that currently shows a generic unavailable message
