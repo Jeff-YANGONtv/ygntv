@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, ExternalLink, Facebook, Mail, Music2, Send } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BriefcaseBusiness, ExternalLink, Facebook, Handshake, Mail, Megaphone, Music2, Send, UsersRound } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { getBlogBySlug, getBlogs, getSocials, mediaUrl } from '../lib/api';
 import type { BlogPost, SocialLink } from '../lib/types';
@@ -90,7 +90,15 @@ export function LinksPage() {
 }
 
 export function ContactPage() {
-  return <div className="page page-contact"><section className="container contact-page"><span className="eyebrow">Yangon TV support</span><h1>Contact<br /><em>Us.</em></h1><p>For account support, feedback, or Yangon TV questions, contact our team directly by email.</p><a className="contact-email" href="mailto:hello@yangontv.com"><span className="contact-email__icon"><Mail size={22} /></span><span><small>Email Yangon TV</small><b>hello@yangontv.com</b></span><ArrowRight size={18} /></a></section></div>;
+  const [audience, setAudience] = useState('');
+  const audiences = [
+    { label: 'Ads Partner/Client', icon: Megaphone },
+    { label: 'Subscribers', icon: UsersRound },
+    { label: 'Job Applier', icon: BriefcaseBusiness },
+    { label: 'Collaborative Partner', icon: Handshake },
+  ];
+  const emailHref = `mailto:hello@yangontv.com?subject=${encodeURIComponent(audience ? `Yangon TV contact — ${audience}` : 'Yangon TV contact')}`;
+  return <div className="page page-contact"><section className="container contact-page"><span className="eyebrow">Yangon TV contact</span><h1>Who Are<br /><em>U?</em></h1><p>Choose the option that best describes you so Yangon TV can understand why you are getting in touch.</p><div className="contact-audience-grid">{audiences.map(({ label, icon: Icon }) => <button className={audience === label ? 'contact-audience-card contact-audience-card--selected' : 'contact-audience-card'} key={label} type="button" onClick={() => setAudience(label)}><span><Icon size={23} /></span><b>{label}</b><ArrowRight size={17} /></button>)}</div>{audience && <a className="contact-email" href={emailHref}><span className="contact-email__icon"><Mail size={22} /></span><span><small>Contact Yangon TV as</small><b>{audience}</b></span><ArrowRight size={18} /></a>}</section></div>;
 }
 
 export function AboutPage() {
