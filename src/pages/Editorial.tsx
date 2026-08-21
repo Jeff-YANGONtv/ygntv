@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, BriefcaseBusiness, ExternalLink, Facebook, Handshake, Mail, Megaphone, Music2, Send, UsersRound } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BriefcaseBusiness, ExternalLink, Facebook, Handshake, Megaphone, Music2, PhoneCall, Send, UsersRound, X } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { getBlogBySlug, getBlogs, getSocials, mediaUrl } from '../lib/api';
-import type { BlogPost, SocialLink } from '../lib/types';
+import { getBlogBySlug, getBlogs, getContactAudiences, getSocials, mediaUrl } from '../lib/api';
+import type { BlogPost, ContactAudienceChannel, SocialLink } from '../lib/types';
 import { EmptyState, ErrorState, SearchField, SectionHeading, SkeletonGrid } from '../components/ui/Primitives';
 import { BlogInteractions } from '../components/BlogInteractions';
 
@@ -90,15 +90,30 @@ export function LinksPage() {
 }
 
 export function ContactPage() {
-  const [audience, setAudience] = useState('');
+  const [channels, setChannels] = useState<ContactAudienceChannel[]>([]);
+  const [selectedAudience, setSelectedAudience] = useState<ContactAudienceChannel | null>(null);
   const audiences = [
-    { label: 'Ads Partner/Client', icon: Megaphone },
-    { label: 'Subscribers', icon: UsersRound },
-    { label: 'Job Applier', icon: BriefcaseBusiness },
-    { label: 'Collaborative Partner', icon: Handshake },
+    { key: 'ads_partner_client', label: 'Ads Partner/Client', icon: Megaphone },
+    { key: 'subscribers', label: 'Subscribers', icon: UsersRound },
+    { key: 'job_applier', label: 'Job Applier', icon: BriefcaseBusiness },
+    { key: 'collaborative_partner', label: 'Collaborative Partner', icon: Handshake },
   ];
-  const emailHref = `mailto:hello@yangontv.com?subject=${encodeURIComponent(audience ? `Yangon TV contact — ${audience}` : 'Yangon TV contact')}`;
-  return <div className="page page-contact"><section className="container contact-page"><span className="eyebrow">Yangon TV contact</span><h1>Who Are<br /><em>U?</em></h1><p>Choose the option that best describes you so Yangon TV can understand why you are getting in touch.</p><div className="contact-audience-grid">{audiences.map(({ label, icon: Icon }) => <button className={audience === label ? 'contact-audience-card contact-audience-card--selected' : 'contact-audience-card'} key={label} type="button" onClick={() => setAudience(label)}><span><Icon size={23} /></span><b>{label}</b><ArrowRight size={17} /></button>)}</div>{audience && <a className="contact-email" href={emailHref}><span className="contact-email__icon"><Mail size={22} /></span><span><small>Contact Yangon TV as</small><b>{audience}</b></span><ArrowRight size={18} /></a>}</section></div>;
+  useEffect(() => {
+    let active = true;
+    getContactAudiences().then((items) => { if (active) setChannels(items); }).catch(() => { if (active) setChannels([]); });
+    return () => { active = false; };
+  }, []);
+  const channelFor = (key: string, fallbackLabel: string): ContactAudienceChannel => channels.find((channel) => channel.key === key) || { key, label: fallbackLabel, telegram_url: null, viber_url: null };
+  return <div className="page page-contact"><section className="container contact-page"><span className="eyebrow">Yangon TV contact</span><h1>Who Are<br /><em>U?</em></h1><p>Choose the option that best describes you so Yangon TV can direct you to the right admin contact.</p><div className="contact-audience-grid">{audiences.map(({ key, label, icon: Icon }) => <button className={selectedAudience?.key === key ? 'contact-audience-card contact-audience-card--selected' : 'contact-audience-card'} key={key} type="button" onClick={() => setSelectedAudience(channelFor(key, label))}><span><Icon size={23} /></span><b>{label}</b><ArrowRight size={17} /></button>)}</div></section>{selectedAudience && <ContactAudienceDialog audience={selectedAudience} onClose={() => setSelectedAudience(null)} />}</div>;
+}
+
+function ContactAudienceDialog({ audience, onClose }: { audience: ContactAudienceChannel; onClose: () => void }) {
+  return <div className="contact-dialog-backdrop" role="presentation" onMouseDown={onClose}><section className="contact-dialog" role="dialog" aria-modal="true" aria-labelledby="contact-dialog-title" onMouseDown={(event) => event.stopPropagation()}><button className="contact-dialog__close" type="button" onClick={onClose} aria-label="Close contact options"><X size={19} /></button><span className="eyebrow">{audience.label}</span><h2 id="contact-dialog-title">Thanks For<br /><em>Choosing Us.</em></h2><p>Please Contact Admin Via</p><div className="contact-dialog__actions"><ContactChannelButton label="Telegram" href={audience.telegram_url} icon={Send} /><ContactChannelButton label="Viber" href={audience.viber_url} icon={PhoneCall} /></div><small>Contact details are managed from the Yangon TV panel.</small></section></div>;
+}
+
+function ContactChannelButton({ label, href, icon: Icon }: { label: string; href?: string | null; icon: typeof Send }) {
+  if (href) return <a className="contact-channel-button" href={href} target="_blank" rel="noopener noreferrer"><Icon size={19} /><span>{label}</span><ArrowRight size={16} /></a>;
+  return <span className="contact-channel-button contact-channel-button--disabled" aria-disabled="true"><Icon size={19} /><span>{label}</span><small>Not configured</small></span>;
 }
 
 export function AboutPage() {

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiPage, BlogInteractions, BlogPost, BlogReactionType, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvProfileData } from './types';
+import type { ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvProfileData } from './types';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
 export const mediaBaseUrl = import.meta.env.VITE_MEDIA_BASE_URL || 'https://khaki-yak-457838.hostingersite.com';
@@ -21,6 +21,12 @@ function unwrap<T>(payload: unknown): T {
     return (payload as { data: T }).data;
   }
   return payload as T;
+}
+
+export async function getContactAudiences(): Promise<ContactAudienceChannel[]> {
+  const response = await api.get('/public/contact-audiences');
+  const data = unwrap<unknown>(response.data);
+  return Array.isArray(data) ? data as ContactAudienceChannel[] : [];
 }
 
 function stringArray(value: unknown): string[] {

@@ -148,6 +148,13 @@ export interface PaymentAccount {
   is_active?: boolean;
 }
 
+export interface ContactAudienceChannel {
+  key: string;
+  label: string;
+  telegram_url?: string | null;
+  viber_url?: string | null;
+}
+
 export interface ApiPage<T> {
   data: T[];
   currentPage: number;

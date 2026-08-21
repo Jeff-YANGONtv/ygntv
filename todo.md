@@ -154,3 +154,5 @@
 - [x] Remove the drawer Links tab and show Facebook, TikTok, and Telegram beneath About Us using the existing live Social Links API
 - [x] Replace the drawer Links position with a Contact Us page entry
 - [x] Add a Contact Us “Who Are U?” first step with Ads Partner/Client, Subscribers, Job Applier, and Collaborative Partner options
+- [x] Add panel-controlled Telegram and Viber destinations for each of the four Contact Us audiences
+- [x] Show a “Thanks For Choosing Us” popup with Telegram and Viber icon buttons after an audience is selected
