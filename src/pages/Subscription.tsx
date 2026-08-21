@@ -31,7 +31,7 @@ export function SubscriptionPage() {
   }, []);
 
   return <section className="subscription-page container">
-    <div className="subscription-heading"><span className="eyebrow">Yangon TV membership</span><h1>Premium <em>Subscription</em></h1><p>Choose the membership plan currently available from Yangon TV.</p></div>
+    <div className="subscription-heading"><span className="eyebrow">Yangon TV membership</span><h1><em>Premium</em></h1><p>Choose the membership plan currently available from Yangon TV.</p></div>
     {loading && <div className="profile-loading" role="status"><LoaderCircle className="spin" size={18} /> Loading premium plans…</div>}
     {error && <div className="profile-alert" role="alert">{error}</div>}
     {!loading && !error && plans.length === 0 && <div className="profile-empty">No premium plans are available right now.</div>}

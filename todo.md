@@ -127,3 +127,8 @@
 - [x] Replace the main menu entries with User Profiles, About Us, Links, and Premium Subscription
 - [x] Move the menu icon to the right side of the header and keep the header navigation sticky
 - [x] Build and verify the simplified sticky menu in production
+- [x] Show Sign In / Sign Up in the menu before authentication and user-profile access after authentication
+- [x] Rename the menu and subscription-page label from Premium Subscription to Premium
+- [x] Set the menu to Sign In / Sign Up, Subscription, Links, and About Us only
+- [x] Set the bottom navigation to Home, Movies, Series, Blog, and About Us
+- [x] Build and verify the final menu and bottom navigation labels in production

@@ -1,21 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Clapperboard, Crown, Film, Home, Info, Link2, Menu, Search, UserRound, X } from 'lucide-react';
+import { Clapperboard, Crown, Film, Home, Info, Link2, Menu, Newspaper, Search, UserRound, X } from 'lucide-react';
 import { Logo } from '../components/ui/Primitives';
 import { AuthDialog, useAuth } from '../lib/auth';
 
 const navigation = [
-  { label: 'User Profiles', to: '/profile', icon: UserRound },
-  { label: 'About Us', to: '/about', icon: Info },
+  { label: 'Premium', to: '/subscription', icon: Crown },
   { label: 'Links', to: '/links', icon: Link2 },
-  { label: 'Premium Subscription', to: '/subscription', icon: Crown },
+  { label: 'About Us', to: '/about', icon: Info },
 ];
 
 const mobileNavigation = [
   { label: 'Home', to: '/', icon: Home },
   { label: 'Movies', to: '/movies', icon: Film },
   { label: 'Series', to: '/series', icon: Clapperboard },
-  { label: 'Links', to: '/links', icon: Link2 },
+  { label: 'Blog', to: '/blog', icon: Newspaper },
   { label: 'About Us', to: '/about', icon: Info },
 ];
 
@@ -36,7 +35,8 @@ export function AppLayout() {
       <div className="container header-inner">
         <Logo />
         <nav className={`main-nav ${menuOpen ? 'main-nav--open' : ''}`} aria-label="Primary navigation">
-          {navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={label === 'User Profiles' && !user ? '/auth' : to} className={({ isActive }) => isActive ? 'nav-link nav-link--active' : 'nav-link'}><Icon size={16} />{label}</NavLink>)}
+          <NavLink to={user ? '/profile' : '/auth'} className={({ isActive }) => isActive ? 'nav-link nav-link--active' : 'nav-link'}><UserRound size={16} />{user ? 'User Profile' : 'Sign In / Sign Up'}</NavLink>
+          {navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'nav-link nav-link--active' : 'nav-link'}><Icon size={16} />{label}</NavLink>)}
         </nav>
         <div className="header-actions"><Link to="/movies" className="icon-button" aria-label="Search movies"><Search size={19} /></Link><button className="icon-button menu-toggle" onClick={() => setMenuOpen((open) => !open)} aria-label="Toggle navigation menu" aria-expanded={menuOpen}>{menuOpen ? <X size={21} /> : <Menu size={21} />}</button></div>
       </div>
