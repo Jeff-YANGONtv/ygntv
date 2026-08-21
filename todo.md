@@ -119,3 +119,6 @@
 - [x] Reproduce the missing Sign up success popup or automatic redirect
 - [x] Make registration success feedback and redirect reliable after the Laravel response
 - [x] Build and verify the corrected Sign up completion flow in production
+- [x] Audit why authenticated Profile data may not be visibly rendering for username, badge, premium status, and purchase history
+- [x] Correct live profile normalization and loading/empty/error states without mock values
+- [x] Build and verify the authenticated Profile display in production
