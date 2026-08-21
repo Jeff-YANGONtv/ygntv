@@ -132,7 +132,11 @@ export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: 
   function switchMode(next: AuthMode) {
     setMode(next);
     setError('');
+    setSuccess('');
+    if (next === 'login') setConfirmPassword('');
   }
+
+  const passwordsMismatch = mode === 'register' && confirmPassword.length > 0 && password !== confirmPassword;
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -172,7 +176,7 @@ export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: 
       {mode === 'register' && <label><span>Display name</span><div className="auth-input"><UserRound size={17} /><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" required placeholder="Your name" /></div></label>}
       <label><span>Email address</span><div className="auth-input"><Mail size={17} /><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required placeholder="you@example.com" /></div></label>
       <label><span>Password</span><div className="auth-input"><LockKeyhole size={17} /><input type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} required minLength={8} placeholder="At least 8 characters" /><button type="button" className="auth-input-action" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label>
-      {mode === 'register' && <label><span>Confirm password</span><div className="auth-input"><LockKeyhole size={17} /><input type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" required minLength={8} placeholder="Repeat your password" /></div></label>}
+      {mode === 'register' && <label><span>Confirm password</span><div className={passwordsMismatch ? 'auth-input auth-input--invalid' : 'auth-input'}><LockKeyhole size={17} /><input type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" required minLength={8} aria-invalid={passwordsMismatch} placeholder="Repeat your password" /></div>{passwordsMismatch && <small className="auth-field-error">Passwords do not match.</small>}</label>}
       {error && <div className="auth-error" role="alert">{error}</div>}
       {success && <div className="auth-success" role="status"><CheckCircle2 size={18} /><div><strong>{success}</strong><span>Redirecting you now…</span></div></div>}
       <button className="button button--primary auth-submit" type="submit" disabled={submitting || Boolean(success)}>{submitting ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'} <ArrowRight size={17} /></button>

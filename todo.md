@@ -109,3 +109,6 @@
 - [x] Verify protected player access unlocks immediately without a refresh
 - [x] Show a clear success popup after successful Sign up and Sign in before redirecting
 - [x] Keep the new auth session active while success feedback and redirect complete
+- [x] Audit the current Sign up password and Confirm password validation behavior
+- [x] Harden local mismatch validation and confirm the Laravel password_confirmation payload
+- [x] Build and verify the corrected Sign up validation in production
