@@ -35,6 +35,18 @@ function stringArray(value: unknown): string[] {
   return [value.trim()];
 }
 
+function castNames(value: unknown): string[] {
+  if (!Array.isArray(value)) return stringArray(value);
+  return value.map((entry) => {
+    if (typeof entry === 'string') return entry.trim();
+    if (entry && typeof entry === 'object') {
+      const item = entry as Record<string, unknown>;
+      return String(item.name ?? item.original_name ?? item.character ?? '').trim();
+    }
+    return '';
+  }).filter(Boolean);
+}
+
 function numericValue(value: unknown, fallback: number): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -53,6 +65,9 @@ function normalizeEpisode(raw: unknown, index: number): Episode {
     review: source.review ? String(source.review) : undefined,
     streamingLinks: stringArray(source.streamingLinks ?? source.streaming_links ?? source.stream_url ?? source.stream),
     downloadLinks: stringArray(source.downloadLinks ?? source.download_links ?? source.download_url ?? source.download),
+    telegramPostUrl: typeof (source.telegramPostUrl ?? source.telegram_post_url) === 'string'
+      ? String(source.telegramPostUrl ?? source.telegram_post_url).trim() || undefined
+      : undefined,
     available: source.available == null ? true : Boolean(source.available),
   };
 }
@@ -82,9 +97,13 @@ export function normalizeMediaItem(raw: unknown, fallbackKind: 'movie' | 'series
   const kind = source.kind === 'series' || source.kind === 'movie' ? source.kind : fallbackKind;
   const rating = Number(source.rating ?? source.vote_average ?? 0);
   const genres = stringArray(source.genres);
-  const casts = stringArray(source.casts ?? source.cast);
+  const credits = source.credits && typeof source.credits === 'object' ? source.credits as Record<string, unknown> : undefined;
+  const casts = castNames(source.casts ?? source.cast ?? source.cast_members ?? credits?.cast);
   const streamingLinks = stringArray(source.streamingLinks ?? source.streaming_links ?? source.stream_url ?? source.stream);
   const downloadLinks = stringArray(source.downloadLinks ?? source.download_links ?? source.download_url ?? source.download);
+  const telegramPostUrl = typeof (source.telegramPostUrl ?? source.telegram_post_url) === 'string'
+    ? String(source.telegramPostUrl ?? source.telegram_post_url).trim() || undefined
+    : undefined;
   const rawSeasons = Array.isArray(source.seasons) ? source.seasons : [];
   const seasons = rawSeasons.map((season, seasonIndex) => normalizeSeason(season, seasonIndex));
   const seasonFallback = seasons.length || (Array.isArray(source.seasons) ? 0 : numericValue(source.seasons, 0));
@@ -109,6 +128,7 @@ export function normalizeMediaItem(raw: unknown, fallbackKind: 'movie' | 'series
     backdrop,
     streamingLinks,
     downloadLinks,
+    telegramPostUrl,
     featured: Boolean(source.featured),
     badge: source.badge ? String(source.badge) : undefined,
     seasons: seasons.length ? seasons : undefined,

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, CalendarDays, ChevronDown, Download, Play, Share2, Star, Tags, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ChevronDown, Download, Play, Send, Star, Tags, Users } from 'lucide-react';
 import Hls from 'hls.js';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
@@ -301,6 +301,75 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
   );
 }
 
+type ReviewTab = 'synopsis' | 'watch' | 'download';
+
+function ReviewTabs({
+  item,
+  kind,
+  onDirectAction,
+}: {
+  item: MediaItem;
+  kind: 'movie' | 'series';
+  onDirectAction: () => void;
+}) {
+  const [activeTab, setActiveTab] = useState<ReviewTab>('synopsis');
+  const telegramPostUrl = item.telegramPostUrl;
+  const title = kind === 'movie' ? 'movie' : 'series';
+  const directLabel = activeTab === 'watch' ? 'Direct Watch' : 'Direct Download';
+  const telegramLabel = activeTab === 'watch' ? 'Watch Via Telegram' : 'Download Via Telegram';
+
+  return (
+    <section className="review-tabs" aria-label={`${item.title} review actions`}>
+      <div className="review-tabs__list" role="tablist" aria-label="Review sections">
+        {([
+          ['synopsis', 'Synopsis'],
+          ['watch', 'Watch'],
+          ['download', 'Download'],
+        ] as const).map(([tab, label]) => (
+          <button
+            className={activeTab === tab ? 'review-tab review-tab--active' : 'review-tab'}
+            type="button"
+            key={tab}
+            role="tab"
+            aria-selected={activeTab === tab}
+            aria-controls={`review-panel-${tab}`}
+            onClick={() => setActiveTab(tab)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'synopsis' ? (
+        <div className="review-tabs__panel" id="review-panel-synopsis" role="tabpanel">
+          <span className="eyebrow">Synopsis</span>
+          <p>{item.synopsis || item.description || 'No synopsis is available for this title yet.'}</p>
+        </div>
+      ) : (
+        <div className="review-tabs__actions" id={`review-panel-${activeTab}`} role="tabpanel">
+          <button className="review-action review-action--direct" type="button" onClick={onDirectAction}>
+            <span className="review-action__mark" aria-hidden="true">YT</span>
+            <span><b>{directLabel}</b><small>Open in Yangon TV player</small></span>
+            {activeTab === 'watch' ? <Play size={18} fill="currentColor" /> : <Download size={18} />}
+          </button>
+          {telegramPostUrl ? (
+            <a className="review-action review-action--telegram" href={telegramPostUrl} target="_blank" rel="noreferrer">
+              <Send size={20} fill="currentColor" />
+              <span><b>{telegramLabel}</b><small>Open the official channel post</small></span>
+            </a>
+          ) : (
+            <div className="review-action review-action--unavailable" aria-disabled="true">
+              <Send size={20} />
+              <span><b>{telegramLabel}</b><small>The Telegram post link has not been added yet.</small></span>
+            </div>
+          )}
+        </div>
+      )}
+      <p className="review-tabs__note">{activeTab === 'synopsis' ? `Browse this ${title} publicly. Direct Watch and Direct Download require a Yangon TV account.` : 'Direct actions continue to the protected Yangon TV player.'}</p>
+    </section>
+  );
+}
+
 export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
   const { slug = '' } = useParams();
   const navigate = useNavigate();
@@ -358,15 +427,11 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
                 <span><CalendarDays size={14} /> Release year {item.year}</span>
                 <span><Tags size={14} /> {(item.genres || []).join(', ') || 'Genre unavailable'}</span>
               </div>
-              <div className="detail-review">
-                <span className="eyebrow">Review</span>
-                <p>{item.synopsis || item.description || 'No review available.'}</p>
-              </div>
-              <div className="button-row">
-                <button className="button button--primary" type="button" onClick={() => startWatching(kind === 'movie' ? `/movies/${item.slug}/watch` : watchPath)}><Play size={17} fill="currentColor" /> {kind === 'movie' ? 'Watch movie' : 'Start watching'}</button>
-                <DownloadAction links={item.downloadLinks} title={item.title} canDownload={Boolean(user)} onRequireAuth={() => openAuth('login', kind === 'movie' ? `/movies/${item.slug}/watch` : watchPath)} />
-                <button className="button button--icon" aria-label="Share title"><Share2 size={17} /></button>
-              </div>
+              <ReviewTabs
+                item={item}
+                kind={kind}
+                onDirectAction={() => startWatching(kind === 'movie' ? `/movies/${item.slug}/watch` : watchPath)}
+              />
             </div>
           </div>
         </div>

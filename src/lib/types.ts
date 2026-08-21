@@ -17,6 +17,7 @@ export interface MediaItem {
   backdrop: string;
   streamingLinks: string[];
   downloadLinks: string[];
+  telegramPostUrl?: string;
   featured?: boolean;
   badge?: string;
   seasons?: Season[];
@@ -33,6 +34,7 @@ export interface Episode {
   review?: string;
   streamingLinks: string[];
   downloadLinks: string[];
+  telegramPostUrl?: string;
   available?: boolean;
 }
 

@@ -4,3 +4,10 @@
 - [x] Delete the remaining Expo/EAS Mobile project record through the confirmed Expo dashboard operation after CLI deletion was blocked
 - [x] Design and implement a public Website auth page plus responsive Login/Sign Up popup
 - [x] Keep Movie/Series browsing and reviews public while gating player/watch/download entry behind authentication
+- [x] Add Review Synopsis, Watch, and Download tabs with Direct and Telegram actions
+- [x] Route Direct Watch and Direct Download through the authenticated Watch Page and protect Download below the player
+- [x] Align backend media serialization and validation for direct streaming/download links and Telegram post links
+- [x] Audit and correct the currently wrong Series posting workflow using the actual production bot handler; do not rely on guessed SERIES_ID/SEASON/EPISODE syntax
+- [x] Remove the hard-coded Season 1 Episode 1-only limit so a parent Series can accept repeatable Seasons and Episodes
+- [x] Audit the restored Hostinger Laravel production schema, controller, API route, and Telegram workflow before making series-management changes
+- [ ] Back up and validate the live Laravel deployment before reporting the repaired series and media-link flows
