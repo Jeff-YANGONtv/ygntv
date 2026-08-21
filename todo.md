@@ -171,3 +171,4 @@
 - [x] Replace opaque public content slugs with clean human-readable URLs while preserving existing shared links where feasible
 - [x] Document the verified Admin Bot workflow for creating a series and repeatedly adding seasons and episodes
 - [x] Render Facebook, TikTok, and Telegram using their official brand icons in the live social-link UI
+- [x] Keep the primary Header Navigation sticky and visibly layered above page content while scrolling
