@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Bell, CalendarDays, Clapperboard, Film, Home, Info, Link2, Menu, Newspaper, Search, X } from 'lucide-react';
+import { Bell, CalendarDays, Clapperboard, Film, Home, Info, Link2, Menu, Newspaper, Search, UserRound, X } from 'lucide-react';
 import { Logo } from '../components/ui/Primitives';
 import { getBlogs } from '../lib/api';
 import { AuthDialog, useAuth } from '../lib/auth';
@@ -21,7 +21,7 @@ export function AppLayout() {
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [latestBlog, setLatestBlog] = useState<BlogPost | null>(null);
   const [hasNewBlog, setHasNewBlog] = useState(false);
-  const { user, openAuth, signOut } = useAuth();
+  const { user } = useAuth();
   const isHomePage = location.pathname === '/';
 
   useEffect(() => {
@@ -81,8 +81,9 @@ export function AppLayout() {
         <Logo />
         <nav className={`main-nav ${menuOpen ? 'main-nav--open' : ''}`} aria-label="Primary navigation">
           {navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'nav-link nav-link--active' : 'nav-link'} end={to === '/'}><Icon size={16} />{label}</NavLink>)}
+          <NavLink to={user ? '/profile' : '/auth'} className={({ isActive }) => isActive ? 'nav-link nav-link--active nav-link--account' : 'nav-link nav-link--account'}><UserRound size={16} />{user ? 'User profile' : 'Sign in'}</NavLink>
         </nav>
-        <div className="header-actions"><Link to="/movies" className="icon-button" aria-label="Search movies"><Search size={19} /></Link><button className="icon-button notification-button" onClick={toggleNotice} aria-label={latestBlog ? 'Open blog notifications' : 'No new blog notifications'}><Bell size={19} />{hasNewBlog && <span />}</button>{user ? <button className="header-account" type="button" onClick={signOut}>Sign out</button> : <button className="header-account" type="button" onClick={() => openAuth('login')}>Sign in</button>}</div>
+        <div className="header-actions"><Link to="/movies" className="icon-button" aria-label="Search movies"><Search size={19} /></Link><button className="icon-button notification-button" onClick={toggleNotice} aria-label={latestBlog ? 'Open blog notifications' : 'No new blog notifications'}><Bell size={19} />{hasNewBlog && <span />}</button></div>
       </div>
     </header>
     {noticeOpen && latestBlog && <div className="notice-popover"><strong>New blog post</strong><p>{latestBlog.title}</p><Link className="text-link" to={latestBlog.slug ? `/blog/${latestBlog.slug}` : '/blog'} onClick={() => setNoticeOpen(false)}><CalendarDays size={14} /> Read the latest story</Link></div>}

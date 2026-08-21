@@ -70,6 +70,34 @@ export interface SocialLink {
   is_active?: boolean;
 }
 
+export interface TvEntitlement {
+  active: boolean;
+  plan_key: string | null;
+  plan_label: string | null;
+  valid_from: string | null;
+  valid_until: string | null;
+}
+
+export interface TvProfileData {
+  user: { id?: number | string; name?: string; email?: string; role?: string };
+  profile: { display_name?: string | null; avatar_url?: string | null; preferences?: Record<string, unknown> | null };
+  entitlement: TvEntitlement;
+}
+
+export interface PaymentOrder {
+  id: number | string;
+  reference?: string;
+  purpose?: string;
+  plan_key?: string | null;
+  amount_ks?: number;
+  status?: string;
+  upload_expires_at?: string | null;
+  receipt_uploaded_at?: string | null;
+  reviewed_at?: string | null;
+  review_note?: string | null;
+  created_at?: string | null;
+}
+
 export interface ApiPage<T> {
   data: T[];
   currentPage: number;

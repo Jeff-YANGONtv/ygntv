@@ -112,3 +112,7 @@
 - [x] Audit the current Sign up password and Confirm password validation behavior
 - [x] Harden local mismatch validation and confirm the Laravel password_confirmation payload
 - [x] Build and verify the corrected Sign up validation in production
+- [x] Audit the live auth user contract and available premium/purchase-history endpoints for Profile data
+- [x] Build the authenticated Profile page with username, badge, premium state, remaining term, purchase history, and Log Out
+- [x] Move Sign in/User profile access into the menu profile entry and remove account text from the notification area
+- [x] Build and verify responsive Profile navigation using live data only

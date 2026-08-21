@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiPage, BlogPost, Episode, MediaItem, Season, SocialLink } from './types';
+import type { ApiPage, BlogPost, Episode, MediaItem, PaymentOrder, Season, SocialLink, TvProfileData } from './types';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
 export const mediaBaseUrl = import.meta.env.VITE_MEDIA_BASE_URL || 'https://khaki-yak-457838.hostingersite.com';
@@ -201,4 +201,14 @@ export async function getSocials(): Promise<SocialLink[]> {
   const response = await api.get('/socials');
   const rows = unwrap<SocialLink[] | null>(response.data);
   return Array.isArray(rows) ? rows : [];
+}
+
+export async function getTvProfile(): Promise<TvProfileData> {
+  const response = await api.get('/tv/profile');
+  return unwrap<TvProfileData>(response.data);
+}
+
+export async function getPaymentOrders(): Promise<ApiPage<PaymentOrder>> {
+  const response = await api.get('/tv/payment-orders', { params: { page: 1 } });
+  return pageFrom<PaymentOrder>(response.data, 1);
 }
