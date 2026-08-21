@@ -94,6 +94,7 @@ export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -110,9 +111,13 @@ export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: 
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError('');
+    if (mode === 'register' && password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
     setSubmitting(true);
     try {
-      const response = await api.post(mode === 'login' ? '/login' : '/register', mode === 'login' ? { email, password } : { name, email, password });
+      const response = await api.post(mode === 'login' ? '/login' : '/register', mode === 'login' ? { email, password } : { name, email, password, password_confirmation: confirmPassword });
       const nextToken = extractToken(response.data);
       const nextUser = extractUser(response.data);
       if (!nextToken) throw new Error('The server did not return a login session.');
@@ -138,6 +143,7 @@ export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: 
       {mode === 'register' && <label><span>Display name</span><div className="auth-input"><UserRound size={17} /><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" required placeholder="Your name" /></div></label>}
       <label><span>Email address</span><div className="auth-input"><Mail size={17} /><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required placeholder="you@example.com" /></div></label>
       <label><span>Password</span><div className="auth-input"><LockKeyhole size={17} /><input type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} required minLength={8} placeholder="At least 8 characters" /><button type="button" className="auth-input-action" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label>
+      {mode === 'register' && <label><span>Confirm password</span><div className="auth-input"><LockKeyhole size={17} /><input type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" required minLength={8} placeholder="Repeat your password" /></div></label>}
       {error && <div className="auth-error" role="alert">{error}</div>}
       <button className="button button--primary auth-submit" type="submit" disabled={submitting}>{submitting ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'} <ArrowRight size={17} /></button>
     </form>

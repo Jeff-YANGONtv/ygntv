@@ -12,3 +12,93 @@
 - [x] Audit the restored Hostinger Laravel production schema, controller, API route, and Telegram workflow before making series-management changes
 - [x] Back up and validate the live Laravel deployment before reporting the repaired series and media-link flows
 - [x] Refine the Review and player Back controls with polished spacing, contrast, and mobile-safe touch targets
+- [x] Diagnose and repair the production Sign in / Sign up flow against the live Laravel auth API
+- [x] Verify authentication error handling, successful session persistence, and protected-player access after the fix
+
+- [x] Rename the public Review tab label from Synopsis to Review
+
+- [ ] Reconcile the production website checkpoint metadata after the deleted mobile project was selected by the checkpoint service
+
+- [ ] Remove stale temporary preview/debug artifacts from the website workspace after validation
+
+- [ ] Confirm the public website build and Vercel deployment after the auth repair
+
+- [ ] Run final production smoke tests for auth and player gating
+
+- [ ] Ensure no secrets are exposed in source or logs
+
+- [ ] Verify API CORS and auth token handling across browser and mobile clients
+
+- [ ] Add a user-facing auth failure troubleshooting note to the project documentation
+
+- [ ] Confirm the auth modal and auth page use consistent labels and behavior
+
+- [ ] Check that Sign Up validation messages are actionable
+
+- [ ] Check that Sign In invalid credentials show Laravel error message
+
+- [ ] Verify logout clears token and user storage
+
+- [ ] Verify direct /watch route remains protected
+
+- [ ] Verify Review page stays public while direct actions are gated
+
+- [ ] Verify Telegram post link actions remain unaffected by auth changes
+
+- [ ] Keep website, Hostinger backend, scheduler, and Telegram bots untouched except for required auth fix
+
+- [ ] Preserve the pre-auth-fix backup and record final validation status
+
+- [ ] Update the final report with exact commit and deployment status
+
+- [ ] If Vercel deployment is delayed, report the delay and provide the GitHub commit
+
+- [ ] If Hostinger API is unavailable, report it separately from frontend validation
+
+- [ ] Do not use mock authentication data in production code
+
+- [ ] Ensure API errors do not leak credentials or tokens
+
+- [ ] Ensure auth forms remain responsive on mobile
+
+- [ ] Ensure accessible labels and focus states remain intact
+
+- [ ] Ensure review tab label remains Review after auth changes
+
+- [ ] Ensure public API sample attachments are still valid if referenced
+
+- [ ] Confirm no accidental Android mobile project changes are included
+
+- [ ] Confirm GitHub main branch contains only intended website changes
+
+- [ ] Finalize production auth smoke-test evidence
+
+- [ ] Close the auth regression task after deployment verification
+
+- [ ] Do not modify Hostinger auth schema unless the live contract requires it
+
+- [ ] Prefer smallest safe frontend fix when backend auth endpoints are healthy
+
+- [ ] Preserve all existing media gating behavior
+
+- [ ] Confirm direct watch and direct download both invoke the same auth gate
+
+- [ ] Confirm auth popup close behavior remains functional
+
+- [ ] Confirm sign-in and sign-up tab switching remains functional
+
+- [ ] Record any remaining blocker explicitly
+
+- [ ] Do not commit generated dist output
+
+- [ ] Do not commit temporary preview configuration
+
+- [ ] Do not commit unrelated untracked workspace artifacts
+
+- [ ] Final response should summarize only verified facts
+
+- [ ] Add no placeholder user data
+
+- [ ] Complete the auth regression investigation
+- [x] Add password confirmation to the public Sign up form and match Laravel's confirmed-password validation contract
+- [x] Preserve the existing login payload and token extraction contract while fixing registration
