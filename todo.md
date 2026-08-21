@@ -151,3 +151,5 @@
 - [x] Style the account tab red with white text, other header menu tabs black with red text, and the active tab with a clear illuminated state
 - [x] Keep the header navigation sticky across all public website routes
 - [x] Replace Bottom Nav About Us with a Menu control that opens a polished drawer-style navigation panel
+- [x] Remove the drawer Links tab and show Facebook, TikTok, and Telegram beneath About Us using the existing live Social Links API
+- [x] Replace the drawer Links position with a Contact Us page entry

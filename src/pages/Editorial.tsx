@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, ExternalLink, Facebook, Music2, Send } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ExternalLink, Facebook, Mail, Music2, Send } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { getBlogBySlug, getBlogs, getSocials, mediaUrl } from '../lib/api';
 import type { BlogPost, SocialLink } from '../lib/types';
@@ -87,6 +87,10 @@ export function LinksPage() {
   };
 
   return <div className="page page-links"><section className="container links-heading"><span className="eyebrow">Stay in the loop</span><h1>Find us<br /><em>everywhere.</em></h1><p>Follow along for new releases, watchlist ideas, and the stories we cannot stop talking about.</p></section><section className="container link-list">{loading ? <div className="state-card"><div className="skeleton state-icon" /><p>Loading social links...</p></div> : error ? <ErrorState onRetry={() => setRetryToken((value) => value + 1)} /> : links.length === 0 ? <EmptyState title="No social links yet" copy="Social accounts added from the panel will appear here." /> : links.map((social) => { const Icon = iconFor(social); return <a className="external-link-card" key={social.id} href={social.url} target="_blank" rel="noopener noreferrer"><span className="external-icon"><Icon size={22} /></span><span><b>{social.name}</b><small>{detailFor(social)}</small></span><ExternalLink size={18} /></a>; })}</section></div>;
+}
+
+export function ContactPage() {
+  return <div className="page page-contact"><section className="container contact-page"><span className="eyebrow">Yangon TV support</span><h1>Contact<br /><em>Us.</em></h1><p>For account support, feedback, or Yangon TV questions, contact our team directly by email.</p><a className="contact-email" href="mailto:hello@yangontv.com"><span className="contact-email__icon"><Mail size={22} /></span><span><small>Email Yangon TV</small><b>hello@yangontv.com</b></span><ArrowRight size={18} /></a></section></div>;
 }
 
 export function AboutPage() {
