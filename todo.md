@@ -10,5 +10,5 @@
 - [x] Audit and correct the currently wrong Series posting workflow using the actual production bot handler; do not rely on guessed SERIES_ID/SEASON/EPISODE syntax
 - [x] Remove the hard-coded Season 1 Episode 1-only limit so a parent Series can accept repeatable Seasons and Episodes
 - [x] Audit the restored Hostinger Laravel production schema, controller, API route, and Telegram workflow before making series-management changes
-- [ ] Back up and validate the live Laravel deployment before reporting the repaired series and media-link flows
+- [x] Back up and validate the live Laravel deployment before reporting the repaired series and media-link flows
 - [x] Refine the Review and player Back controls with polished spacing, contrast, and mobile-safe touch targets
