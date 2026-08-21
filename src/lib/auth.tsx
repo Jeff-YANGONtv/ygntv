@@ -16,6 +16,7 @@ type AuthContextValue = {
   openAuth: (mode?: AuthMode, redirectTo?: string) => void;
   closeAuth: () => void;
   signOut: () => void;
+  setSession: (token: string, user: AuthUser | null) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -53,6 +54,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading] = useState(false);
 
   useEffect(() => {
+    const syncAuthState = () => {
+      setToken(window.localStorage.getItem(tokenKey));
+      try {
+        const value = window.localStorage.getItem(userKey);
+        setUser(value ? JSON.parse(value) as AuthUser : null);
+      } catch {
+        setUser(null);
+      }
+    };
+    window.addEventListener('yangon-tv-auth-changed', syncAuthState);
+    return () => window.removeEventListener('yangon-tv-auth-changed', syncAuthState);
+  }, []);
+
+  useEffect(() => {
     const interceptor = api.interceptors.request.use((config) => {
       const currentToken = window.localStorage.getItem(tokenKey);
       if (currentToken) config.headers.Authorization = `Bearer ${currentToken}`;
@@ -69,14 +84,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setDialog((current) => ({ ...current, open: false }));
   }
 
+  function setSession(nextToken: string, nextUser: AuthUser | null) {
+    window.localStorage.setItem(tokenKey, nextToken);
+    if (nextUser) window.localStorage.setItem(userKey, JSON.stringify(nextUser));
+    else window.localStorage.removeItem(userKey);
+    setToken(nextToken);
+    setUser(nextUser);
+    window.dispatchEvent(new Event('yangon-tv-auth-changed'));
+  }
+
   function signOut() {
     window.localStorage.removeItem(tokenKey);
     window.localStorage.removeItem(userKey);
     setToken(null);
     setUser(null);
+    window.dispatchEvent(new Event('yangon-tv-auth-changed'));
   }
 
-  const value = useMemo(() => ({ user, token, loading, dialog, openAuth, closeAuth, signOut }), [user, token, loading, dialog]);
+  const value = useMemo(() => ({ user, token, loading, dialog, openAuth, closeAuth, signOut, setSession }), [user, token, loading, dialog]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
@@ -89,7 +114,7 @@ export function useAuth() {
 export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: AuthMode; redirectTo?: string }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, openAuth } = useAuth();
+  const { user, openAuth, setSession } = useAuth();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -121,10 +146,8 @@ export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: 
       const nextToken = extractToken(response.data);
       const nextUser = extractUser(response.data);
       if (!nextToken) throw new Error('The server did not return a login session.');
-      window.localStorage.setItem(tokenKey, nextToken);
-      if (nextUser) window.localStorage.setItem(userKey, JSON.stringify(nextUser));
-      window.dispatchEvent(new Event('yangon-tv-auth-changed'));
-      navigate(redirectTo || '/', { replace: location.pathname === '/auth' });
+      setSession(nextToken, nextUser);
+      navigate(redirectTo || '/', { replace: true });
     } catch (cause) {
       if (axios.isAxiosError(cause)) {
         const data = cause.response?.data as { message?: string; errors?: Record<string, string[]> } | undefined;

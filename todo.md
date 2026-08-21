@@ -104,3 +104,6 @@
 - [x] Preserve the existing login payload and token extraction contract while fixing registration
 - [x] Reproduce the deployed password confirmation mismatch and verify the exact Sign up payload
 - [x] Fix any remaining confirmation field state or payload mismatch and revalidate production registration
+- [ ] Reproduce the post-auth redirect delay and identify why a manual refresh is currently needed
+- [ ] Repair immediate AuthProvider state propagation and redirect behavior after Sign in and Sign up
+- [ ] Verify protected player access unlocks immediately without a refresh
