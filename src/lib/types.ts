@@ -61,6 +61,37 @@ export interface BlogPost {
   featured?: boolean;
 }
 
+export type BlogReactionType = 'love' | 'like' | 'haha' | 'angry';
+
+export interface CommentAuthor {
+  id: number | string;
+  display_name: string;
+  avatar_url?: string | null;
+}
+
+export interface BlogComment {
+  id: number | string;
+  body: string;
+  created_at?: string | null;
+  user: CommentAuthor;
+}
+
+export interface BlogInteractions {
+  reaction_counts: Record<BlogReactionType, number>;
+  comment_count: number;
+  comments: BlogComment[];
+  comments_meta?: { current_page: number; last_page: number; total: number };
+  reaction?: BlogReactionType | null;
+  comment?: BlogComment;
+}
+
+export interface PublicProfile {
+  id: number | string;
+  display_name: string;
+  avatar_url?: string | null;
+  member_since?: string | null;
+}
+
 export interface SocialLink {
   id: number | string;
   name: string;

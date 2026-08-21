@@ -132,3 +132,9 @@
 - [x] Set the menu to Sign In / Sign Up, Subscription, Links, and About Us only
 - [x] Set the bottom navigation to Home, Movies, Series, Blog, and About Us
 - [x] Build and verify the final menu and bottom navigation labels in production
+- [x] Audit Laravel blog, user-profile, reaction, comment, and sharing data support
+- [x] Add secure live Blog reactions for Love, Like, Haha, and Angry
+- [x] Add text-only Blog comments gated by sign-in and linked to commenter profiles
+- [x] Add Blog sharing and responsive interaction controls without mock data
+- [x] Restrict Blog sharing controls to Telegram, Facebook, and TikTok with a device-share fallback for TikTok
+- [ ] Build, deploy, and verify the complete Blog interaction flow

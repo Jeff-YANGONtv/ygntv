@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiPage, BlogPost, Episode, MediaItem, PaymentOrder, PremiumPlan, Season, SocialLink, TvProfileData } from './types';
+import type { ApiPage, BlogInteractions, BlogPost, BlogReactionType, Episode, MediaItem, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvProfileData } from './types';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
 export const mediaBaseUrl = import.meta.env.VITE_MEDIA_BASE_URL || 'https://khaki-yak-457838.hostingersite.com';
@@ -195,6 +195,32 @@ export async function getBlogs(params: { page?: number; search?: string } = {}):
 export async function getBlogBySlug(slug: string): Promise<BlogPost | null> {
   const response = await api.get(`/public/blogs/${slug}`);
   return unwrap<BlogPost | null>(response.data) || null;
+}
+
+export async function getBlogInteractions(blogId: number | string): Promise<BlogInteractions> {
+  const response = await api.get(`/public/blogs/${blogId}/interactions`);
+  return unwrap<BlogInteractions>(response.data);
+}
+
+export async function getCurrentBlogReaction(blogId: number | string): Promise<BlogReactionType | null> {
+  const response = await api.get(`/blog-interactions/${blogId}`);
+  const data = unwrap<{ reaction?: BlogReactionType | null }>(response.data);
+  return data.reaction || null;
+}
+
+export async function saveBlogReaction(blogId: number | string, type: BlogReactionType): Promise<BlogInteractions> {
+  const response = await api.put(`/blog-interactions/${blogId}/reaction`, { type });
+  return unwrap<BlogInteractions>(response.data);
+}
+
+export async function postBlogComment(blogId: number | string, body: string): Promise<BlogInteractions> {
+  const response = await api.post(`/blog-interactions/${blogId}/comments`, { body });
+  return unwrap<BlogInteractions>(response.data);
+}
+
+export async function getPublicProfile(userId: number | string): Promise<PublicProfile> {
+  const response = await api.get(`/public/profiles/${userId}`);
+  return unwrap<PublicProfile>(response.data);
 }
 
 export async function getSocials(): Promise<SocialLink[]> {

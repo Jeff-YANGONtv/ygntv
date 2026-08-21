@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, Copy, ExternalLink, Facebook, Music2, Send, Share2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ExternalLink, Facebook, Music2, Send } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { getBlogBySlug, getBlogs, getSocials, mediaUrl } from '../lib/api';
 import type { BlogPost, SocialLink } from '../lib/types';
 import { EmptyState, ErrorState, SearchField, SectionHeading, SkeletonGrid } from '../components/ui/Primitives';
+import { BlogInteractions } from '../components/BlogInteractions';
 
 export function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -29,7 +30,6 @@ export function BlogDetail() {
   const [related, setRelated] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [copied, setCopied] = useState(false);
   useEffect(() => {
     let mounted = true;
     setLoading(true);
@@ -47,8 +47,7 @@ export function BlogDetail() {
   }, [slug]);
   if (loading) return <div className="container page-loading"><div className="skeleton skeleton-detail" /></div>;
   if (error || !post) return <div className="container page-state"><ErrorState onRetry={() => window.location.reload()} /></div>;
-  const copyLink = async () => { await navigator.clipboard?.writeText(window.location.href); setCopied(true); window.setTimeout(() => setCopied(false), 1800); };
-  return <div className="page page-article"><article className="container article"><Link className="back-link" to="/blog"><ArrowLeft size={15} /> Back to the journal</Link><div className="article-heading"><span className="eyebrow">{post.category} · {post.date}</span><h1>{post.title}</h1><p className="article-lede">{post.excerpt}</p><div className="article-byline"><span>{post.author}</span><i /> <span>{post.readTime}</span><button className="text-link" onClick={copyLink}>{copied ? 'Copied' : <><Copy size={14} /> Copy link</>}</button></div></div><img className="article-cover" src={mediaUrl(post.image)} alt="" /><div className="article-body">{post.content.split('\n\n').map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div><div className="article-share"><span>Share this story</span><button className="icon-button" aria-label="Share story"><Share2 size={17} /></button><button className="icon-button" aria-label="Copy link" onClick={copyLink}><Copy size={17} /></button></div></article><section className="container article-related"><SectionHeading title="Keep reading" action={{ label: 'All stories', to: '/blog' }} />{related.length ? <div className="blog-preview-grid">{related.map((item) => <Link to={`/blog/${item.slug}`} className="blog-preview" key={item.id}><img src={mediaUrl(item.image)} alt="" /><div><span className="eyebrow">{item.category} · {item.date}</span><h3>{item.title}</h3><span className="text-link">Read story <ArrowRight size={14} /></span></div></Link>)}</div> : <EmptyState title="No related stories" copy="Explore the journal for more stories." />}</section></div>;
+  return <div className="page page-article"><article className="container article"><Link className="back-link" to="/blog"><ArrowLeft size={15} /> Back to the journal</Link><div className="article-heading"><span className="eyebrow">{post.category} · {post.date}</span><h1>{post.title}</h1><p className="article-lede">{post.excerpt}</p><div className="article-byline"><span>{post.author}</span><i /> <span>{post.readTime}</span></div></div><img className="article-cover" src={mediaUrl(post.image)} alt="" /><div className="article-body">{post.content.split('\n\n').map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div><BlogInteractions blogId={post.id} slug={post.slug} title={post.title} /></article><section className="container article-related"><SectionHeading title="Keep reading" action={{ label: 'All stories', to: '/blog' }} />{related.length ? <div className="blog-preview-grid">{related.map((item) => <Link to={`/blog/${item.slug}`} className="blog-preview" key={item.id}><img src={mediaUrl(item.image)} alt="" /><div><span className="eyebrow">{item.category} · {item.date}</span><h3>{item.title}</h3><span className="text-link">Read story <ArrowRight size={14} /></span></div></Link>)}</div> : <EmptyState title="No related stories" copy="Explore the journal for more stories." />}</section></div>;
 }
 
 export function LinksPage() {
