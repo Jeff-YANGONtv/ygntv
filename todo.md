@@ -160,3 +160,7 @@
 - [x] Remove the Header Nav Menu tab while retaining a clear mobile navigation path
 - [x] Change the drawer header greeting from “Yangon TV menu” to “Welcome To Yangon TV”
 - [x] Add panel-controlled Ads API placements for Home header and footer 728×300 banner sliders
+- [ ] Audit and repair the admin bot panel and Public View bot menu, callbacks, media navigation, and post-link flows
+- [ ] Complete a project-wide production readiness audit across website, Laravel API, payment flow, authentication, admin bot, Public View bot, and deployment configuration
+- [ ] Apply only validated production-safe fixes and document any remaining panel configuration inputs
+- [ ] Add admin bot controls for active Home header and footer Ads API banners
