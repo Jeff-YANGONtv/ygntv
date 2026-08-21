@@ -146,3 +146,4 @@
 - [x] Seed panel-controlled Premium plans: 3 Months 3,000 Ks; 6 Months 5,000 Ks; 9 Months 7,500 Ks; 12 Months 10,000 Ks
 - [x] Store and display supplied AYA Pay, Wave Pay, and KPay payment method artwork through live payment-account records
 - [x] Present each supplied payment method logo inside a polished circular frame
+- [x] Show the panel-controlled payment Account Name as the first receipt-page field without a copy control

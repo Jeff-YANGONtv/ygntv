@@ -7,3 +7,5 @@
 | KPay | https://cdn.phototourl.com/member/2026-08-21-3c6180f1-040f-419f-8527-13bccd03cfe1.jpg | 447×447 blue KBZ Pay mark | Center-cropped circular logo frame |
 
 The website should render these only when their corresponding live payment-account records are active. No payment account number, phone number, or price is stored in this asset document.
+
+The production renderer matches each active account name to its supplied logo, keeps unrecognized account names on a letter fallback, and places every mark in the same circular frame. This means the live KPay account uses its supplied artwork immediately, while Wave Pay and AYA Pay automatically use theirs when those real accounts are activated in the admin panel.
