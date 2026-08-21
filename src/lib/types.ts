@@ -124,19 +124,27 @@ export interface PaymentOrder {
   status?: string;
   upload_expires_at?: string | null;
   receipt_uploaded_at?: string | null;
+  receipt_reference?: string | null;
   reviewed_at?: string | null;
   review_note?: string | null;
   created_at?: string | null;
 }
 
 export interface PremiumPlan {
+  id?: number | string;
+  key: string;
+  label: string;
+  amount_ks: number;
+  access_months: number;
+}
+
+export interface PaymentAccount {
   id: number | string;
-  key?: string;
-  name?: string;
-  label?: string;
-  price_ks?: number;
-  duration_days?: number;
-  features?: string[];
+  name: string;
+  description?: string | null;
+  phone_number?: string | null;
+  account_number?: string | null;
+  qr_image_url?: string | null;
   is_active?: boolean;
 }
 

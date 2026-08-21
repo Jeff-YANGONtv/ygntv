@@ -138,3 +138,9 @@
 - [x] Add Blog sharing and responsive interaction controls without mock data
 - [x] Restrict Blog sharing controls to Telegram, Facebook, and TikTok with a device-share fallback for TikTok
 - [x] Build, deploy, and verify the complete Blog interaction flow
+- [x] Audit live premium plans, payment accounts, receipt upload, and approval contracts
+- [x] Render 3/6/9/12-month panel-controlled packages in a 2×2 grid and payment methods in a 3-column grid
+- [x] Build authenticated payment selection, payment account copy controls, slip upload, and automatic receipt-number extraction
+- [x] Submit the selected live plan and payment method for admin proof review, then show a 5-second confirmation before returning Home
+- [ ] Build, deploy, and verify premium activation after admin approval
+- [x] Seed panel-controlled Premium plans: 3 Months 3,000 Ks; 6 Months 5,000 Ks; 9 Months 7,500 Ks; 12 Months 10,000 Ks

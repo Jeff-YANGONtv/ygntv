@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiPage, BlogInteractions, BlogPost, BlogReactionType, Episode, MediaItem, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvProfileData } from './types';
+import type { ApiPage, BlogInteractions, BlogPost, BlogReactionType, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvProfileData } from './types';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
 export const mediaBaseUrl = import.meta.env.VITE_MEDIA_BASE_URL || 'https://khaki-yak-457838.hostingersite.com';
@@ -243,5 +243,54 @@ export async function getPremiumPlans(): Promise<PremiumPlan[]> {
   const response = await api.get('/tv/premium-plans');
   const raw = unwrap<unknown>(response.data);
   const rows = Array.isArray(raw) ? raw : [];
-  return rows.filter((entry): entry is PremiumPlan => Boolean(entry && typeof entry === 'object'));
+  return rows.flatMap((entry): PremiumPlan[] => {
+    if (!entry || typeof entry !== 'object') return [];
+    const plan = entry as Record<string, unknown>;
+    const key = String(plan.key ?? '').trim();
+    const label = String(plan.label ?? '').trim();
+    const amountKs = Number(plan.amount_ks);
+    const accessMonths = Number(plan.access_months);
+    if (!key || !label || !Number.isFinite(amountKs) || !Number.isFinite(accessMonths)) return [];
+    return [{ id: typeof plan.id === 'string' || typeof plan.id === 'number' ? plan.id : undefined, key, label, amount_ks: amountKs, access_months: accessMonths }];
+  });
+}
+
+export async function getPublicPaymentAccounts(): Promise<PaymentAccount[]> {
+  const response = await api.get('/public/payment-accounts');
+  const raw = unwrap<unknown>(response.data);
+  const rows = Array.isArray(raw) ? raw : [];
+  return rows.flatMap((entry): PaymentAccount[] => {
+    if (!entry || typeof entry !== 'object') return [];
+    const account = entry as Record<string, unknown>;
+    const id = account.id;
+    const name = String(account.name ?? '').trim();
+    if ((typeof id !== 'string' && typeof id !== 'number') || !name) return [];
+    return [{
+      id,
+      name,
+      description: typeof account.description === 'string' ? account.description : null,
+      phone_number: typeof account.phone_number === 'string' ? account.phone_number : null,
+      account_number: typeof account.account_number === 'string' ? account.account_number : null,
+      qr_image_url: typeof account.qr_image_url === 'string' ? account.qr_image_url : null,
+      is_active: account.is_active == null ? true : Boolean(account.is_active),
+    }];
+  });
+}
+
+export async function createPaymentOrder(paymentAccountId: number | string, planKey: string): Promise<PaymentOrder> {
+  const response = await api.post('/tv/payment-orders', { payment_account_id: paymentAccountId, plan_key: planKey });
+  const payload = unwrap<unknown>(response.data);
+  const order = payload && typeof payload === 'object' && 'order' in payload
+    ? (payload as { order: PaymentOrder }).order
+    : payload as PaymentOrder;
+  if (!order || (typeof order.id !== 'string' && typeof order.id !== 'number')) throw new Error('The payment order response was incomplete.');
+  return order;
+}
+
+export async function submitOrderReceipt(orderId: number | string, receipt: File, receiptReference?: string): Promise<PaymentOrder> {
+  const body = new FormData();
+  body.append('receipt', receipt);
+  if (receiptReference?.trim()) body.append('receipt_reference', receiptReference.trim());
+  const response = await api.post(`/tv/payment-orders/${orderId}/submit-receipt`, body);
+  return unwrap<PaymentOrder>(response.data);
 }
