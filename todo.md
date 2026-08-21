@@ -122,3 +122,5 @@
 - [x] Audit why authenticated Profile data may not be visibly rendering for username, badge, premium status, and purchase history
 - [x] Correct live profile normalization and loading/empty/error states without mock values
 - [x] Build and verify the authenticated Profile display in production
+- [x] Remove the notification bell, blog notification polling, and notification popover while keeping Blog navigation intact
+- [x] Build and verify the simplified website header in production
