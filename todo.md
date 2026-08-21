@@ -147,3 +147,5 @@
 - [x] Store and display supplied AYA Pay, Wave Pay, and KPay payment method artwork through live payment-account records
 - [x] Present each supplied payment method logo inside a polished circular frame
 - [x] Show the panel-controlled payment Account Name as the first receipt-page field without a copy control
+- [x] Show the signed-in account name in the header profile tab instead of the generic User Profile label
+- [x] Style the account tab red with white text, other header menu tabs black with red text, and the active tab with a clear illuminated state

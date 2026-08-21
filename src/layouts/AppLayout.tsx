@@ -23,6 +23,7 @@ export function AppLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { user } = useAuth();
   const isHomePage = location.pathname === '/';
+  const accountLabel = user ? (user.name?.trim() || user.email?.split('@')[0] || 'Account') : 'Sign In / Sign Up';
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -35,8 +36,8 @@ export function AppLayout() {
       <div className="container header-inner">
         <Logo />
         <nav className={`main-nav ${menuOpen ? 'main-nav--open' : ''}`} aria-label="Primary navigation">
-          <NavLink to={user ? '/profile' : '/auth'} className={({ isActive }) => isActive ? 'nav-link nav-link--active' : 'nav-link'}><UserRound size={16} />{user ? 'User Profile' : 'Sign In / Sign Up'}</NavLink>
-          {navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'nav-link nav-link--active' : 'nav-link'}><Icon size={16} />{label}</NavLink>)}
+          <NavLink to={user ? '/profile' : '/auth'} className={({ isActive }) => isActive ? 'nav-link nav-link--account nav-link--active' : 'nav-link nav-link--account'}><UserRound size={16} />{accountLabel}</NavLink>
+          {navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'nav-link nav-link--menu nav-link--active' : 'nav-link nav-link--menu'}><Icon size={16} />{label}</NavLink>)}
         </nav>
         <div className="header-actions"><Link to="/movies" className="icon-button" aria-label="Search movies"><Search size={19} /></Link><button className="icon-button menu-toggle" onClick={() => setMenuOpen((open) => !open)} aria-label="Toggle navigation menu" aria-expanded={menuOpen}>{menuOpen ? <X size={21} /> : <Menu size={21} />}</button></div>
       </div>
