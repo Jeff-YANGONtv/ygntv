@@ -4,6 +4,7 @@ import { Children, type ReactNode } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, Play, Search, Star } from 'lucide-react';
 import type { MediaItem } from '../../lib/types';
 import { mediaUrl } from '../../lib/api';
+import { mediaDetailPath } from '../../lib/paths';
 
 export function Logo() {
   return <Link className="brand" to="/" aria-label="Yangon TV home"><span>YANGON</span><b>TV</b></Link>;
@@ -14,7 +15,7 @@ export function SectionHeading({ eyebrow, title, action }: { eyebrow?: string; t
 }
 
 export function MediaCard({ item, compact = false }: { item: MediaItem; compact?: boolean }) {
-  return <Link to={`/${item.kind === 'movie' ? 'movies' : 'series'}/${item.slug}`} className={`media-card ${compact ? 'media-card--compact' : ''}`}>
+  return <Link to={mediaDetailPath(item)} className={`media-card ${compact ? 'media-card--compact' : ''}`}>
     <div className="poster-wrap">
       <img src={mediaUrl(item.poster, item.poster)} alt={`${item.title} poster`} loading="lazy" />
       <div className="poster-gradient" />

@@ -168,3 +168,4 @@
 - [x] Add autoplay to live Home sliders and present Trending Movies and Popular Series in responsive 16:9 banner cards
 - [x] Rename the Review tab content from Synopsis to Review and show rating, release year, genre, and Yangon TV Production Unit credit beneath each movie title
 - [x] Add a signed-in-only header notification bell backed by live user-specific notifications, unread counts, and read-state APIs
+- [x] Replace opaque public content slugs with clean human-readable URLs while preserving existing shared links where feasible

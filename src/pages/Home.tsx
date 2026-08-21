@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { AutoSlider, EmptyState, ErrorState, SkeletonGrid } from '../components/ui/Primitives';
 import { getAds, getBlogs, getMovies, getSeries, mediaUrl } from '../lib/api';
+import { mediaDetailPath, mediaWatchPath } from '../lib/paths';
 import type { AdBanner, BlogPost, MediaItem } from '../lib/types';
 
 export function Home() {
@@ -36,7 +37,7 @@ export function Home() {
 
   const featured = useMemo(() => [...movies, ...series].slice(0, 8), [movies, series]);
   const watch = (item: MediaItem) => {
-    const path = `/${item.kind === 'movie' ? 'movies' : 'series'}/${item.slug}/watch`;
+    const path = mediaWatchPath(item);
     if (user) navigate(path);
     else openAuth('login', path);
   };
@@ -55,7 +56,7 @@ export function Home() {
 }
 
 function MediaBanner({ item, onWatch, featured = false }: { item: MediaItem; onWatch: () => void; featured?: boolean }) {
-  const detailPath = `/${item.kind === 'movie' ? 'movies' : 'series'}/${item.slug}`;
+  const detailPath = mediaDetailPath(item);
   return <article className={`home-banner-card ${featured ? 'home-banner-card--featured' : ''}`}>
     <img src={mediaUrl(item.backdrop, item.poster)} alt="" loading={featured ? 'eager' : 'lazy'} />
     <div className="home-banner-card__shade" />

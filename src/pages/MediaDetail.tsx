@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../lib/auth';
 import { MediaCard, Pill, SectionHeading, EmptyState, ErrorState } from '../components/ui/Primitives';
 import { getMediaBySlug, getMovies, getSeries, mediaUrl } from '../lib/api';
+import { mediaDetailPath, mediaWatchPath, publicMediaSlug } from '../lib/paths';
 import type { MediaItem } from '../lib/types';
 
 function safeFilename(title: string): string {
@@ -271,11 +272,11 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
                       <Link
                         className="episode-row"
                         key={String(episode.id)}
-                        to={`/series/${item.slug}/watch?season=${season.number}&episode=${episode.number}`}
+                        to={mediaWatchPath(item, { season: season.number, episode: episode.number })}
                         onClick={(event) => {
                           if (!user) {
                             event.preventDefault();
-                            openAuth('login', `/series/${item.slug}/watch?season=${season.number}&episode=${episode.number}`);
+                            openAuth('login', mediaWatchPath(item, { season: season.number, episode: episode.number }));
                           }
                         }}
                       >
@@ -388,13 +389,14 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
       if (!mounted) return;
       setItem(value);
       setRelated(listing.data.filter((entry) => entry.slug !== slug).slice(0, 3));
+      if (value && slug !== publicMediaSlug(value.slug)) navigate(mediaDetailPath(value), { replace: true });
     }).catch(() => {
       if (mounted) setError(true);
     }).finally(() => {
       if (mounted) setLoading(false);
     });
     return () => { mounted = false; };
-  }, [kind, slug]);
+  }, [kind, navigate, slug]);
 
   if (loading) return <div className="container page-loading"><div className="skeleton skeleton-detail" /></div>;
     if (error || !item) return <div className="container page-state"><ErrorState onRetry={() => window.location.reload()} /></div>;
@@ -405,8 +407,9 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
   const firstEpisode = kind === 'series' ? [...(item.seasons?.[0]?.episodes ?? [])].sort((left, right) => left.number - right.number)[0] : undefined;
   const firstSeason = item.seasons?.[0];
   const watchPath = firstEpisode && firstSeason
-    ? `/series/${item.slug}/watch?season=${firstSeason.number}&episode=${firstEpisode.number}`
-    : `/series/${item.slug}/watch`;
+    ? mediaWatchPath(item, { season: firstSeason.number, episode: firstEpisode.number })
+    : mediaWatchPath(item);
+
   return (
     <div className="page page-detail">
       <section className="detail-hero">
@@ -431,7 +434,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
               <ReviewTabs
                 item={item}
                 kind={kind}
-                onDirectAction={() => startWatching(kind === 'movie' ? `/movies/${item.slug}/watch` : watchPath)}
+                onDirectAction={() => startWatching(kind === 'movie' ? mediaWatchPath(item) : watchPath)}
               />
             </div>
           </div>
@@ -448,6 +451,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
 
 export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const { slug = '' } = useParams();
+  const navigate = useNavigate();
   const { user, openAuth } = useAuth();
   const [searchParams] = useSearchParams();
   const selectedSeasonNumber = Number(searchParams.get('season'));
@@ -469,6 +473,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       if (mounted) {
         setItem(value);
         setSourceIndex(0);
+        if (value && slug !== publicMediaSlug(value.slug)) navigate(mediaWatchPath(value, { season: selectedSeasonNumber, episode: selectedEpisodeNumber }), { replace: true });
       }
     }).catch(() => {
       if (mounted) setError(true);
@@ -476,7 +481,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       if (mounted) setLoading(false);
     });
     return () => { mounted = false; };
-  }, [kind, slug]);
+  }, [kind, navigate, selectedEpisodeNumber, selectedSeasonNumber, slug]);
 
   if (loading) return <div className="container page-loading"><div className="skeleton skeleton-player" /></div>;
   if (error || !item) return <div className="container page-state"><ErrorState onRetry={() => window.location.reload()} /></div>;
@@ -492,7 +497,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   return (
     <div className="page page-watch">
       <section className="container watch-top">
-        <Link className="back-link watch-back-link" to={`/${kind === 'movie' ? 'movies' : 'series'}/${slug}`}><ArrowLeft size={16} /> <span>Back to details</span></Link>
+        <Link className="back-link watch-back-link" to={mediaDetailPath(item)}><ArrowLeft size={16} /> <span>Back to details</span></Link>
           <div className="player-shell">
           <VideoPlayer source={currentSource} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} />
           </div>

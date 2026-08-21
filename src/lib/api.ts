@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvNotificationFeed, TvProfileData, UserNotification } from './types';
+import { publicMediaSlug } from './paths';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
 export const mediaBaseUrl = import.meta.env.VITE_MEDIA_BASE_URL || 'https://khaki-yak-457838.hostingersite.com';
@@ -193,9 +194,26 @@ export async function getSeries(params: { page?: number; search?: string; genre?
 }
 
 export async function getMediaBySlug(kind: 'movie' | 'series', slug: string): Promise<MediaItem | null> {
-  const response = await api.get(`/${kind === 'movie' ? 'movies' : 'shows'}/slug/${slug}`);
-  const raw = unwrap<unknown>(response.data);
-  return raw ? normalizeMediaItem(raw, kind) : null;
+  try {
+    const response = await api.get(`/${kind === 'movie' ? 'movies' : 'shows'}/slug/${slug}`);
+    const raw = unwrap<unknown>(response.data);
+    if (raw) return normalizeMediaItem(raw, kind);
+  } catch {
+    // Clean public URLs omit the backend-generated suffix, so resolve them against live catalog data below.
+  }
+
+  const loader = kind === 'movie' ? getMovies : getSeries;
+  const firstPage = await loader({ page: 1 });
+  const matchingFirstPage = firstPage.data.find((item) => publicMediaSlug(item.slug) === slug);
+  if (matchingFirstPage) return matchingFirstPage;
+
+  for (let page = 2; page <= firstPage.lastPage; page += 1) {
+    const result = await loader({ page });
+    const match = result.data.find((item) => publicMediaSlug(item.slug) === slug);
+    if (match) return match;
+  }
+
+  return null;
 }
 
 export async function getBlogs(params: { page?: number; search?: string } = {}): Promise<ApiPage<BlogPost>> {
