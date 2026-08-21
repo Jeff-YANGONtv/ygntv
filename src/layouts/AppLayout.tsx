@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Clapperboard, Crown, Facebook, Film, Home, Info, Mail, Menu, Music2, Newspaper, Search, Send, UserRound, X } from 'lucide-react';
+import { Bell, CheckCheck, Clapperboard, Crown, Facebook, Film, Home, Info, Mail, Menu, Music2, Newspaper, Send, UserRound, X } from 'lucide-react';
 import { Logo } from '../components/ui/Primitives';
-import { getSocials } from '../lib/api';
+import { getSocials, getTvNotifications, markAllTvNotificationsRead, markTvNotificationRead } from '../lib/api';
 import { AuthDialog, useAuth } from '../lib/auth';
-import type { SocialLink } from '../lib/types';
+import type { SocialLink, TvNotificationFeed, UserNotification } from '../lib/types';
 
 const navigation = [
   { label: 'Premium', to: '/subscription', icon: Crown },
@@ -48,7 +48,7 @@ export function AppLayout() {
           <NavLink to={user ? '/profile' : '/auth'} className={({ isActive }) => isActive ? 'nav-link nav-link--account nav-link--active' : 'nav-link nav-link--account'}><UserRound size={16} />{accountLabel}</NavLink>
           {navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'nav-link nav-link--menu nav-link--active' : 'nav-link nav-link--menu'}><Icon size={16} />{label}</NavLink>)}
         </nav>
-        <div className="header-actions"><Link to="/movies" className="icon-button" aria-label="Search movies"><Search size={19} /></Link></div>
+        <div className="header-actions">{user && <NotificationBell />}</div>
       </div>
     </header>
     {menuOpen && <><button className="drawer-backdrop" type="button" aria-label="Close navigation menu" onClick={() => setMenuOpen(false)} /><aside className="mobile-drawer" aria-label="Website menu"><div className="mobile-drawer__top"><span className="profile-card-label">Welcome To Yangon TV</span><button className="icon-button" type="button" onClick={() => setMenuOpen(false)} aria-label="Close navigation menu"><X size={20} /></button></div><nav className="mobile-drawer__nav"><NavLink to={user ? '/profile' : '/auth'} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__account mobile-drawer__link--active' : 'mobile-drawer__link mobile-drawer__account'}><UserRound size={18} />{accountLabel}</NavLink>{navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__link--active' : 'mobile-drawer__link'}><Icon size={18} />{label}</NavLink>)}</nav>{drawerSocials.length > 0 && <div className="mobile-drawer__socials"><span className="profile-card-label">Follow Yangon TV</span>{drawerSocials.map((social) => { const Icon = socialIcon(social); return <a className="mobile-drawer__social" href={social.url} key={social.id} target="_blank" rel="noopener noreferrer"><Icon size={17} /><span>{social.name}</span></a>; })}</div>}</aside></>}
@@ -64,4 +64,43 @@ function socialIcon(social: SocialLink) {
   if (value.includes('facebook')) return Facebook;
   if (value.includes('tiktok') || value.includes('music')) return Music2;
   return Send;
+}
+
+function NotificationBell() {
+  const [feed, setFeed] = useState<TvNotificationFeed>({ notifications: [], unread_count: 0 });
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const refresh = () => getTvNotifications().then((next) => { if (active) setFeed(next); }).catch(() => { if (active) setFeed({ notifications: [], unread_count: 0 }); });
+    refresh();
+    const timer = window.setInterval(refresh, 45000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, []);
+
+  async function markRead(notification: UserNotification) {
+    if (notification.read_at || busy) return;
+    setBusy(true);
+    try {
+      setFeed(await markTvNotificationRead(notification.id));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function markAllRead() {
+    if (!feed.unread_count || busy) return;
+    setBusy(true);
+    try {
+      setFeed(await markAllTvNotificationsRead());
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <div className="header-notifications">
+    <button className={open ? 'icon-button notification-bell notification-bell--open' : 'icon-button notification-bell'} type="button" aria-label={feed.unread_count ? `${feed.unread_count} unread notifications` : 'Notifications'} aria-expanded={open} aria-controls="header-notification-panel" onClick={() => setOpen((value) => !value)}><Bell size={19} />{feed.unread_count > 0 && <span className="notification-badge" aria-hidden="true">{feed.unread_count > 9 ? '9+' : feed.unread_count}</span>}</button>
+    {open && <section className="notification-popover" id="header-notification-panel" aria-label="Notifications"><div className="notification-popover__heading"><div><span className="eyebrow">Your account</span><strong>Notifications</strong></div>{feed.unread_count > 0 && <button type="button" className="notification-mark-all" onClick={markAllRead} disabled={busy}><CheckCheck size={15} />Mark all read</button>}</div><div className="notification-list">{feed.notifications.length ? feed.notifications.map((notification) => <article className={notification.read_at ? 'notification-item' : 'notification-item notification-item--unread'} key={notification.id}><button type="button" className="notification-item__content" onClick={() => markRead(notification)} disabled={busy || Boolean(notification.read_at)}><strong>{notification.title}</strong><p>{notification.message}</p><small>{notification.read_at ? 'Read' : 'New'}</small></button>{notification.link_url && <a href={notification.link_url} target={notification.link_url.startsWith('http') ? '_blank' : undefined} rel={notification.link_url.startsWith('http') ? 'noreferrer' : undefined} onClick={() => markRead(notification)}>Open</a>}</article>) : <p className="notification-empty">You do not have any active notifications.</p>}</div></section>}
+  </div>;
 }

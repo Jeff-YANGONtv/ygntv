@@ -301,7 +301,7 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
   );
 }
 
-type ReviewTab = 'synopsis' | 'watch' | 'download';
+type ReviewTab = 'review' | 'watch' | 'download';
 
 function ReviewTabs({
   item,
@@ -312,7 +312,7 @@ function ReviewTabs({
   kind: 'movie' | 'series';
   onDirectAction: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<ReviewTab>('synopsis');
+  const [activeTab, setActiveTab] = useState<ReviewTab>('review');
   const telegramPostUrl = item.telegramPostUrl;
   const title = kind === 'movie' ? 'movie' : 'series';
   const directLabel = activeTab === 'watch' ? 'Direct Watch' : 'Direct Download';
@@ -322,7 +322,7 @@ function ReviewTabs({
     <section className="review-tabs" aria-label={`${item.title} review actions`}>
       <div className="review-tabs__list" role="tablist" aria-label="Review sections">
         {([
-          ['synopsis', 'Synopsis'],
+          ['review', 'Review'],
           ['watch', 'Watch'],
           ['download', 'Download'],
         ] as const).map(([tab, label]) => (
@@ -340,10 +340,10 @@ function ReviewTabs({
         ))}
       </div>
 
-      {activeTab === 'synopsis' ? (
-        <div className="review-tabs__panel" id="review-panel-synopsis" role="tabpanel">
-          <span className="eyebrow">Synopsis</span>
-          <p>{item.synopsis || item.description || 'No synopsis is available for this title yet.'}</p>
+      {activeTab === 'review' ? (
+        <div className="review-tabs__panel" id="review-panel-review" role="tabpanel">
+          <span className="eyebrow">Review</span>
+          <p>{item.synopsis || item.description || 'No review is available for this title yet.'}</p>
         </div>
       ) : (
         <div className="review-tabs__actions" id={`review-panel-${activeTab}`} role="tabpanel">
@@ -365,7 +365,7 @@ function ReviewTabs({
           )}
         </div>
       )}
-      <p className="review-tabs__note">{activeTab === 'synopsis' ? `Browse this ${title} publicly. Direct Watch and Direct Download require a Yangon TV account.` : 'Direct actions continue to the protected Yangon TV player.'}</p>
+      <p className="review-tabs__note">{activeTab === 'review' ? `Browse this ${title} publicly. Direct Watch and Direct Download require a Yangon TV account.` : 'Direct actions continue to the protected Yangon TV player.'}</p>
     </section>
   );
 }
@@ -427,6 +427,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
                 <span><CalendarDays size={14} /> Release year {item.year}</span>
                 <span><Tags size={14} /> {(item.genres || []).join(', ') || 'Genre unavailable'}</span>
               </div>
+              {kind === 'movie' && <p className="detail-production-credit"><span>Translated &amp; Encoded by</span> <strong>YGNTV – Production Unit</strong></p>}
               <ReviewTabs
                 item={item}
                 kind={kind}

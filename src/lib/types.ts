@@ -121,9 +121,24 @@ export interface TvEntitlement {
 }
 
 export interface TvProfileData {
-  user: { id?: number | string; name?: string; email?: string; role?: string };
+  user: { id?: number | string; uid?: string | null; name?: string; email?: string; role?: string };
   profile: { display_name?: string | null; avatar_url?: string | null; preferences?: Record<string, unknown> | null };
   entitlement: TvEntitlement;
+}
+
+export interface UserNotification {
+  id: number | string;
+  title: string;
+  message: string;
+  type?: string | null;
+  link_url?: string | null;
+  created_at?: string | null;
+  read_at?: string | null;
+}
+
+export interface TvNotificationFeed {
+  notifications: UserNotification[];
+  unread_count: number;
 }
 
 export interface PaymentOrder {

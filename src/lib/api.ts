@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvProfileData } from './types';
+import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvNotificationFeed, TvProfileData, UserNotification } from './types';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
 export const mediaBaseUrl = import.meta.env.VITE_MEDIA_BASE_URL || 'https://khaki-yak-457838.hostingersite.com';
@@ -244,6 +244,45 @@ export async function getSocials(): Promise<SocialLink[]> {
 export async function getTvProfile(): Promise<TvProfileData> {
   const response = await api.get('/tv/profile');
   return unwrap<TvProfileData>(response.data);
+}
+
+function notificationFeed(value: unknown): TvNotificationFeed {
+  const source = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+  const rows = Array.isArray(source.notifications) ? source.notifications : [];
+  const notifications = rows.flatMap((entry): UserNotification[] => {
+    if (!entry || typeof entry !== 'object') return [];
+    const notification = entry as Record<string, unknown>;
+    const id = notification.id;
+    const title = typeof notification.title === 'string' ? notification.title.trim() : '';
+    const message = typeof notification.message === 'string' ? notification.message.trim() : '';
+    if ((typeof id !== 'string' && typeof id !== 'number') || !title || !message) return [];
+    return [{
+      id,
+      title,
+      message,
+      type: typeof notification.type === 'string' ? notification.type : null,
+      link_url: typeof notification.link_url === 'string' ? notification.link_url : null,
+      created_at: typeof notification.created_at === 'string' ? notification.created_at : null,
+      read_at: typeof notification.read_at === 'string' ? notification.read_at : null,
+    }];
+  });
+  const unreadCount = Number(source.unread_count);
+  return { notifications, unread_count: Number.isFinite(unreadCount) && unreadCount >= 0 ? unreadCount : notifications.filter((notification) => !notification.read_at).length };
+}
+
+export async function getTvNotifications(): Promise<TvNotificationFeed> {
+  const response = await api.get('/tv/notifications');
+  return notificationFeed(unwrap<unknown>(response.data));
+}
+
+export async function markTvNotificationRead(notificationId: number | string): Promise<TvNotificationFeed> {
+  const response = await api.post(`/tv/notifications/${notificationId}/read`);
+  return notificationFeed(unwrap<unknown>(response.data));
+}
+
+export async function markAllTvNotificationsRead(): Promise<TvNotificationFeed> {
+  const response = await api.post('/tv/notifications/read-all');
+  return notificationFeed(unwrap<unknown>(response.data));
 }
 
 export async function getPaymentOrders(): Promise<ApiPage<PaymentOrder>> {

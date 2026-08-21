@@ -164,3 +164,7 @@
 - [x] Complete a project-wide production readiness audit across website, Laravel API, payment flow, authentication, admin bot, Public View bot, and deployment configuration
 - [x] Apply only validated production-safe fixes and document any remaining panel configuration inputs
 - [x] Add admin bot controls for active Home header and footer Ads API banners
+- [x] Add and backfill a registration-date-derived UID for every user account, then expose it in account/profile data
+- [x] Add autoplay to live Home sliders and present Trending Movies and Popular Series in responsive 16:9 banner cards
+- [x] Rename the Review tab content from Synopsis to Review and show rating, release year, genre, and Yangon TV Production Unit credit beneath each movie title
+- [x] Add a signed-in-only header notification bell backed by live user-specific notifications, unread counts, and read-state APIs

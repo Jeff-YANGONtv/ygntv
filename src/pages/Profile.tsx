@@ -77,7 +77,7 @@ export function ProfilePage() {
       <div className="profile-grid">
         <article className="profile-identity profile-card">
           <div className="profile-avatar"><UserRound size={30} /></div>
-          <div className="profile-identity-copy"><h2>{displayName} <span className={isPremium ? 'profile-badge profile-badge--premium' : 'profile-badge'}><BadgeCheck size={14} /> {membershipLabel}</span></h2><p>{email}</p><span className="profile-role"><ShieldCheck size={13} /> {profile?.user.role ? profile.user.role : 'Account'}</span></div>
+          <div className="profile-identity-copy"><h2>{displayName} {profile?.user.uid && <span className="profile-uid">UID {profile.user.uid}</span>} <span className={isPremium ? 'profile-badge profile-badge--premium' : 'profile-badge'}><BadgeCheck size={14} /> {membershipLabel}</span></h2><p>{email}</p><span className="profile-role"><ShieldCheck size={13} /> {profile?.user.role ? profile.user.role : 'Account'}</span></div>
         </article>
         <article className={isPremium ? 'profile-card premium-card premium-card--active' : 'profile-card premium-card'}>
           <div className="premium-icon" aria-label={isPremium ? 'Premium active' : 'Premium inactive'}><Crown size={24} /></div>
