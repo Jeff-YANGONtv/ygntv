@@ -116,3 +116,6 @@
 - [x] Build the authenticated Profile page with username, badge, premium state, remaining term, purchase history, and Log Out
 - [x] Move Sign in/User profile access into the menu profile entry and remove account text from the notification area
 - [x] Build and verify responsive Profile navigation using live data only
+- [x] Reproduce the missing Sign up success popup or automatic redirect
+- [x] Make registration success feedback and redirect reliable after the Laravel response
+- [x] Build and verify the corrected Sign up completion flow in production

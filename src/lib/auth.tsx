@@ -126,8 +126,8 @@ export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: 
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    if (user && location.pathname === '/auth') navigate(redirectTo || '/', { replace: true });
-  }, [user, location.pathname, navigate, redirectTo]);
+    if (user && location.pathname === '/auth' && !success) navigate(redirectTo || '/', { replace: true });
+  }, [user, location.pathname, navigate, redirectTo, success]);
 
   function switchMode(next: AuthMode) {
     setMode(next);
