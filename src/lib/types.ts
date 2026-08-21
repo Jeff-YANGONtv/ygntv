@@ -101,6 +101,17 @@ export interface SocialLink {
   is_active?: boolean;
 }
 
+export interface AdBanner {
+  id: number | string;
+  name: string;
+  type: 'banner' | 'link' | string;
+  content: string;
+  link_url?: string | null;
+  position: string;
+  display_order?: number;
+  is_active?: boolean;
+}
+
 export interface TvEntitlement {
   active: boolean;
   plan_key: string | null;

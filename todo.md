@@ -156,3 +156,7 @@
 - [x] Add a Contact Us “Who Are U?” first step with Ads Partner/Client, Subscribers, Job Applier, and Collaborative Partner options
 - [x] Add panel-controlled Telegram and Viber destinations for each of the four Contact Us audiences
 - [x] Show a “Thanks For Choosing Us” popup with Telegram and Viber icon buttons after an audience is selected
+- [x] Replace the current Home page sections with live 728×300 header, blog, trending-movie, series, and footer banner sliders
+- [x] Remove the Header Nav Menu tab while retaining a clear mobile navigation path
+- [x] Change the drawer header greeting from “Yangon TV menu” to “Welcome To Yangon TV”
+- [x] Add panel-controlled Ads API placements for Home header and footer 728×300 banner sliders
