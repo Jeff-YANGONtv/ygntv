@@ -149,3 +149,5 @@
 - [x] Show the panel-controlled payment Account Name as the first receipt-page field without a copy control
 - [x] Show the signed-in account name in the header profile tab instead of the generic User Profile label
 - [x] Style the account tab red with white text, other header menu tabs black with red text, and the active tab with a clear illuminated state
+- [x] Keep the header navigation sticky across all public website routes
+- [x] Replace Bottom Nav About Us with a Menu control that opens a polished drawer-style navigation panel
