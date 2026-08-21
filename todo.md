@@ -102,3 +102,5 @@
 - [ ] Complete the auth regression investigation
 - [x] Add password confirmation to the public Sign up form and match Laravel's confirmed-password validation contract
 - [x] Preserve the existing login payload and token extraction contract while fixing registration
+- [x] Reproduce the deployed password confirmation mismatch and verify the exact Sign up payload
+- [x] Fix any remaining confirmation field state or payload mismatch and revalidate production registration
