@@ -15,7 +15,6 @@ concurrency:
 jobs:
   trigger:
     name: Trigger signed scheduler endpoint
-    if: ${{ secrets.HOSTINGER_SCHEDULER_URL != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -23,4 +22,8 @@ jobs:
         env:
           SCHEDULER_URL: ${{ secrets.HOSTINGER_SCHEDULER_URL }}
         run: |
+          if [ -z "$SCHEDULER_URL" ]; then
+            echo "HOSTINGER_SCHEDULER_URL repository secret is not configured."
+            exit 1
+          fi
           curl --fail-with-body --silent --show-error --max-time 50 --request POST "$SCHEDULER_URL"
