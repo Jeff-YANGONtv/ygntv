@@ -199,4 +199,4 @@
 - [x] Set the prepaid-code distribution format to Admin Bot-generated `YG-XXXX-XXXX-XXXX` batches
 - [x] Show active Premium members their remaining membership time instead of a Point Wallet balance
 - [x] Require prepaid codes to be secure random one-time-use values with no expiry date
-- [ ] Move Profile Log Out to the page bottom and rename Premium navigation to Subscription with Monthly Payment and Billing subcategories
+- [x] Move Profile Log Out to the page bottom and rename Premium navigation to Subscription with Monthly Payment and Billing subcategories
