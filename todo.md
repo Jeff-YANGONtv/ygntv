@@ -185,4 +185,4 @@
 - [x] Replace the three Public Bot video delivery buttons with the single user-provided Join button
 - [x] Diagnose and correct the Premium payment page Account Name fallback showing “Not supplied”
 - [x] Restore and verify the signed-in Notification Bell with live unread and read-state APIs
-- [ ] Add threaded Blog comment replies and notify the original commenter through the Notification Bell
+- [x] Add threaded Blog comment replies and notify the original commenter through the Notification Bell
