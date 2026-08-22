@@ -339,6 +339,7 @@ export async function getPublicPaymentAccounts(): Promise<PaymentAccount[]> {
     return [{
       id,
       name,
+      account_name: typeof account.account_name === 'string' ? account.account_name : null,
       description: typeof account.description === 'string' ? account.description : null,
       phone_number: typeof account.phone_number === 'string' ? account.phone_number : null,
       account_number: typeof account.account_number === 'string' ? account.account_number : null,

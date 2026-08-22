@@ -175,3 +175,12 @@
 - [x] Diagnose and repair the production sign-in failure that currently shows a generic unavailable message
 - [x] Simplify and repair the Admin Bot Series workflow for adding a series with multiple seasons and episodes
 - [x] Show exactly one Account Name and one Account Number for each Premium payment method, with no duplicate account-number prompt or field
+- [x] Repair the Admin Bot rate-limit behavior so legitimate management actions are not blocked
+- [ ] Verify the live Premium payment API and page show correct Account Name and Account Number values without duplication
+- [x] Generate user-specified Telegram captions automatically for Movie files and Series episode files
+- [ ] Replace the website Watch Now label with ➤ ကြည့်ရှုရန် while retaining its existing playback behavior
+- [x] Remove the forced subscription requirement from the Public Telegram Bot while retaining direct user access and media delivery
+- [x] Add the three user-provided external Telegram buttons beneath every Public Bot video delivery
+- [x] Update Movie and Series episode delivery captions to the revised labeled multiline format with full release dates
+- [x] Replace the three Public Bot video delivery buttons with the single user-provided Join button
+- [ ] Diagnose and correct the Premium payment page Account Name fallback showing “Not supplied”
