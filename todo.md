@@ -184,3 +184,4 @@
 - [x] Update Movie and Series episode delivery captions to the revised labeled multiline format with full release dates
 - [x] Replace the three Public Bot video delivery buttons with the single user-provided Join button
 - [x] Diagnose and correct the Premium payment page Account Name fallback showing “Not supplied”
+- [ ] Restore and verify the signed-in Notification Bell with live unread and read-state APIs
