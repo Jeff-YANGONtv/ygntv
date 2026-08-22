@@ -214,3 +214,4 @@
 - [x] Rebuild the Subscription page with Membership and Points sections only; do not change Profile navigation for this request
 - [x] Build a responsive 1–12 month Membership package table with the specified prices and Premium Time Card redemption UI
 - [x] Build a Subscription-page Points section showing 1 Ks = 1 Point, Movie = 50 Points, Episode = 25 Points, and Point Card redemption UI
+- [x] Remove all Bank Transfer, receipt-upload, and fallback payment controls from the Subscription page; retain card redemption only
