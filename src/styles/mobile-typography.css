@@ -1,0 +1,11 @@
+@media (max-width:640px){
+  .nav-link,.mobile-nav-link,.mobile-nav-link span,.subscription-menu__item,.subscription-menu__item span,.button,.profile-uid,.profile-badge,.premium-state,.wallet-points,.wallet-activity-points span,.purchase-meta strong{white-space:nowrap}
+  .subscription-stage__heading{align-items:flex-start;gap:12px}
+  .subscription-stage__heading>div{min-width:0}
+  .subscription-stage--cards .subscription-stage__heading h2{font-size:clamp(18px,5.1vw,24px);letter-spacing:-.045em;line-height:1.14;white-space:nowrap}
+  .subscription-stage--cards .subscription-stage__heading p{font-size:12px;line-height:1.5}
+  .membership-table__row strong{font-size:10px!important;letter-spacing:-.035em;white-space:nowrap}
+  .membership-table__row span{white-space:nowrap}
+  .points-rate-table strong{white-space:nowrap}
+  .subscription-tab{font-size:11px;white-space:nowrap}
+}

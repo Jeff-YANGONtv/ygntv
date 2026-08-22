@@ -7,6 +7,7 @@ import { getAds, getSocials, getTvNotifications, markAllTvNotificationsRead, mar
 import { AuthDialog, useAuth } from '../lib/auth';
 import type { AdBanner, SocialLink, TvNotificationFeed, UserNotification } from '../lib/types';
 import '../styles/subscription-menu.css';
+import '../styles/mobile-typography.css';
 
 const navigation = [
   { label: 'Contact Us', to: '/contact', icon: Mail },

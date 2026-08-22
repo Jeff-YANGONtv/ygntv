@@ -216,3 +216,6 @@
 - [x] Build a Subscription-page Points section showing 1 Ks = 1 Point, Movie = 50 Points, Episode = 25 Points, and Point Card redemption UI
 - [x] Remove all Bank Transfer, receipt-upload, and fallback payment controls from the Subscription page; retain card redemption only
 - [x] Show Registration Date in the Point Access card and Linked Email in the Point Wallet card instead of redundant helper copy
+- [x] Keep every Membership table price and Ks suffix on one line across mobile layouts
+- [x] Keep Membership card-redemption headings on one line by reducing mobile type scale rather than wrapping text
+- [x] Audit and correct unintended mobile text wrapping across key Yangon TV website pages
