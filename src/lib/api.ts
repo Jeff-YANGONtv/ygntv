@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvNotificationFeed, TvPlaybackPayload, TvPrepaidPurchase, TvProfileData, TvWalletSummary, TvWalletUnlock, UserNotification } from './types';
+import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvNotificationFeed, TvPlaybackPayload, TvPrepaidPurchase, TvProfileData, TvWalletActivityHistory, TvWalletSummary, TvWalletUnlock, UserNotification } from './types';
 import { publicMediaSlug } from './paths';
 
 const remoteApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
@@ -285,6 +285,11 @@ export async function getTvWalletUnlocks(): Promise<TvWalletUnlock[]> {
   const response = await api.get('/tv/wallet/unlocks');
   const data = unwrap<unknown>(response.data);
   return Array.isArray(data) ? data as TvWalletUnlock[] : [];
+}
+
+export async function getTvWalletActivity(page = 1): Promise<TvWalletActivityHistory> {
+  const response = await api.get('/tv/wallet/activity', { params: { page } });
+  return unwrap<TvWalletActivityHistory>(response.data);
 }
 
 export async function getTvPlayback(contentType: 'movie' | 'episode', contentId: number): Promise<TvPlaybackPayload> {

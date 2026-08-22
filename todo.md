@@ -202,3 +202,5 @@
 - [x] Move Profile Log Out to the page bottom and rename Premium navigation to Subscription with Monthly Payment and Billing subcategories
 - [x] Complete a production-stage audit, hardening pass, and validation for website, Laravel APIs, payment/wallet access, and Telegram bots
 - [ ] Configure the encrypted GitHub Actions `HOSTINGER_SCHEDULER_URL` repository secret and confirm the five-minute Hostinger scheduler workflow succeeds
+- [ ] Add authenticated user Activity History for Point Wallet credits, debits, redemptions, and content unlocks
+- [ ] Limit Notification Bell delivery to user-specific transactional events: reply alerts, Premium activation, new episodes, and wallet redemption

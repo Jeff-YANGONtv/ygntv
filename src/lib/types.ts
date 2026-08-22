@@ -173,6 +173,25 @@ export interface TvWalletUnlock {
   expires_at: string;
 }
 
+export interface TvWalletActivityEntry {
+  id: number;
+  type: 'prepaid_redemption' | 'content_unlock' | 'admin_adjustment' | string;
+  points_delta: number;
+  balance_after: number;
+  title: string;
+  description: string;
+  content_type: 'movie' | 'episode' | null;
+  content_id: number | null;
+  unlock_expires_at: string | null;
+  created_at: string | null;
+}
+
+export interface TvWalletActivityHistory {
+  mode: 'premium' | 'prepaid';
+  entries: TvWalletActivityEntry[];
+  pagination: { current_page: number; last_page: number; per_page: number; total: number; has_more: boolean };
+}
+
 export interface UserNotification {
   id: number | string;
   title: string;
