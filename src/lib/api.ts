@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvNotificationFeed, TvProfileData, UserNotification } from './types';
+import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvNotificationFeed, TvPlaybackPayload, TvPrepaidPurchase, TvProfileData, TvWalletSummary, TvWalletUnlock, UserNotification } from './types';
 import { publicMediaSlug } from './paths';
 
 const remoteApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
@@ -264,6 +264,33 @@ export async function getSocials(): Promise<SocialLink[]> {
 export async function getTvProfile(): Promise<TvProfileData> {
   const response = await api.get('/tv/profile');
   return unwrap<TvProfileData>(response.data);
+}
+
+export async function getTvWallet(): Promise<TvWalletSummary> {
+  const response = await api.get('/tv/wallet');
+  return unwrap<TvWalletSummary>(response.data);
+}
+
+export async function redeemPrepaidCode(code: string): Promise<{ credited_points: number; balance_points: number }> {
+  const response = await api.post('/tv/wallet/redeem', { code });
+  return unwrap<{ credited_points: number; balance_points: number }>(response.data);
+}
+
+export async function purchasePrepaidUnlock(contentType: 'movie' | 'episode', contentId: number): Promise<TvPrepaidPurchase> {
+  const response = await api.post('/tv/wallet/purchases', { content_type: contentType, content_id: contentId });
+  return unwrap<TvPrepaidPurchase>(response.data);
+}
+
+export async function getTvWalletUnlocks(): Promise<TvWalletUnlock[]> {
+  const response = await api.get('/tv/wallet/unlocks');
+  const data = unwrap<unknown>(response.data);
+  return Array.isArray(data) ? data as TvWalletUnlock[] : [];
+}
+
+export async function getTvPlayback(contentType: 'movie' | 'episode', contentId: number): Promise<TvPlaybackPayload> {
+  const endpoint = contentType === 'movie' ? `/tv/playback/movies/${contentId}` : `/tv/playback/episodes/${contentId}`;
+  const response = await api.get(endpoint);
+  return unwrap<TvPlaybackPayload>(response.data);
 }
 
 function notificationFeed(value: unknown): TvNotificationFeed {

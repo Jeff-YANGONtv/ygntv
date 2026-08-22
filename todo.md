@@ -189,3 +189,12 @@
 - [x] Add a panel-controlled scrolling marquee announcement to the website Header Bar
 - [x] Build a branded custom Yangon TV video player UI for current and future Cloud streaming sources
 - [x] Document verified Nstream direct MP4 or HLS stream access options for the custom player
+- [ ] Integrate the official Nstream API through Laravel to issue authorized playback URLs to the custom player
+- [ ] Add a prepaid-code point wallet and pay-as-you-watch billing option alongside Premium membership
+- [x] Set the prepaid wallet conversion rule to 1 Ks = 1 Point
+- [x] Set pay-per-title charges to 15 Points per Movie and 5 Points per Series episode
+- [x] Allow Premium members to redeem prepaid codes into the same Point Wallet
+- [x] Confirm that active Premium members watch unlimited without prepaid-code redemption; prepaid codes serve non-members only
+- [x] Set prepaid title unlocks to remain available for at least three months
+- [x] Set the prepaid-code distribution format to Admin Bot-generated `YG-XXXX-XXXX-XXXX` batches
+- [x] Show active Premium members their remaining membership time instead of a Point Wallet balance

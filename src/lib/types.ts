@@ -126,6 +126,51 @@ export interface TvProfileData {
   user: { id?: number | string; uid?: string | null; name?: string; email?: string; role?: string };
   profile: { display_name?: string | null; avatar_url?: string | null; preferences?: Record<string, unknown> | null };
   entitlement: TvEntitlement;
+  wallet?: TvWalletSummary;
+}
+
+export interface TvWalletSummary {
+  mode: 'premium' | 'prepaid';
+  balance_points: number | null;
+  code_redeem_available: boolean;
+  premium_valid_until?: string | null;
+}
+
+export interface TvPlaybackAccess {
+  access: 'premium' | 'prepaid_unlock' | 'purchase_required';
+  content_type: 'movie' | 'episode';
+  content_id: number;
+  title: string;
+  price_points: number;
+  balance_points: number | null;
+  unlock_expires_at: string | null;
+}
+
+export interface TvPlaybackPayload {
+  content_type: 'movie' | 'episode';
+  content_id: number;
+  title: string;
+  season_id?: number | null;
+  show_id?: number | null;
+  show_title?: string | null;
+  streaming_links: string[];
+  download_links: string[];
+  access: TvPlaybackAccess;
+}
+
+export interface TvPrepaidPurchase {
+  already_unlocked: boolean;
+  balance_points: number;
+  unlock_expires_at: string;
+  content: { content_type: 'movie' | 'episode'; content_id: number; title: string; price_points: number };
+}
+
+export interface TvWalletUnlock {
+  content_type: 'movie' | 'episode';
+  content_id: number;
+  price_points: number;
+  unlocked_at: string;
+  expires_at: string;
 }
 
 export interface UserNotification {
