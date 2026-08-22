@@ -123,7 +123,7 @@ export interface TvEntitlement {
 }
 
 export interface TvProfileData {
-  user: { id?: number | string; uid?: string | null; name?: string; email?: string; role?: string };
+  user: { id?: number | string; uid?: string | null; name?: string; email?: string; role?: string; created_at?: string | null };
   profile: { display_name?: string | null; avatar_url?: string | null; preferences?: Record<string, unknown> | null };
   entitlement: TvEntitlement;
   wallet?: TvWalletSummary;
