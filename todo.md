@@ -188,3 +188,4 @@
 - [x] Add threaded Blog comment replies and notify the original commenter through the Notification Bell
 - [x] Add a panel-controlled scrolling marquee announcement to the website Header Bar
 - [x] Build a branded custom Yangon TV video player UI for current and future Cloud streaming sources
+- [x] Document verified Nstream direct MP4 or HLS stream access options for the custom player
