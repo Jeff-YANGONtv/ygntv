@@ -71,9 +71,11 @@ export interface CommentAuthor {
 
 export interface BlogComment {
   id: number | string;
+  parent_id?: number | string | null;
   body: string;
   created_at?: string | null;
   user: CommentAuthor;
+  replies?: BlogComment[];
 }
 
 export interface BlogInteractions {

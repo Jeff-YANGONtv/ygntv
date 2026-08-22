@@ -245,8 +245,8 @@ export async function saveBlogReaction(blogId: number | string, type: BlogReacti
   return unwrap<BlogInteractions>(response.data);
 }
 
-export async function postBlogComment(blogId: number | string, body: string): Promise<BlogInteractions> {
-  const response = await api.post(`/blog-interactions/${blogId}/comments`, { body });
+export async function postBlogComment(blogId: number | string, body: string, parentCommentId?: number | string | null): Promise<BlogInteractions> {
+  const response = await api.post(`/blog-interactions/${blogId}/comments`, { body, parent_comment_id: parentCommentId ?? null });
   return unwrap<BlogInteractions>(response.data);
 }
 
