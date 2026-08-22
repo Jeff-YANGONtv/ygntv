@@ -209,3 +209,5 @@
 - [ ] Add secure prepaid card types for Point Wallet credits and Premium Time membership activation or extension
 - [x] Remove Point Wallet money-transfer and receipt-payment interfaces in favor of redeemable Point Cards
 - [ ] Make Premium Time Cards the primary membership flow while retaining bank transfer, receipt-upload, payment-order, and approval as a Premium-only fallback; keep Point Wallet card-only
+- [ ] Correct Profile access messaging: Point users show point balance and 5-point minimum access state; Lifetime/Premium users show remaining membership time only
+- [ ] Remove Point conversion and unlock-price copy from the Profile Point Wallet card, retaining only balance and secure code redemption
