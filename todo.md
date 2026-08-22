@@ -200,3 +200,4 @@
 - [x] Show active Premium members their remaining membership time instead of a Point Wallet balance
 - [x] Require prepaid codes to be secure random one-time-use values with no expiry date
 - [x] Move Profile Log Out to the page bottom and rename Premium navigation to Subscription with Monthly Payment and Billing subcategories
+- [ ] Complete a production-stage audit, hardening pass, and validation for website, Laravel APIs, payment/wallet access, and Telegram bots

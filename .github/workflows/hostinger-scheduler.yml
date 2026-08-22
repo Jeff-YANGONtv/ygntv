@@ -1,0 +1,26 @@
+name: Hostinger Laravel Scheduler
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hostinger-laravel-scheduler
+  cancel-in-progress: false
+
+jobs:
+  trigger:
+    name: Trigger signed scheduler endpoint
+    if: ${{ secrets.HOSTINGER_SCHEDULER_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Run Laravel scheduler
+        env:
+          SCHEDULER_URL: ${{ secrets.HOSTINGER_SCHEDULER_URL }}
+        run: |
+          curl --fail-with-body --silent --show-error --max-time 50 --request POST "$SCHEDULER_URL"
