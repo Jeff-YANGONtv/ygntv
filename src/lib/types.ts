@@ -136,6 +136,15 @@ export interface TvWalletSummary {
   premium_valid_until?: string | null;
 }
 
+export interface TvCardRedemption {
+  card_type: 'points' | 'premium_time';
+  credited_points?: number;
+  balance_points?: number;
+  premium_plan_key?: string;
+  premium_months?: number;
+  premium_valid_until?: string;
+}
+
 export interface TvPlaybackAccess {
   access: 'premium' | 'prepaid_unlock' | 'purchase_required';
   content_type: 'movie' | 'episode';

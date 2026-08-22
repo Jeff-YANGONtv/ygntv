@@ -102,12 +102,19 @@ export function ProfilePage() {
     setWalletMessage('');
     try {
       const redeemed = await redeemPrepaidCode(code);
-      setProfile((current) => current ? {
-        ...current,
-        wallet: current.wallet ? { ...current.wallet, mode: 'prepaid', balance_points: redeemed.balance_points, code_redeem_available: true } : current.wallet,
-      } : current);
       setPrepaidCode('');
-      setWalletMessage(`${redeemed.credited_points.toLocaleString()} Points were added to your balance.`);
+      if (redeemed.card_type === 'premium_time') {
+        const refreshedProfile = await getTvProfile();
+        setProfile(refreshedProfile);
+        const months = redeemed.premium_months ?? 0;
+        setWalletMessage(`${months} month Premium Time Card activated successfully.`);
+      } else {
+        setProfile((current) => current ? {
+          ...current,
+          wallet: current.wallet ? { ...current.wallet, mode: 'prepaid', balance_points: redeemed.balance_points ?? current.wallet.balance_points, code_redeem_available: true } : current.wallet,
+        } : current);
+        setWalletMessage(`${(redeemed.credited_points ?? 0).toLocaleString()} Points were added to your balance.`);
+      }
       const activity = await getTvWalletActivity();
       setWalletActivity(activity);
     } catch (cause) {

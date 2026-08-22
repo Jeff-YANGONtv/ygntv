@@ -205,3 +205,7 @@
 - [x] Add authenticated user Activity History for Point Wallet credits, debits, redemptions, and content unlocks
 - [x] Limit Notification Bell delivery to user-specific transactional events: reply alerts, Premium activation, and wallet redemption
 - [ ] Add opt-in series subscriptions before delivering recipient-specific new-episode Notification Bell alerts
+- [ ] Complete final production validation for Point Wallet Activity History and transaction rendering
+- [ ] Add secure prepaid card types for Point Wallet credits and Premium Time membership activation or extension
+- [ ] Remove Point Wallet money-transfer and receipt-payment interfaces in favor of redeemable Point Cards
+- [ ] Make Premium Time Cards the primary membership flow while retaining bank transfer, receipt-upload, payment-order, and approval as a Premium-only fallback; keep Point Wallet card-only

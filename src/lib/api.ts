@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvNotificationFeed, TvPlaybackPayload, TvPrepaidPurchase, TvProfileData, TvWalletActivityHistory, TvWalletSummary, TvWalletUnlock, UserNotification } from './types';
+import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvCardRedemption, TvNotificationFeed, TvPlaybackPayload, TvPrepaidPurchase, TvProfileData, TvWalletActivityHistory, TvWalletSummary, TvWalletUnlock, UserNotification } from './types';
 import { publicMediaSlug } from './paths';
 
 const remoteApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
@@ -271,9 +271,9 @@ export async function getTvWallet(): Promise<TvWalletSummary> {
   return unwrap<TvWalletSummary>(response.data);
 }
 
-export async function redeemPrepaidCode(code: string): Promise<{ credited_points: number; balance_points: number }> {
+export async function redeemPrepaidCode(code: string): Promise<TvCardRedemption> {
   const response = await api.post('/tv/wallet/redeem', { code });
-  return unwrap<{ credited_points: number; balance_points: number }>(response.data);
+  return unwrap<TvCardRedemption>(response.data);
 }
 
 export async function purchasePrepaidUnlock(contentType: 'movie' | 'episode', contentId: number): Promise<TvPrepaidPurchase> {
