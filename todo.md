@@ -187,4 +187,4 @@
 - [x] Restore and verify the signed-in Notification Bell with live unread and read-state APIs
 - [x] Add threaded Blog comment replies and notify the original commenter through the Notification Bell
 - [x] Add a panel-controlled scrolling marquee announcement to the website Header Bar
-- [ ] Build a branded custom Yangon TV video player UI for current and future Cloud streaming sources
+- [x] Build a branded custom Yangon TV video player UI for current and future Cloud streaming sources
