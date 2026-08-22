@@ -27,7 +27,7 @@ The purchase confirmation is deliberate: opening a detail page, previewing a tra
 
 ## Prepaid code administration
 
-The Admin Bot will receive a **Point Wallet** manager. An administrator can generate a batch with a denomination, count, optional expiry date, and label. Codes use the format `YG-XXXX-XXXX-XXXX`; random characters will exclude ambiguous characters such as `O`, `0`, `I`, and `1` where practical.
+The Admin Bot will receive a **Point Wallet** manager. An administrator can generate a batch with a denomination, count, and label. Codes use the format `YG-XXXX-XXXX-XXXX`; random characters exclude ambiguous characters such as `O`, `0`, `I`, and `1` where practical. A generated code never expires, but it can be redeemed exactly once or revoked by an administrator.
 
 The code batch is shown or exported to the administrator one time at generation. The database does not retain recoverable plaintext codes. Administrators can later view batch totals, redemption counts, revoked codes, and the user/time associated with a redemption, but not expose already-generated secret codes again.
 

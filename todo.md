@@ -198,3 +198,4 @@
 - [x] Set prepaid title unlocks to remain available for at least three months
 - [x] Set the prepaid-code distribution format to Admin Bot-generated `YG-XXXX-XXXX-XXXX` batches
 - [x] Show active Premium members their remaining membership time instead of a Point Wallet balance
+- [x] Require prepaid codes to be secure random one-time-use values with no expiry date
