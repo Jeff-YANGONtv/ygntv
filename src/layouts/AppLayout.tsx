@@ -14,8 +14,8 @@ const navigation = [
 ];
 
 const subscriptionNavigation = [
-  { label: 'Monthly Payment', to: '/subscription' },
-  { label: 'Billing', to: '/profile#billing' },
+  { label: 'Membership', to: '/subscription?tab=membership' },
+  { label: 'Points', to: '/subscription?tab=points' },
 ];
 
 const mobileNavigation = [
@@ -80,8 +80,10 @@ export function AppLayout() {
 }
 
 function SubscriptionMenu({ variant, isOpen }: { variant: 'header' | 'drawer'; isOpen: boolean }) {
+  const location = useLocation();
   const rootClass = variant === 'header' ? 'subscription-menu subscription-menu--header' : 'subscription-menu subscription-menu--drawer';
-  return <details className={rootClass} open={isOpen}><summary><Crown size={variant === 'header' ? 16 : 18} /><span>Subscription</span><ChevronDown size={14} /></summary><div className="subscription-menu__items">{subscriptionNavigation.map(({ label, to }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'subscription-menu__item subscription-menu__item--active' : 'subscription-menu__item'}><span>{label}</span></NavLink>)}</div></details>;
+  const activeTab = new URLSearchParams(location.search).get('tab') === 'points' ? 'points' : 'membership';
+  return <details className={rootClass} open={isOpen}><summary><Crown size={variant === 'header' ? 16 : 18} /><span>Subscription</span><ChevronDown size={14} /></summary><div className="subscription-menu__items">{subscriptionNavigation.map(({ label, to }) => <NavLink key={to} to={to} className={to.endsWith(`tab=${activeTab}`) ? 'subscription-menu__item subscription-menu__item--active' : 'subscription-menu__item'}><span>{label}</span></NavLink>)}</div></details>;
 }
 
 function socialIcon(social: SocialLink) {
