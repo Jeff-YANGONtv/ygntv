@@ -219,3 +219,4 @@
 - [x] Keep every Membership table price and Ks suffix on one line across mobile layouts
 - [x] Keep Membership card-redemption headings on one line by reducing mobile type scale rather than wrapping text
 - [x] Audit and correct unintended mobile text wrapping across key Yangon TV website pages
+- [x] Replace the Contact page “Who Are U?” heading with “Contact Us” while preserving audience selection options
