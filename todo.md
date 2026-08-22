@@ -186,3 +186,4 @@
 - [x] Diagnose and correct the Premium payment page Account Name fallback showing “Not supplied”
 - [x] Restore and verify the signed-in Notification Bell with live unread and read-state APIs
 - [x] Add threaded Blog comment replies and notify the original commenter through the Notification Bell
+- [ ] Add a panel-controlled scrolling marquee announcement to the website Header Bar

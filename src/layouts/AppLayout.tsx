@@ -3,9 +3,9 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Bell, CheckCheck, Clapperboard, Crown, Film, Home, Info, Mail, Menu, Newspaper, Send, UserRound, X } from 'lucide-react';
 import { FaFacebookF, FaTelegram, FaTiktok } from 'react-icons/fa6';
 import { Logo } from '../components/ui/Primitives';
-import { getSocials, getTvNotifications, markAllTvNotificationsRead, markTvNotificationRead } from '../lib/api';
+import { getAds, getSocials, getTvNotifications, markAllTvNotificationsRead, markTvNotificationRead } from '../lib/api';
 import { AuthDialog, useAuth } from '../lib/auth';
-import type { SocialLink, TvNotificationFeed, UserNotification } from '../lib/types';
+import type { AdBanner, SocialLink, TvNotificationFeed, UserNotification } from '../lib/types';
 
 const navigation = [
   { label: 'Premium', to: '/subscription', icon: Crown },
@@ -24,10 +24,12 @@ export function AppLayout() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [socials, setSocials] = useState<SocialLink[]>([]);
+  const [marqueeAnnouncements, setMarqueeAnnouncements] = useState<AdBanner[]>([]);
   const { user } = useAuth();
   const isHomePage = location.pathname === '/';
   const accountLabel = user ? (user.name?.trim() || user.email?.split('@')[0] || 'Account') : 'Sign In / Sign Up';
   const drawerSocials = socials.filter((social) => /facebook|tiktok|music|telegram|send/i.test(`${social.name} ${social.icon} ${social.url}`));
+  const marqueeText = marqueeAnnouncements.map((announcement) => announcement.content.trim()).filter(Boolean);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -36,13 +38,24 @@ export function AppLayout() {
 
   useEffect(() => {
     let active = true;
-    getSocials().then((items) => { if (active) setSocials(items.filter((item) => item.is_active !== false)); }).catch(() => { if (active) setSocials([]); });
+    Promise.all([getSocials(), getAds('header_marquee')])
+      .then(([nextSocials, nextMarquee]) => {
+        if (!active) return;
+        setSocials(nextSocials.filter((item) => item.is_active !== false));
+        setMarqueeAnnouncements(nextMarquee.filter((item) => item.is_active !== false));
+      })
+      .catch(() => {
+        if (!active) return;
+        setSocials([]);
+        setMarqueeAnnouncements([]);
+      });
     return () => { active = false; };
   }, []);
 
 
   return <div className="app-shell">
     <header className="site-header">
+      {marqueeText.length > 0 && <div className="header-marquee" aria-label="Latest Yangon TV announcements"><div className="container header-marquee__viewport"><div className="header-marquee__track"><span>{marqueeText.map((text) => `✦ ${text}`).join('     ')}</span><span aria-hidden="true">{marqueeText.map((text) => `✦ ${text}`).join('     ')}</span></div></div></div>}
       <div className="container header-inner">
         <Logo />
         <nav className={`main-nav ${menuOpen ? 'main-nav--open' : ''}`} aria-label="Primary navigation">
