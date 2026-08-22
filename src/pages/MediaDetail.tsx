@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, CalendarDays, ChevronDown, Download, Play, Send, Star, Tags, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ChevronDown, Download, Expand, Maximize, Pause, Play, RotateCcw, RotateCw, Send, Settings2, Star, Tags, Users, Volume2, VolumeX } from 'lucide-react';
 import Hls from 'hls.js';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
@@ -123,21 +123,50 @@ function providerEmbedUrl(value: string): string | null {
 
 function VideoPlayer({ source, poster, title }: { source: string; poster?: string; title: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const playerRef = useRef<HTMLDivElement>(null);
   const [playerError, setPlayerError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const [speedOpen, setSpeedOpen] = useState(false);
+  const hideControlsTimer = useRef<number | null>(null);
   const sourceUrl = mediaUrl(source);
   const embedUrl = providerEmbedUrl(sourceUrl);
   const resolvedSource = directMediaUrl(sourceUrl);
   const resolvedPoster = poster ? mediaUrl(poster) : undefined;
   const provider = providerLabel(sourceUrl);
   const isUnsupportedWatchPage = /\/watch(?:\/|$)/i.test(resolvedSource);
+  const isHls = /\.m3u8(?:$|[?#])/i.test(resolvedSource);
+
+  const clearHideControlsTimer = () => {
+    if (hideControlsTimer.current !== null) window.clearTimeout(hideControlsTimer.current);
+    hideControlsTimer.current = null;
+  };
+
+  const revealControls = () => {
+    clearHideControlsTimer();
+    setControlsVisible(true);
+    if (isPlaying) hideControlsTimer.current = window.setTimeout(() => setControlsVisible(false), 2800);
+  };
+
+  const formatTime = (value: number) => {
+    if (!Number.isFinite(value) || value < 0) return '0:00';
+    const total = Math.floor(value);
+    const minutes = Math.floor(total / 60);
+    const seconds = total % 60;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     const video = videoRef.current;
     if (isUnsupportedWatchPage || !video || !resolvedSource) return;
     let hls: Hls | null = null;
     let timeoutId = 0;
-    const isHls = /\.m3u8(?:$|[?#])/i.test(resolvedSource);
     const markLoaded = () => {
       setIsLoading(false);
       window.clearTimeout(timeoutId);
@@ -150,6 +179,11 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
 
     setPlayerError('');
     setIsLoading(true);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    setSpeedOpen(false);
+    setControlsVisible(true);
     timeoutId = window.setTimeout(() => {
       setIsLoading(false);
       setPlayerError('The streaming server did not send video data. Please add a new direct MP4 or HLS URL.');
@@ -186,6 +220,95 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
       video.load();
     };
   }, [isUnsupportedWatchPage, resolvedSource]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const player = playerRef.current;
+    if (!video || !player || isUnsupportedWatchPage || embedUrl) return;
+    const onTimeUpdate = () => setCurrentTime(video.currentTime || 0);
+    const onDurationChange = () => setDuration(Number.isFinite(video.duration) ? video.duration : 0);
+    const onPlay = () => { setIsPlaying(true); revealControls(); };
+    const onPause = () => { setIsPlaying(false); setControlsVisible(true); clearHideControlsTimer(); };
+    const onVolumeChange = () => { setVolume(video.volume); setIsMuted(video.muted || video.volume === 0); };
+    const onFullscreenChange = () => setIsFullscreen(document.fullscreenElement === player);
+    video.addEventListener('timeupdate', onTimeUpdate);
+    video.addEventListener('durationchange', onDurationChange);
+    video.addEventListener('play', onPlay);
+    video.addEventListener('pause', onPause);
+    video.addEventListener('volumechange', onVolumeChange);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => {
+      clearHideControlsTimer();
+      video.removeEventListener('timeupdate', onTimeUpdate);
+      video.removeEventListener('durationchange', onDurationChange);
+      video.removeEventListener('play', onPlay);
+      video.removeEventListener('pause', onPause);
+      video.removeEventListener('volumechange', onVolumeChange);
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+    };
+  }, [embedUrl, isUnsupportedWatchPage, resolvedSource]);
+
+  const togglePlay = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+    try {
+      if (video.paused) await video.play();
+      else video.pause();
+    } catch {
+      setPlayerError('Playback could not start. Please try again or use another source.');
+    }
+  };
+
+  const seekBy = (seconds: number) => {
+    const video = videoRef.current;
+    if (!video || !Number.isFinite(video.duration)) return;
+    video.currentTime = Math.min(Math.max(0, video.currentTime + seconds), video.duration);
+    revealControls();
+  };
+
+  const setProgress = (value: number) => {
+    const video = videoRef.current;
+    if (!video || !Number.isFinite(video.duration)) return;
+    video.currentTime = value;
+    setCurrentTime(value);
+    revealControls();
+  };
+
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+    if (!video.muted && video.volume === 0) video.volume = 0.65;
+    revealControls();
+  };
+
+  const setPlayerVolume = (value: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.volume = value;
+    video.muted = value === 0;
+    setVolume(value);
+    setIsMuted(value === 0);
+  };
+
+  const setPlaybackSpeed = (value: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.playbackRate = value;
+    setSpeedOpen(false);
+    revealControls();
+  };
+
+  const toggleFullscreen = async () => {
+    const player = playerRef.current;
+    if (!player) return;
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await player.requestFullscreen();
+    } catch {
+      setPlayerError('Fullscreen is not available in this browser.');
+    }
+  };
 
   if (!source) {
     return (
@@ -224,9 +347,25 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
   }
 
   return (
-    <div className="player-frame">
-      <video ref={videoRef} className="video-player" controls playsInline preload="metadata" poster={resolvedPoster} aria-label={`Play ${title}`} />
-      {isLoading && <div className="player-loading" aria-live="polite">Connecting to the streaming server…</div>}
+    <div ref={playerRef} className="player-frame player-frame--custom" onMouseMove={revealControls} onMouseLeave={() => { if (isPlaying) hideControlsTimer.current = window.setTimeout(() => setControlsVisible(false), 700); }}>
+      <video ref={videoRef} className="video-player" playsInline preload="metadata" poster={resolvedPoster} aria-label={`Play ${title}`} onClick={togglePlay} />
+      <div className={controlsVisible || !isPlaying ? 'player-custom__shade player-custom__shade--visible' : 'player-custom__shade'}>
+        <div className="player-custom__top"><span className="player-custom__brand">YANGON <b>TV</b></span><span className="player-custom__source">{isHls ? 'HLS STREAM' : 'DIRECT STREAM'}</span></div>
+        <button className="player-custom__center-play" type="button" aria-label={isPlaying ? 'Pause video' : 'Play video'} onClick={togglePlay}>{isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={30} fill="currentColor" />}</button>
+        <div className="player-custom__dock">
+          <input className="player-custom__progress" type="range" min="0" max={duration || 0} step="0.1" value={Math.min(currentTime, duration || 0)} onChange={(event) => setProgress(Number(event.target.value))} aria-label="Video progress" />
+          <div className="player-custom__controls">
+            <button type="button" className="player-custom__icon" onClick={togglePlay} aria-label={isPlaying ? 'Pause video' : 'Play video'}>{isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}</button>
+            <button type="button" className="player-custom__icon" onClick={() => seekBy(-10)} aria-label="Rewind 10 seconds"><RotateCcw size={18} /><span>10</span></button>
+            <button type="button" className="player-custom__icon" onClick={() => seekBy(10)} aria-label="Forward 10 seconds"><RotateCw size={18} /><span>10</span></button>
+            <span className="player-custom__time">{formatTime(currentTime)} <i>/</i> {formatTime(duration)}</span>
+            <div className="player-custom__volume"><button type="button" className="player-custom__icon" onClick={toggleMute} aria-label={isMuted ? 'Unmute' : 'Mute'}>{isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button><input type="range" min="0" max="1" step="0.05" value={isMuted ? 0 : volume} onChange={(event) => setPlayerVolume(Number(event.target.value))} aria-label="Volume" /></div>
+            <div className="player-custom__speed"><button type="button" className="player-custom__icon player-custom__speed-toggle" onClick={() => setSpeedOpen((value) => !value)} aria-label="Playback speed"><Settings2 size={17} /><span>Speed</span></button>{speedOpen && <div className="player-custom__speed-menu" role="menu">{[0.75, 1, 1.25, 1.5, 2].map((speed) => <button type="button" key={speed} onClick={() => setPlaybackSpeed(speed)}>{speed}×</button>)}</div>}</div>
+            <button type="button" className="player-custom__icon" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}>{isFullscreen ? <Expand size={18} /> : <Maximize size={18} />}</button>
+          </div>
+        </div>
+      </div>
+      {isLoading && <div className="player-custom__loading" aria-live="polite"><span /><b>Connecting to Yangon TV stream…</b></div>}
       {playerError && <div className="player-error" role="alert"><span>{playerError}</span> <a href={resolvedSource} target="_blank" rel="noreferrer">Open source</a></div>}
     </div>
   );
