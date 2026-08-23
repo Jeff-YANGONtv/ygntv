@@ -220,8 +220,9 @@
 - [x] Keep Membership card-redemption headings on one line by reducing mobile type scale rather than wrapping text
 - [x] Audit and correct unintended mobile text wrapping across key Yangon TV website pages
 - [x] Replace the Contact page “Who Are U?” heading with “Contact Us” while preserving audience selection options
-- [ ] Add structured Blog fields for cover, title, topic, publication date, author, inline photos/videos, safe HTML article content, SEO title, meta description, canonical URL, Open Graph image, and article structured data
-- [ ] Change canonical Blog URLs to /blog/{post-id}-{published-year}/{title-slug} while preserving legacy slug links
+- [x] Add structured Blog fields for cover, title, topic, publication date, author, inline photos/videos, safe HTML article content, SEO title, meta description, canonical URL, Open Graph image, and article structured data
+- [x] Change canonical Blog URLs to /blog/{post-id}-{published-year}/{title-slug} while preserving legacy slug links
+- [ ] Validate the first real rich Blog post through the Admin Bot, including cover, embedded media, SEO preview, and its generated canonical URL
 - [x] Remove the public About Yangon TV page and all header, menu, footer, and internal navigation references
 - [x] Remove duplicated Point-balance labels from Profile; show Point or Lifetime identity once and show only the appropriate supporting detail
 - [x] Add and validate a Header Banner destination Link URL field in the admin workflow and public banner click handling
