@@ -1,7 +1,7 @@
 {
   "name": "Yangon TV",
   "short_name": "Yangon TV",
-  "description": "Movies, series, recaps, and entertainment from Myanmar.",
+  "description": "မြန်မာစာတန်းထိုး ရုပ်ရှင်ဇာတ်ကားများ၊ စီးရီးများနှင့် entertainment stories များကို Yangon TV တွင်ရှာဖွေပါ။",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b0b0e",
