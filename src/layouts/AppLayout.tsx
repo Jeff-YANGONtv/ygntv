@@ -1,21 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Bell, CheckCheck, ChevronDown, Clapperboard, Crown, Film, Home, Mail, Menu, Newspaper, Send, UserRound, X } from 'lucide-react';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Bell, CheckCheck, Clapperboard, Crown, Film, History, Home, LogOut, Mail, Menu, Newspaper, Send, UserRound, X } from 'lucide-react';
 import { FaFacebookF, FaTelegram, FaTiktok } from 'react-icons/fa6';
 import { Logo } from '../components/ui/Primitives';
 import { getAds, getSocials, getTvNotifications, markAllTvNotificationsRead, markTvNotificationRead } from '../lib/api';
 import { AuthDialog, useAuth } from '../lib/auth';
 import type { AdBanner, SocialLink, TvNotificationFeed, UserNotification } from '../lib/types';
+import '../styles/drawer-menu.css';
 import '../styles/subscription-menu.css';
 import '../styles/mobile-typography.css';
 
 const navigation = [
   { label: 'Contact Us', to: '/contact', icon: Mail },
-];
-
-const subscriptionNavigation = [
-  { label: 'Membership', to: '/subscription?tab=membership' },
-  { label: 'Points', to: '/subscription?tab=points' },
 ];
 
 const mobileNavigation = [
@@ -27,12 +23,15 @@ const mobileNavigation = [
 
 export function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [socials, setSocials] = useState<SocialLink[]>([]);
   const [marqueeAnnouncements, setMarqueeAnnouncements] = useState<AdBanner[]>([]);
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const isHomePage = location.pathname === '/';
-  const accountLabel = user ? (user.name?.trim() || user.email?.split('@')[0] || 'Account') : 'Sign In / Sign Up';
+  const accountLabel = user ? (user.name?.trim() || user.email?.split('@')[0] || 'Account') : 'User Profile';
+  const accountPath = user ? '/profile' : '/auth';
+  const historyPath = user ? '/profile#billing' : '/auth';
   const drawerSocials = socials.filter((social) => /facebook|tiktok|music|telegram|send/i.test(`${social.name} ${social.icon} ${social.url}`));
   const marqueeText = marqueeAnnouncements.map((announcement) => announcement.content.trim()).filter(Boolean);
 
@@ -64,26 +63,19 @@ export function AppLayout() {
       <div className="container header-inner">
         <Logo />
         <nav className={`main-nav ${menuOpen ? 'main-nav--open' : ''}`} aria-label="Primary navigation">
-          <NavLink to={user ? '/profile' : '/auth'} className={({ isActive }) => isActive ? 'nav-link nav-link--account nav-link--active' : 'nav-link nav-link--account'}><UserRound size={16} />{accountLabel}</NavLink>
-          <SubscriptionMenu variant="header" isOpen={location.pathname === '/subscription' || location.pathname === '/profile'} />
+          <NavLink to={accountPath} className={({ isActive }) => isActive ? 'nav-link nav-link--account nav-link--active' : 'nav-link nav-link--account'}><UserRound size={16} />{accountLabel}</NavLink>
+          <NavLink to="/subscription" className={({ isActive }) => isActive ? 'nav-link nav-link--menu nav-link--active' : 'nav-link nav-link--menu'}><Crown size={16} />Subscription</NavLink>
           {navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'nav-link nav-link--menu nav-link--active' : 'nav-link nav-link--menu'}><Icon size={16} />{label}</NavLink>)}
         </nav>
         <div className="header-actions">{user && <NotificationBell />}</div>
       </div>
     </header>
-    {menuOpen && <><button className="drawer-backdrop" type="button" aria-label="Close navigation menu" onClick={() => setMenuOpen(false)} /><aside className="mobile-drawer" aria-label="Website menu"><div className="mobile-drawer__top"><span className="profile-card-label">Welcome To Yangon TV</span><button className="icon-button" type="button" onClick={() => setMenuOpen(false)} aria-label="Close navigation menu"><X size={20} /></button></div><nav className="mobile-drawer__nav"><NavLink to={user ? '/profile' : '/auth'} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__account mobile-drawer__link--active' : 'mobile-drawer__link mobile-drawer__account'}><UserRound size={18} />{accountLabel}</NavLink><SubscriptionMenu variant="drawer" isOpen={location.pathname === '/subscription' || location.pathname === '/profile'} />{navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__link--active' : 'mobile-drawer__link'}><Icon size={18} />{label}</NavLink>)}</nav>{drawerSocials.length > 0 && <div className="mobile-drawer__socials"><span className="profile-card-label">Follow Yangon TV</span>{drawerSocials.map((social) => { const Icon = socialIcon(social); return <a className="mobile-drawer__social" href={social.url} key={social.id} target="_blank" rel="noopener noreferrer"><Icon size={17} className={`mobile-drawer__social-icon mobile-drawer__social-icon--${socialIconName(social)}`} /><span>{social.name}</span></a>; })}</div>}</aside></>}
+    {menuOpen && <><button className="drawer-backdrop" type="button" aria-label="Close navigation menu" onClick={() => setMenuOpen(false)} /><aside className="mobile-drawer" aria-label="Website menu"><div className="mobile-drawer__top"><span className="profile-card-label">Welcome To Yangon TV</span><button className="icon-button" type="button" onClick={() => setMenuOpen(false)} aria-label="Close navigation menu"><X size={20} /></button></div><nav className="mobile-drawer__nav"><NavLink to={accountPath} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__account mobile-drawer__link--active' : 'mobile-drawer__link mobile-drawer__account'}><UserRound size={18} />{accountLabel}</NavLink><NavLink to={historyPath} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__link--active' : 'mobile-drawer__link'}><History size={18} />User History</NavLink><NavLink to="/subscription" className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__link--active' : 'mobile-drawer__link'}><Crown size={18} />Subscription</NavLink>{navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__link--active' : 'mobile-drawer__link'}><Icon size={18} />{label}</NavLink>)}</nav>{drawerSocials.length > 0 && <div className="mobile-drawer__socials"><span className="profile-card-label">Follow Us</span>{drawerSocials.map((social) => { const Icon = socialIcon(social); return <a className="mobile-drawer__social" href={social.url} key={social.id} target="_blank" rel="noopener noreferrer"><Icon size={17} className={`mobile-drawer__social-icon mobile-drawer__social-icon--${socialIconName(social)}`} /><span>{social.name}</span></a>; })}</div>}{user && <button className="mobile-drawer__logout" type="button" onClick={() => { signOut(); navigate('/auth', { replace: true }); }}><LogOut size={18} />Log Out</button>}</aside></>}
     <main><Outlet /></main>
     <footer className={`site-footer ${isHomePage ? 'site-footer--minimal' : ''}`}>{!isHomePage && <div className="container footer-grid"><div><Logo /><p className="footer-copy">Stories worth staying up for. Discover movies, series, recaps, and the people behind them.</p></div><div><span className="footer-label">Explore</span><Link to="/movies">Movies</Link><Link to="/series">Series</Link><Link to="/blog">Blog</Link></div><div><span className="footer-label">Yangon TV</span><Link to="/links">Useful links</Link><a href="mailto:hello@yangontv.com">Contact</a></div></div>}<div className="container footer-bottom"><span>© 2026 Yangon TV. Made for Myanmar audiences.</span><span>All content is for entertainment purposes.</span></div></footer>
     <AuthDialog />
     <div className="mobile-bottom-nav">{mobileNavigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'mobile-nav-link mobile-nav-link--active' : 'mobile-nav-link'} end={to === '/'}><Icon size={18} /><span>{label}</span></NavLink>)}<button className={menuOpen ? 'mobile-nav-link mobile-nav-link--active mobile-nav-link--menu' : 'mobile-nav-link mobile-nav-link--menu'} type="button" onClick={() => setMenuOpen(true)} aria-label="Open menu"><Menu size={18} /><span>Menu</span></button></div>
   </div>;
-}
-
-function SubscriptionMenu({ variant, isOpen }: { variant: 'header' | 'drawer'; isOpen: boolean }) {
-  const location = useLocation();
-  const rootClass = variant === 'header' ? 'subscription-menu subscription-menu--header' : 'subscription-menu subscription-menu--drawer';
-  const activeTab = new URLSearchParams(location.search).get('tab') === 'points' ? 'points' : 'membership';
-  return <details className={rootClass} open={isOpen}><summary><Crown size={variant === 'header' ? 16 : 18} /><span>Subscription</span><ChevronDown size={14} /></summary><div className="subscription-menu__items">{subscriptionNavigation.map(({ label, to }) => <NavLink key={to} to={to} className={to.endsWith(`tab=${activeTab}`) ? 'subscription-menu__item subscription-menu__item--active' : 'subscription-menu__item'}><span>{label}</span></NavLink>)}</div></details>;
 }
 
 function socialIcon(social: SocialLink) {

@@ -237,3 +237,8 @@
 - [x] Audit frontend metadata and content for compliant editorial targeting of relevant third-party entertainment-brand search terms
 - [x] Implement the approved no-global-keyword policy without restoring removed SEO UI blocks
 - [ ] Publish a source-reviewed, genuinely useful third-party platform guide only after its topic, facts, and references are approved
+- [x] Draft and deliver an official About Yangon TV Blog post with SEO metadata and safe HTML, without restoring the removed About page
+- [x] Generate and deliver a 16:9 official Yangon TV cover image for the About Yangon TV Blog post
+- [x] Convert the official About Yangon TV Blog post and its publishing fields fully into Burmese
+- [x] Generate a mobile drawer-menu visual preview with User Profile, User History, Subscription, Contact Us, Follow Us, and Log Out as separate items
+- [x] Implement the simplified live drawer navigation and show User Profile when signed out or the authenticated account name when signed in
