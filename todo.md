@@ -232,3 +232,5 @@
 - [x] Implement compliant Myanmar-language keyword landing content and SEO metadata for Yangon TV discovery searches
 - [x] Prepare Google Search Console verification and sitemap-submission instructions for the site owner
 - [ ] Verify the Yangon TV property in Google Search Console, submit the live sitemap, and monitor initial query/indexing data
+- [x] Remove the visible SEO discovery section and restore the prior Movies, Series, and Blog headings while retaining non-visual SEO metadata and favicon assets
+- [x] Keep the public Blog page heading and label as plain “Blog” after the visual rollback

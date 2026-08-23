@@ -6,7 +6,6 @@ import { AutoSlider, EmptyState, ErrorState, SkeletonGrid } from '../components/
 import { getAds, getBlogs, getMovies, getSeries, mediaUrl } from '../lib/api';
 import { blogPath, mediaDetailPath, mediaWatchPath } from '../lib/paths';
 import type { AdBanner, BlogPost, MediaItem } from '../lib/types';
-import '../styles/search-discovery.css';
 
 export function Home() {
   const [movies, setMovies] = useState<MediaItem[]>([]);
@@ -48,7 +47,6 @@ export function Home() {
   if (!featured.length && !headerAds.length && !footerAds.length) return <div className="page page-state container"><EmptyState title="No content available" copy="The backend has not published any banners, movies, or series yet." /></div>;
 
   return <div className="page page-home page-home--sliders">
-    <section className="container home-discovery" aria-labelledby="home-discovery-title"><div><span className="eyebrow">Myanmar entertainment discovery</span><h1 id="home-discovery-title">မြန်မာစာတန်းထိုး ရုပ်ရှင်ဇာတ်ကားများနှင့် စီးရီးများ</h1><p>Yangon TV မှာ ရုပ်ရှင်ဇာတ်ကားများ၊ စီးရီးများ၊ reviews နဲ့ entertainment stories တွေကို အလွယ်တကူရှာဖွေနိုင်ပါတယ်။</p></div><div className="home-discovery__links"><Link to="/movies">ရုပ်ရှင်များ <ArrowRight size={15} /></Link><Link to="/series">စီးရီးများ <ArrowRight size={15} /></Link><Link to="/blog">Reviews &amp; Blog <ArrowRight size={15} /></Link></div></section>
     {headerAds.length > 0 && <AutoSlider className="container home-banner-slider home-banner-slider--header" title="Yangon TV header banners" hideHeadingText interval={5600}>{headerAds.map((ad) => <AdBannerSlide ad={ad} key={ad.id} />)}</AutoSlider>}
     {blogs.length > 0 && <AutoSlider className="container home-banner-slider" eyebrow="Latest from Yangon TV" title="Blog Post Covers" action={{ label: 'View all blogs', to: '/blog' }}>{blogs.slice(0, 8).map((post) => <BlogBanner post={post} key={post.id} />)}</AutoSlider>}
     {movies.length > 0 && <AutoSlider className="container home-banner-slider home-banner-slider--media-16by9" eyebrow="Trending now" title="Trending Movies" action={{ label: 'View all movies', to: '/movies' }} autoPlay interval={4800}>{movies.slice(0, 8).map((item) => <MediaBanner item={item} key={item.id} onWatch={() => watch(item)} />)}</AutoSlider>}
