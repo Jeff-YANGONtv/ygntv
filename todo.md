@@ -242,3 +242,4 @@
 - [x] Convert the official About Yangon TV Blog post and its publishing fields fully into Burmese
 - [x] Generate a mobile drawer-menu visual preview with User Profile, User History, Subscription, Contact Us, Follow Us, and Log Out as separate items
 - [x] Implement the simplified live drawer navigation and show User Profile when signed out or the authenticated account name when signed in
+- [ ] Add a real watch-history data source and combined User History view alongside existing purchase and wallet activity records
