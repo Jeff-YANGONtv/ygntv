@@ -220,3 +220,5 @@
 - [x] Keep Membership card-redemption headings on one line by reducing mobile type scale rather than wrapping text
 - [x] Audit and correct unintended mobile text wrapping across key Yangon TV website pages
 - [x] Replace the Contact page “Who Are U?” heading with “Contact Us” while preserving audience selection options
+- [ ] Add structured Blog fields for cover, title, topic, publication date, author, inline photos/videos, and safe HTML article content
+- [x] Remove the public About Yangon TV page and all header, menu, footer, and internal navigation references
