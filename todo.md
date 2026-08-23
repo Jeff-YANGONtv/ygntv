@@ -227,7 +227,8 @@
 - [x] Remove the public About Yangon TV page and all header, menu, footer, and internal navigation references
 - [x] Remove duplicated Point-balance labels from Profile; show Point or Lifetime identity once and show only the appropriate supporting detail
 - [x] Add and validate a Header Banner destination Link URL field in the admin workflow and public banner click handling
-- [ ] Enhance the supplied Yangon TV logo into a crisp site icon and browser favicon, then install and validate the production branding assets
-- [ ] Audit Google indexability, current titles/descriptions, language signals, and sitemap coverage for Myanmar entertainment discovery
-- [ ] Implement compliant Myanmar-language keyword landing content and SEO metadata for Yangon TV discovery searches
-- [ ] Prepare Google Search Console verification and sitemap-submission instructions for the site owner
+- [x] Enhance the supplied Yangon TV logo into a crisp site icon and browser favicon, then install and validate the production branding assets
+- [x] Audit Google indexability, current titles/descriptions, language signals, and sitemap coverage for Myanmar entertainment discovery
+- [x] Implement compliant Myanmar-language keyword landing content and SEO metadata for Yangon TV discovery searches
+- [x] Prepare Google Search Console verification and sitemap-submission instructions for the site owner
+- [ ] Verify the Yangon TV property in Google Search Console, submit the live sitemap, and monitor initial query/indexing data
