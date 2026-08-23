@@ -234,3 +234,6 @@
 - [ ] Verify the Yangon TV property in Google Search Console, submit the live sitemap, and monitor initial query/indexing data
 - [x] Remove the visible SEO discovery section and restore the prior Movies, Series, and Blog headings while retaining non-visual SEO metadata and favicon assets
 - [x] Keep the public Blog page heading and label as plain “Blog” after the visual rollback
+- [x] Audit frontend metadata and content for compliant editorial targeting of relevant third-party entertainment-brand search terms
+- [x] Implement the approved no-global-keyword policy without restoring removed SEO UI blocks
+- [ ] Publish a source-reviewed, genuinely useful third-party platform guide only after its topic, facts, and references are approved
