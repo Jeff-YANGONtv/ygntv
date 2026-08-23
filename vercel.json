@@ -12,6 +12,10 @@
   ],
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "https://khaki-yak-457838.hostingersite.com/api/public/sitemap.xml"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://khaki-yak-457838.hostingersite.com/api/:path*"
     },

@@ -1,10 +1,63 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import DOMPurify from 'dompurify';
 import { ArrowLeft, ArrowRight, BriefcaseBusiness, ExternalLink, Facebook, Handshake, Megaphone, Music2, PhoneCall, Send, UsersRound, X } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { getBlogBySlug, getBlogs, getContactAudiences, getSocials, mediaUrl } from '../lib/api';
+import { blogPath } from '../lib/paths';
 import type { BlogPost, ContactAudienceChannel, SocialLink } from '../lib/types';
 import { EmptyState, ErrorState, SearchField, SectionHeading, SkeletonGrid } from '../components/ui/Primitives';
 import { BlogInteractions } from '../components/BlogInteractions';
+import '../styles/rich-blog.css';
+
+const SITE_ORIGIN = 'https://ygntv.vercel.app';
+const SAFE_IFRAME_HOSTS = new Set(['www.youtube.com', 'youtube.com', 'www.youtube-nocookie.com', 'player.vimeo.com']);
+
+function safeRichHtml(html: string | null | undefined): string {
+  if (!html) return '';
+  const sanitized = DOMPurify.sanitize(html, { ADD_TAGS: ['iframe', 'video', 'source', 'figure', 'figcaption'], ADD_ATTR: ['allow', 'allowfullscreen', 'controls', 'loading', 'poster', 'preload', 'playsinline', 'referrerpolicy', 'target'] });
+  const container = document.createElement('div');
+  container.innerHTML = sanitized;
+  container.querySelectorAll<HTMLElement>('iframe').forEach((frame) => {
+    try { const url = new URL(frame.getAttribute('src') || ''); if (url.protocol !== 'https:' || !SAFE_IFRAME_HOSTS.has(url.hostname.toLowerCase())) frame.remove(); } catch { frame.remove(); }
+  });
+  container.querySelectorAll<HTMLElement>('[href], [src], [poster]').forEach((element) => {
+    ['href', 'src', 'poster'].forEach((attribute) => {
+      if (!element.hasAttribute(attribute)) return;
+      try { const url = new URL(element.getAttribute(attribute) || ''); if (url.protocol !== 'https:') element.removeAttribute(attribute); } catch { element.removeAttribute(attribute); }
+    });
+  });
+  container.querySelectorAll('a[href]').forEach((link) => link.setAttribute('rel', 'noopener noreferrer'));
+  return container.innerHTML;
+}
+
+function upsertMeta(attribute: 'name' | 'property', key: string, value: string): HTMLMetaElement {
+  let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
+  if (!element) { element = document.createElement('meta'); element.setAttribute(attribute, key); document.head.appendChild(element); }
+  element.content = value;
+  return element;
+}
+
+function useBlogSeo(post: BlogPost | null) {
+  useEffect(() => {
+    if (!post) return;
+    const title = post.seo_title || `${post.title} | Yangon TV`;
+    const description = post.meta_description || post.excerpt || `Read ${post.title} on Yangon TV.`;
+    const canonical = post.canonical_url || `${SITE_ORIGIN}${blogPath(post)}`;
+    const image = mediaUrl(post.og_image || post.cover || post.image);
+    const originalTitle = document.title;
+    upsertMeta('name', 'description', description);
+    upsertMeta('property', 'og:title', title); upsertMeta('property', 'og:description', description); upsertMeta('property', 'og:type', 'article'); upsertMeta('property', 'og:url', canonical);
+    upsertMeta('name', 'twitter:card', 'summary_large_image'); upsertMeta('name', 'twitter:title', title); upsertMeta('name', 'twitter:description', description);
+    if (image) { upsertMeta('property', 'og:image', image); upsertMeta('name', 'twitter:image', image); }
+    let canonicalLink = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonicalLink) { canonicalLink = document.createElement('link'); canonicalLink.rel = 'canonical'; document.head.appendChild(canonicalLink); }
+    canonicalLink.href = canonical;
+    const schema = { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: post.title, description, image: image || undefined, author: { '@type': 'Organization', name: post.author || 'Yangon TV Core' }, publisher: { '@type': 'Organization', name: 'Yangon TV' }, datePublished: post.published_at || post.date, dateModified: post.updated_at || post.published_at || post.date, articleSection: post.topic || post.category, mainEntityOfPage: canonical };
+    const script = document.createElement('script'); script.id = 'yangon-tv-blog-schema'; script.type = 'application/ld+json'; script.text = JSON.stringify(schema).replace(/</g, '\\u003c'); document.head.appendChild(script);
+    document.title = title;
+    return () => { document.title = originalTitle; script.remove(); };
+  }, [post]);
+}
 
 export function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -21,7 +74,7 @@ export function BlogPage() {
     }).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
-  return <div className="page page-blog"><section className="container page-heading page-heading--wide"><div><h1>Blog posts by Yangon TV Core</h1></div></section><section className="container blog-toolbar"><SearchField value={query} onChange={setQuery} onSubmit={() => load(query)} placeholder="Search blog posts..." /></section><section className="container blog-list">{loading ? <SkeletonGrid count={3} /> : error ? <ErrorState onRetry={() => load(query)} /> : posts.length === 0 ? <EmptyState title="No stories found" copy="Try another phrase or check back soon." /> : <>{posts.map((post, index) => <Link to={`/blog/${post.slug}`} className={`article-row ${index === 0 ? 'article-row--featured' : ''}`} key={post.id}><img src={mediaUrl(post.image)} alt="" /><div className="article-row__copy"><span className="eyebrow">{post.category} · {post.date}</span><h2>{post.title}</h2><p>{post.excerpt}</p><span className="text-link">Read story <ArrowRight size={15} /></span></div><span className="article-number">0{index + 1}</span></Link>)}</>}</section></div>;
+  return <div className="page page-blog"><section className="container page-heading page-heading--wide"><div><h1>Blog posts by Yangon TV Core</h1></div></section><section className="container blog-toolbar"><SearchField value={query} onChange={setQuery} onSubmit={() => load(query)} placeholder="Search blog posts..." /></section><section className="container blog-list">{loading ? <SkeletonGrid count={3} /> : error ? <ErrorState onRetry={() => load(query)} /> : posts.length === 0 ? <EmptyState title="No stories found" copy="Try another phrase or check back soon." /> : <>{posts.map((post, index) => <Link to={blogPath(post)} className={`article-row ${index === 0 ? 'article-row--featured' : ''}`} key={post.id}><img src={mediaUrl(post.cover || post.image)} alt={post.cover_alt || post.title} /><div className="article-row__copy"><span className="eyebrow">{post.topic || post.category} · {post.date}</span><h2>{post.title}</h2><p>{post.excerpt}</p><span className="text-link">Read story <ArrowRight size={15} /></span></div><span className="article-number">0{index + 1}</span></Link>)}</>}</section></div>;
 }
 
 export function BlogDetail() {
@@ -30,6 +83,8 @@ export function BlogDetail() {
   const [related, setRelated] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const richHtml = useMemo(() => safeRichHtml(post?.content_html), [post?.content_html]);
+  useBlogSeo(post);
   useEffect(() => {
     let mounted = true;
     setLoading(true);
@@ -47,7 +102,7 @@ export function BlogDetail() {
   }, [slug]);
   if (loading) return <div className="container page-loading"><div className="skeleton skeleton-detail" /></div>;
   if (error || !post) return <div className="container page-state"><ErrorState onRetry={() => window.location.reload()} /></div>;
-  return <div className="page page-article"><article className="container article"><Link className="back-link" to="/blog"><ArrowLeft size={15} /> Back to the journal</Link><div className="article-heading"><span className="eyebrow">{post.category} · {post.date}</span><h1>{post.title}</h1><p className="article-lede">{post.excerpt}</p><div className="article-byline"><span>{post.author}</span><i /> <span>{post.readTime}</span></div></div><img className="article-cover" src={mediaUrl(post.image)} alt="" /><div className="article-body">{post.content.split('\n\n').map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div><BlogInteractions blogId={post.id} slug={post.slug} title={post.title} /></article><section className="container article-related"><SectionHeading title="Keep reading" action={{ label: 'All stories', to: '/blog' }} />{related.length ? <div className="blog-preview-grid">{related.map((item) => <Link to={`/blog/${item.slug}`} className="blog-preview" key={item.id}><img src={mediaUrl(item.image)} alt="" /><div><span className="eyebrow">{item.category} · {item.date}</span><h3>{item.title}</h3><span className="text-link">Read story <ArrowRight size={14} /></span></div></Link>)}</div> : <EmptyState title="No related stories" copy="Explore the journal for more stories." />}</section></div>;
+  return <div className="page page-article"><article className="container article"><Link className="back-link" to="/blog"><ArrowLeft size={15} /> Back to the journal</Link><div className="article-heading"><span className="eyebrow article-topic">{post.topic || post.category}</span><h1>{post.title}</h1><p className="article-lede">{post.excerpt}</p><div className="article-byline"><span>{post.author}</span><i /> <span>{post.readTime}</span></div><div className="article-meta"><span>{post.date}</span><i /><span>{post.topic || post.category}</span></div></div><img className="article-cover" src={mediaUrl(post.cover || post.image)} alt={post.cover_alt || post.title} />{richHtml ? <div className="article-body rich-article" dangerouslySetInnerHTML={{ __html: richHtml }} /> : <div className="article-body">{post.content.split('\n\n').map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>}<BlogInteractions blogId={post.id} returnPath={blogPath(post)} title={post.title} /></article><section className="container article-related"><SectionHeading title="Keep reading" action={{ label: 'All stories', to: '/blog' }} />{related.length ? <div className="blog-preview-grid">{related.map((item) => <Link to={blogPath(item)} className="blog-preview" key={item.id}><img src={mediaUrl(item.cover || item.image)} alt={item.cover_alt || item.title} /><div><span className="eyebrow">{item.topic || item.category} · {item.date}</span><h3>{item.title}</h3><span className="text-link">Read story <ArrowRight size={14} /></span></div></Link>)}</div> : <EmptyState title="No related stories" copy="Explore the journal for more stories." />}</section></div>;
 }
 
 export function LinksPage() {

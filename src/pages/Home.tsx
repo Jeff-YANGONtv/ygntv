@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { AutoSlider, EmptyState, ErrorState, SkeletonGrid } from '../components/ui/Primitives';
 import { getAds, getBlogs, getMovies, getSeries, mediaUrl } from '../lib/api';
-import { mediaDetailPath, mediaWatchPath } from '../lib/paths';
+import { blogPath, mediaDetailPath, mediaWatchPath } from '../lib/paths';
 import type { AdBanner, BlogPost, MediaItem } from '../lib/types';
 
 export function Home() {
@@ -65,7 +65,7 @@ function MediaBanner({ item, onWatch, featured = false }: { item: MediaItem; onW
 }
 
 function BlogBanner({ post }: { post: BlogPost }) {
-  return <Link className="home-banner-card home-banner-card--blog" to={`/blog/${post.slug}`}><img src={mediaUrl(post.image)} alt="" loading="lazy" /><div className="home-banner-card__shade" /><div className="home-banner-card__content"><span className="eyebrow eyebrow--light">{post.category} · {post.date}</span><h2>{post.title}</h2><p>{post.excerpt}</p><span className="button button--glass">Read story <ArrowRight size={15} /></span></div></Link>;
+  return <Link className="home-banner-card home-banner-card--blog" to={blogPath(post)}><img src={mediaUrl(post.cover || post.image)} alt={post.cover_alt || post.title} loading="lazy" /><div className="home-banner-card__shade" /><div className="home-banner-card__content"><span className="eyebrow eyebrow--light">{post.topic || post.category} · {post.date}</span><h2>{post.title}</h2><p>{post.excerpt}</p><span className="button button--glass">Read story <ArrowRight size={15} /></span></div></Link>;
 }
 
 function AdBannerSlide({ ad }: { ad: AdBanner }) {

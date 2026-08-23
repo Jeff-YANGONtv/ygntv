@@ -1,6 +1,7 @@
-import type { MediaItem } from './types';
+import type { BlogPost, MediaItem } from './types';
 
 type MediaRouteItem = Pick<MediaItem, 'kind' | 'slug'>;
+type BlogRouteItem = Pick<BlogPost, 'id' | 'slug' | 'date' | 'published_at'>;
 
 const generatedSlugSuffix = /-[a-f0-9]{10,}$/i;
 
@@ -20,4 +21,10 @@ export function mediaWatchPath(item: MediaRouteItem, selection?: { season?: numb
   if (Number.isFinite(selection?.episode)) params.set('episode', String(selection?.episode));
   const query = params.toString();
   return `${mediaDetailPath(item)}/watch${query ? `?${query}` : ''}`;
+}
+
+export function blogPath(post: BlogRouteItem): string {
+  const published = String(post.published_at || post.date || '');
+  const year = /^\d{4}/.test(published) ? published.slice(0, 4) : new Date().getFullYear().toString();
+  return `/blog/${encodeURIComponent(String(post.id))}-${year}/${encodeURIComponent(post.slug)}`;
 }

@@ -58,6 +58,16 @@ export interface BlogPost {
   image: string;
   readTime: string;
   content: string;
+  content_html?: string | null;
+  topic?: string | null;
+  cover?: string | null;
+  cover_alt?: string | null;
+  seo_title?: string | null;
+  meta_description?: string | null;
+  canonical_url?: string | null;
+  og_image?: string | null;
+  published_at?: string | null;
+  updated_at?: string | null;
   featured?: boolean;
 }
 

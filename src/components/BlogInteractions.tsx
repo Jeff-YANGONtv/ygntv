@@ -33,7 +33,7 @@ function CommentCard({ comment, nested = false, onReply }: { comment: BlogCommen
   </article>;
 }
 
-export function BlogInteractions({ blogId, slug, title }: { blogId: number | string; slug: string; title: string }) {
+export function BlogInteractions({ blogId, returnPath, title }: { blogId: number | string; returnPath: string; title: string }) {
   const { user, openAuth } = useAuth();
   const [data, setData] = useState<BlogInteractionsData | null>(null);
   const [reaction, setReaction] = useState<BlogReactionType | null>(null);
@@ -65,7 +65,7 @@ export function BlogInteractions({ blogId, slug, title }: { blogId: number | str
     return () => { mounted = false; };
   }, [blogId, user]);
 
-  const signInForInteraction = () => openAuth('login', `/blog/${slug}`);
+  const signInForInteraction = () => openAuth('login', returnPath);
 
   const handleReaction = async (type: BlogReactionType) => {
     if (!user) return signInForInteraction();
@@ -109,7 +109,7 @@ export function BlogInteractions({ blogId, slug, title }: { blogId: number | str
     }
   };
 
-  const articleUrl = typeof window === 'undefined' ? `https://ygntv.vercel.app/blog/${slug}` : window.location.href;
+  const articleUrl = typeof window === 'undefined' ? `https://ygntv.vercel.app${returnPath}` : window.location.href;
   const shareText = `Read “${title}” on Yangon TV`;
   const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(articleUrl)}&text=${encodeURIComponent(shareText)}`;
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`;
