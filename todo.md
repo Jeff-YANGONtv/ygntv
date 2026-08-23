@@ -222,3 +222,4 @@
 - [x] Replace the Contact page “Who Are U?” heading with “Contact Us” while preserving audience selection options
 - [ ] Add structured Blog fields for cover, title, topic, publication date, author, inline photos/videos, and safe HTML article content
 - [x] Remove the public About Yangon TV page and all header, menu, footer, and internal navigation references
+- [x] Remove duplicated Point-balance labels from Profile; show Point or Lifetime identity once and show only the appropriate supporting detail
