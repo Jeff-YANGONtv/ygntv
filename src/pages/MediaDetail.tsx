@@ -533,6 +533,22 @@ function ReviewTabs({
         ))}
       </div>
 
+      {kind === 'series' && <div className="series-source-picker" aria-label="Series episode selector">
+        <div className="series-source-picker__group">
+          <span>1. Choose Season</span>
+          {seasons.length ? <div className="series-source-picker__choices" role="list" aria-label="Choose season">
+            {seasons.map((season) => <button key={String(season.id)} type="button" className={selectedSeasonNumber === season.number ? 'series-source-choice series-source-choice--active' : 'series-source-choice'} onClick={() => { setSelectedSeasonNumber(season.number); setSelectedEpisodeNumber(null); }}>Season {season.number}</button>)}
+          </div> : <small className="series-source-picker__hint">No Season has been published for this Series yet.</small>}
+        </div>
+        <div className="series-source-picker__group">
+          <span>2. Choose Episode</span>
+          {selectedSeason ? selectedSeason.episodes.length ? <div className="series-source-picker__choices" role="list" aria-label={`Choose episode from Season ${selectedSeason.number}`}>
+            {[...selectedSeason.episodes].sort((left, right) => left.number - right.number).map((episode) => <button key={String(episode.id)} type="button" className={selectedEpisodeNumber === episode.number ? 'series-source-choice series-source-choice--active' : 'series-source-choice'} onClick={() => setSelectedEpisodeNumber(episode.number)}>EP {episode.number}</button>)}
+          </div> : <small className="series-source-picker__hint">No Episode has been published in this Season yet.</small> : <small className="series-source-picker__hint">Select a Season first.</small>}
+        </div>
+        {selectedEpisode && <p className="series-source-picker__selected">Selected: Season {selectedSeason?.number} · Episode {selectedEpisode.number} — {selectedEpisode.title}</p>}
+      </div>}
+
       {activeTab === 'review' ? (
         <div className="review-tabs__panel" id="review-panel-review" role="tabpanel">
           <span className="eyebrow">Review</span>
@@ -540,21 +556,6 @@ function ReviewTabs({
         </div>
       ) : (
         <div className="review-tabs__actions" id={`review-panel-${activeTab}`} role="tabpanel">
-          {kind === 'series' && <div className="series-source-picker">
-            <div className="series-source-picker__group">
-              <span>1. Choose Season</span>
-              <div className="series-source-picker__choices" role="list" aria-label="Choose season">
-                {seasons.map((season) => <button key={String(season.id)} type="button" className={selectedSeasonNumber === season.number ? 'series-source-choice series-source-choice--active' : 'series-source-choice'} onClick={() => { setSelectedSeasonNumber(season.number); setSelectedEpisodeNumber(null); }}>Season {season.number}</button>)}
-              </div>
-            </div>
-            <div className="series-source-picker__group">
-              <span>2. Choose Episode</span>
-              {selectedSeason ? <div className="series-source-picker__choices" role="list" aria-label={`Choose episode from Season ${selectedSeason.number}`}>
-                {[...selectedSeason.episodes].sort((left, right) => left.number - right.number).map((episode) => <button key={String(episode.id)} type="button" className={selectedEpisodeNumber === episode.number ? 'series-source-choice series-source-choice--active' : 'series-source-choice'} onClick={() => setSelectedEpisodeNumber(episode.number)}>EP {episode.number}</button>)}
-              </div> : <small className="series-source-picker__hint">Select a Season first.</small>}
-            </div>
-            {selectedEpisode && <p className="series-source-picker__selected">Selected: Season {selectedSeason?.number} · Episode {selectedEpisode.number} — {selectedEpisode.title}</p>}
-          </div>}
           <button className="review-action review-action--direct" type="button" onClick={() => onDirectAction(selectedSeason?.number, selectedEpisode?.number)} disabled={needsEpisodeSelection}>
             <span className="review-action__mark" aria-hidden="true">YT</span>
             <span><b>{directLabel}</b><small>{needsEpisodeSelection ? 'Choose a Season and Episode first' : 'Open this selection in Yangon TV player'}</small></span>
