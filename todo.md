@@ -243,4 +243,5 @@
 - [x] Generate a mobile drawer-menu visual preview with User Profile, User History, Subscription, Contact Us, Follow Us, and Log Out as separate items
 - [x] Implement the simplified live drawer navigation and show User Profile when signed out or the authenticated account name when signed in
 - [x] Add a real Watch History source and a combined User History view alongside existing Balance and Comment History records
-- [ ] Redefine User History as Watch History, Balance History, and Comment History only; exclude User Dashboard and redemption controls from that flow
+- [x] Redefine User History as Watch History, Balance History, and Comment History only; exclude User Dashboard and redemption controls from that flow
+- [ ] Validate the new User History tabs with the first real signed-in account that has watch, balance, or comment activity; do not create test records
