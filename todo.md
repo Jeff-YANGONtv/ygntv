@@ -192,16 +192,16 @@
 - [ ] Deferred: integrate an official Nstream API or a replacement provider only when a workable signed-playback solution is available; do not bypass protected streams
 - [x] Evaluate Cloudflare Stream, Bunny Stream, and Mux and recommend Bunny Stream as the official non-Nstream platform for Yangon TV custom-player integration
 - [ ] Create and configure a Bunny Stream Video Library after the owner confirms the recommended provider and account setup
-- [ ] Add a per-title playback-source selector so each Movie or Episode uses either an authorized Embed source or Bunny signed HLS custom playback, never both at once
-- [ ] Permit Custom Embed source URLs from any provider without a fixed domain allowlist, while requiring valid HTTPS URLs and safe iframe rendering
-- [ ] Add explicit Movie and Episode playback metadata for `custom_embed` and `bunny_stream`, preserving legacy streaming links for existing titles
-- [ ] Update the Admin Bot to select Custom Embed or Bunny Stream and collect only the relevant URL or Bunny Video ID
-- [ ] Update protected playback responses and the website player to select the chosen source type without access-rule bypass
-- [ ] Set Yangon TV custom-player speed choices to 1.5×, 2×, 2.5×, and 3×, and retain 10-second previous/next seek controls
-- [ ] Label Bunny custom-player quality options as Auto, SD (360p), and HD (720p), without showing raw resolution labels in the UI
+- [x] Add a per-title playback-source selector so each Movie or Episode uses either an authorized Embed source or Bunny signed HLS custom playback, never both at once
+- [x] Permit Custom Embed source URLs from any provider without a fixed domain allowlist, while requiring valid HTTPS URLs and safe iframe rendering
+- [x] Add explicit Movie and Episode playback metadata for `custom_embed` and `bunny_stream`, preserving legacy streaming links for existing titles
+- [x] Update the Admin Bot to select Custom Embed or Bunny Stream and collect only the relevant URL or Bunny Video ID
+- [x] Update protected playback responses and the website player to select the chosen source type without access-rule bypass
+- [x] Set Yangon TV custom-player speed choices to 1.5×, 2×, 2.5×, and 3×, and retain 10-second previous/next seek controls
+- [x] Label Bunny custom-player quality options as Auto, SD (360p), and HD (720p), without showing raw resolution labels in the UI
 - [ ] Configure Bunny secrets and activate short-lived signed HLS only after the owner creates the Bunny Stream Video Library
 - [ ] Validate one owner-authorized Bunny HLS video without VPN from available Myanmar mobile or ISP networks before production rollout
-- [ ] Deploy the validated player source-model changes through the owner-authorized Hostinger SSH session only after creating a dated production backup
+- [x] Deploy the validated player source-model changes through the owner-authorized Hostinger SSH session only after creating a dated production backup
 - [x] Prepare Bunny Stream monthly budget scenarios and cost-control guidance using official current published rates
 - [x] Verify Bunny Stream’s official billing treatment for generated adaptive renditions versus the uploaded source file
 - [x] Add a prepaid-code point wallet and pay-as-you-watch billing option alongside Premium membership
