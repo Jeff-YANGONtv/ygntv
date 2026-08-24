@@ -192,6 +192,8 @@
 - [ ] Deferred: integrate an official Nstream API or a replacement provider only when a workable signed-playback solution is available; do not bypass protected streams
 - [x] Evaluate Cloudflare Stream, Bunny Stream, and Mux and recommend Bunny Stream as the official non-Nstream platform for Yangon TV custom-player integration
 - [ ] Create and configure a Bunny Stream Video Library after the owner confirms the recommended provider and account setup
+- [ ] Guide the owner through Bunny Library creation, HLS-only 360p/720p settings, and first owner-authorized video upload
+- [ ] Build a restricted Telegram Bot workflow that uploads owner-authorized video files to Bunny Stream and returns the Bunny Video ID
 - [x] Add a per-title playback-source selector so each Movie or Episode uses either an authorized Embed source or Bunny signed HLS custom playback, never both at once
 - [x] Permit Custom Embed source URLs from any provider without a fixed domain allowlist, while requiring valid HTTPS URLs and safe iframe rendering
 - [x] Add explicit Movie and Episode playback metadata for `custom_embed` and `bunny_stream`, preserving legacy streaming links for existing titles
@@ -200,6 +202,7 @@
 - [x] Set Yangon TV custom-player speed choices to 1.5×, 2×, 2.5×, and 3×, and retain 10-second previous/next seek controls
 - [x] Label Bunny custom-player quality options as Auto, SD (360p), and HD (720p), without showing raw resolution labels in the UI
 - [x] Fix the Review-to-player back-navigation loop by routing Review Back to the relevant Movies or Series catalogue
+- [ ] Repair the Series review/player flow so users select a Season, then an Episode, before using that episode’s Watch or Download source
 - [ ] Configure Bunny secrets and activate short-lived signed HLS only after the owner creates the Bunny Stream Video Library
 - [ ] Validate one owner-authorized Bunny HLS video without VPN from available Myanmar mobile or ISP networks before production rollout
 - [x] Deploy the validated player source-model changes through the owner-authorized Hostinger SSH session only after creating a dated production backup

@@ -497,10 +497,16 @@ function ReviewTabs({
 }: {
   item: MediaItem;
   kind: 'movie' | 'series';
-  onDirectAction: () => void;
+  onDirectAction: (seasonNumber?: number, episodeNumber?: number) => void;
 }) {
   const [activeTab, setActiveTab] = useState<ReviewTab>('review');
-  const telegramPostUrl = item.telegramPostUrl;
+  const [selectedSeasonNumber, setSelectedSeasonNumber] = useState<number | null>(null);
+  const [selectedEpisodeNumber, setSelectedEpisodeNumber] = useState<number | null>(null);
+  const seasons = [...(item.seasons ?? [])].sort((left, right) => left.number - right.number);
+  const selectedSeason = seasons.find((season) => season.number === selectedSeasonNumber);
+  const selectedEpisode = selectedSeason?.episodes.find((episode) => episode.number === selectedEpisodeNumber);
+  const telegramPostUrl = kind === 'series' ? selectedEpisode?.telegramPostUrl : item.telegramPostUrl;
+  const needsEpisodeSelection = kind === 'series' && !selectedEpisode;
   const title = kind === 'movie' ? 'movie' : 'series';
   const directLabel = activeTab === 'watch' ? 'Direct Watch' : 'Direct Download';
   const telegramLabel = activeTab === 'watch' ? 'Watch Via Telegram' : 'Download Via Telegram';
@@ -534,9 +540,24 @@ function ReviewTabs({
         </div>
       ) : (
         <div className="review-tabs__actions" id={`review-panel-${activeTab}`} role="tabpanel">
-          <button className="review-action review-action--direct" type="button" onClick={onDirectAction}>
+          {kind === 'series' && <div className="series-source-picker">
+            <div className="series-source-picker__group">
+              <span>1. Choose Season</span>
+              <div className="series-source-picker__choices" role="list" aria-label="Choose season">
+                {seasons.map((season) => <button key={String(season.id)} type="button" className={selectedSeasonNumber === season.number ? 'series-source-choice series-source-choice--active' : 'series-source-choice'} onClick={() => { setSelectedSeasonNumber(season.number); setSelectedEpisodeNumber(null); }}>Season {season.number}</button>)}
+              </div>
+            </div>
+            <div className="series-source-picker__group">
+              <span>2. Choose Episode</span>
+              {selectedSeason ? <div className="series-source-picker__choices" role="list" aria-label={`Choose episode from Season ${selectedSeason.number}`}>
+                {[...selectedSeason.episodes].sort((left, right) => left.number - right.number).map((episode) => <button key={String(episode.id)} type="button" className={selectedEpisodeNumber === episode.number ? 'series-source-choice series-source-choice--active' : 'series-source-choice'} onClick={() => setSelectedEpisodeNumber(episode.number)}>EP {episode.number}</button>)}
+              </div> : <small className="series-source-picker__hint">Select a Season first.</small>}
+            </div>
+            {selectedEpisode && <p className="series-source-picker__selected">Selected: Season {selectedSeason?.number} · Episode {selectedEpisode.number} — {selectedEpisode.title}</p>}
+          </div>}
+          <button className="review-action review-action--direct" type="button" onClick={() => onDirectAction(selectedSeason?.number, selectedEpisode?.number)} disabled={needsEpisodeSelection}>
             <span className="review-action__mark" aria-hidden="true">YT</span>
-            <span><b>{directLabel}</b><small>Open in Yangon TV player</small></span>
+            <span><b>{directLabel}</b><small>{needsEpisodeSelection ? 'Choose a Season and Episode first' : 'Open this selection in Yangon TV player'}</small></span>
             {activeTab === 'watch' ? <Play size={18} fill="currentColor" /> : <Download size={18} />}
           </button>
           {telegramPostUrl ? (
@@ -552,7 +573,7 @@ function ReviewTabs({
           )}
         </div>
       )}
-      <p className="review-tabs__note">{activeTab === 'review' ? `Browse this ${title} publicly. Direct Watch and Direct Download require a Yangon TV account.` : 'Direct actions continue to the protected Yangon TV player.'}</p>
+      <p className="review-tabs__note">{activeTab === 'review' ? `Browse this ${title} publicly. Direct Watch and Direct Download require a Yangon TV account.` : kind === 'series' ? 'Choose a Season, then an Episode. Sources are specific to the selected episode.' : 'Direct actions continue to the protected Yangon TV player.'}</p>
     </section>
   );
 }
@@ -590,12 +611,6 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
     if (user) navigate(path);
     else openAuth('login', path);
   };
-  const firstEpisode = kind === 'series' ? [...(item.seasons?.[0]?.episodes ?? [])].sort((left, right) => left.number - right.number)[0] : undefined;
-  const firstSeason = item.seasons?.[0];
-  const watchPath = firstEpisode && firstSeason
-    ? mediaWatchPath(item, { season: firstSeason.number, episode: firstEpisode.number })
-    : mediaWatchPath(item);
-
   return (
     <div className="page page-detail">
       <section className="detail-hero">
@@ -620,7 +635,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
               <ReviewTabs
                 item={item}
                 kind={kind}
-                onDirectAction={() => startWatching(kind === 'movie' ? mediaWatchPath(item) : watchPath)}
+                onDirectAction={(seasonNumber, episodeNumber) => startWatching(kind === 'movie' ? mediaWatchPath(item) : mediaWatchPath(item, { season: seasonNumber, episode: episodeNumber }))}
               />
             </div>
           </div>
