@@ -602,7 +602,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
         <img src={mediaUrl(item.backdrop, item.poster)} alt="" />
         <div className="detail-shade" />
         <div className="container detail-hero-content">
-          <button className="back-link detail-back-button" type="button" aria-label="Go back" onClick={() => navigate(-1)}><ArrowLeft size={16} /> <span>Back</span></button>
+          <Link className="back-link detail-back-button" to={kind === 'movie' ? '/movies' : '/series'} aria-label={kind === 'movie' ? 'Back to Movies' : 'Back to Series'}><ArrowLeft size={16} /> <span>Back</span></Link>
           <div className="detail-layout">
             <img className="detail-poster" src={mediaUrl(item.poster)} alt={`${item.title} poster`} />
             <div className="detail-copy">
