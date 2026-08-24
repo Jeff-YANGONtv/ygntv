@@ -199,7 +199,7 @@
 - [x] Update protected playback responses and the website player to select the chosen source type without access-rule bypass
 - [x] Set Yangon TV custom-player speed choices to 1.5×, 2×, 2.5×, and 3×, and retain 10-second previous/next seek controls
 - [x] Label Bunny custom-player quality options as Auto, SD (360p), and HD (720p), without showing raw resolution labels in the UI
-- [ ] Fix the Review-to-player back-navigation loop by routing Review Back to the relevant Movies or Series catalogue
+- [x] Fix the Review-to-player back-navigation loop by routing Review Back to the relevant Movies or Series catalogue
 - [ ] Configure Bunny secrets and activate short-lived signed HLS only after the owner creates the Bunny Stream Video Library
 - [ ] Validate one owner-authorized Bunny HLS video without VPN from available Myanmar mobile or ISP networks before production rollout
 - [x] Deploy the validated player source-model changes through the owner-authorized Hostinger SSH session only after creating a dated production backup
