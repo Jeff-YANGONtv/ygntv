@@ -4,7 +4,7 @@ import Hls from 'hls.js';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { MediaCard, Pill, SectionHeading, EmptyState, ErrorState } from '../components/ui/Primitives';
-import { getMediaBySlug, getMovies, getSeries, getTvPlayback, mediaUrl, purchasePrepaidUnlock } from '../lib/api';
+import { getMediaBySlug, getMovies, getSeries, getTvPlayback, mediaUrl, purchasePrepaidUnlock, saveTvViewingProgress } from '../lib/api';
 import { mediaDetailPath, mediaWatchPath, publicMediaSlug } from '../lib/paths';
 import type { MediaItem, TvPlaybackAccess, TvPlaybackPayload } from '../lib/types';
 import '../styles/prepaid-access.css';
@@ -122,9 +122,9 @@ function providerEmbedUrl(value: string): string | null {
   }
 }
 
-function VideoPlayer({ source, poster, title }: { source: string; poster?: string; title: string }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const playerRef = useRef<HTMLDivElement>(null);
+function VideoPlayer({ source, poster, title, historyContentType, historyContentId }: { source: string; poster?: string; title: string; historyContentType?: 'movie' | 'episode'; historyContentId?: number }) {
+const videoRef = useRef<HTMLVideoElement>(null);
+const playerRef = useRef<HTMLDivElement>(null);
   const [playerError, setPlayerError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -133,10 +133,11 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [controlsVisible, setControlsVisible] = useState(true);
-  const [speedOpen, setSpeedOpen] = useState(false);
-  const hideControlsTimer = useRef<number | null>(null);
-  const sourceUrl = mediaUrl(source);
+const [controlsVisible, setControlsVisible] = useState(true);
+const [speedOpen, setSpeedOpen] = useState(false);
+const hideControlsTimer = useRef<number | null>(null);
+  const lastSavedPosition = useRef(0);
+const sourceUrl = mediaUrl(source);
   const embedUrl = providerEmbedUrl(sourceUrl);
   const resolvedSource = directMediaUrl(sourceUrl);
   const resolvedPoster = poster ? mediaUrl(poster) : undefined;
@@ -144,12 +145,22 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
   const isUnsupportedWatchPage = /\/watch(?:\/|$)/i.test(resolvedSource);
   const isHls = /\.m3u8(?:$|[?#])/i.test(resolvedSource);
 
-  const clearHideControlsTimer = () => {
-    if (hideControlsTimer.current !== null) window.clearTimeout(hideControlsTimer.current);
-    hideControlsTimer.current = null;
+const clearHideControlsTimer = () => {
+if (hideControlsTimer.current !== null) window.clearTimeout(hideControlsTimer.current);
+hideControlsTimer.current = null;
+};
+
+  const saveProgress = (completed = false) => {
+    const video = videoRef.current;
+    if (!video || !historyContentType || !historyContentId) return;
+    const position = Math.max(0, Math.floor(video.currentTime || 0));
+    const duration = Number.isFinite(video.duration) && video.duration > 0 ? Math.floor(video.duration) : undefined;
+    if (!completed && position < 1) return;
+    lastSavedPosition.current = position;
+    void saveTvViewingProgress({ content_type: historyContentType, content_id: historyContentId, position_seconds: position, ...(duration ? { duration_seconds: duration } : {}), completed }).catch(() => undefined);
   };
 
-  const revealControls = () => {
+const revealControls = () => {
     clearHideControlsTimer();
     setControlsVisible(true);
     if (isPlaying) hideControlsTimer.current = window.setTimeout(() => setControlsVisible(false), 2800);
@@ -182,10 +193,11 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
     setIsLoading(true);
     setIsPlaying(false);
     setCurrentTime(0);
-    setDuration(0);
-    setSpeedOpen(false);
-    setControlsVisible(true);
-    timeoutId = window.setTimeout(() => {
+setDuration(0);
+setSpeedOpen(false);
+setControlsVisible(true);
+    lastSavedPosition.current = 0;
+timeoutId = window.setTimeout(() => {
       setIsLoading(false);
       setPlayerError('The streaming server did not send video data. Please add a new direct MP4 or HLS URL.');
     }, 15000);
@@ -223,31 +235,38 @@ function VideoPlayer({ source, poster, title }: { source: string; poster?: strin
   }, [isUnsupportedWatchPage, resolvedSource]);
 
   useEffect(() => {
-    const video = videoRef.current;
-    const player = playerRef.current;
-    if (!video || !player || isUnsupportedWatchPage || embedUrl) return;
-    const onTimeUpdate = () => setCurrentTime(video.currentTime || 0);
-    const onDurationChange = () => setDuration(Number.isFinite(video.duration) ? video.duration : 0);
-    const onPlay = () => { setIsPlaying(true); revealControls(); };
-    const onPause = () => { setIsPlaying(false); setControlsVisible(true); clearHideControlsTimer(); };
-    const onVolumeChange = () => { setVolume(video.volume); setIsMuted(video.muted || video.volume === 0); };
+const video = videoRef.current;
+const player = playerRef.current;
+if (!video || !player || isUnsupportedWatchPage || embedUrl) return;
+    const onTimeUpdate = () => {
+      const position = video.currentTime || 0;
+      setCurrentTime(position);
+      if (position - lastSavedPosition.current >= 30) saveProgress(false);
+    };
+const onDurationChange = () => setDuration(Number.isFinite(video.duration) ? video.duration : 0);
+const onPlay = () => { setIsPlaying(true); revealControls(); };
+    const onPause = () => { setIsPlaying(false); setControlsVisible(true); clearHideControlsTimer(); saveProgress(false); };
+    const onEnded = () => { setIsPlaying(false); setControlsVisible(true); clearHideControlsTimer(); saveProgress(true); };
+const onVolumeChange = () => { setVolume(video.volume); setIsMuted(video.muted || video.volume === 0); };
     const onFullscreenChange = () => setIsFullscreen(document.fullscreenElement === player);
     video.addEventListener('timeupdate', onTimeUpdate);
-    video.addEventListener('durationchange', onDurationChange);
-    video.addEventListener('play', onPlay);
-    video.addEventListener('pause', onPause);
-    video.addEventListener('volumechange', onVolumeChange);
+video.addEventListener('durationchange', onDurationChange);
+video.addEventListener('play', onPlay);
+video.addEventListener('pause', onPause);
+    video.addEventListener('ended', onEnded);
+video.addEventListener('volumechange', onVolumeChange);
     document.addEventListener('fullscreenchange', onFullscreenChange);
     return () => {
       clearHideControlsTimer();
       video.removeEventListener('timeupdate', onTimeUpdate);
-      video.removeEventListener('durationchange', onDurationChange);
-      video.removeEventListener('play', onPlay);
-      video.removeEventListener('pause', onPause);
-      video.removeEventListener('volumechange', onVolumeChange);
+video.removeEventListener('durationchange', onDurationChange);
+video.removeEventListener('play', onPlay);
+video.removeEventListener('pause', onPause);
+      video.removeEventListener('ended', onEnded);
+video.removeEventListener('volumechange', onVolumeChange);
       document.removeEventListener('fullscreenchange', onFullscreenChange);
     };
-  }, [embedUrl, isUnsupportedWatchPage, resolvedSource]);
+  }, [embedUrl, historyContentId, historyContentType, isUnsupportedWatchPage, resolvedSource]);
 
   const togglePlay = async () => {
     const video = videoRef.current;
@@ -609,6 +628,8 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const selectedEpisode = useMemo(() => kind === 'series'
     ? item?.seasons?.flatMap((season) => season.episodes.map((episode) => ({ season, episode }))).find(({ season, episode }) => season.number === selectedSeasonNumber && episode.number === selectedEpisodeNumber)?.episode
     : undefined, [item, kind, selectedEpisodeNumber, selectedSeasonNumber]);
+  const historyContentType = selectedEpisode ? 'episode' : 'movie';
+  const historyContentId = Number(selectedEpisode?.id ?? item?.id);
 
   useEffect(() => {
     if (!loading && !user) openAuth('login', `${window.location.pathname}${window.location.search}`);
@@ -639,9 +660,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       return;
     }
     let mounted = true;
-    const contentType = selectedEpisode ? 'episode' : 'movie';
-    const contentId = Number(selectedEpisode?.id ?? item.id);
-    if (!Number.isFinite(contentId) || contentId < 1) {
+    if (!Number.isFinite(historyContentId) || historyContentId < 1) {
       setPlaybackError('This title is not ready for protected playback.');
       return;
     }
@@ -650,7 +669,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
     setPlayback(null);
     setPurchaseOffer(null);
     setSourceIndex(0);
-    getTvPlayback(contentType, contentId).then((value) => {
+    getTvPlayback(historyContentType, historyContentId).then((value) => {
       if (mounted) setPlayback(value);
     }).catch((cause) => {
       if (!mounted) return;
@@ -665,7 +684,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       if (mounted) setPlaybackLoading(false);
     });
     return () => { mounted = false; };
-  }, [item, kind, loading, selectedEpisode, user]);
+  }, [historyContentId, historyContentType, item, kind, loading, selectedEpisode, user]);
 
   if (loading) return <div className="container page-loading"><div className="skeleton skeleton-player" /></div>;
   if (error || !item) return <div className="container page-state"><ErrorState onRetry={() => window.location.reload()} /></div>;
@@ -699,7 +718,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       <section className="container watch-top">
         <Link className="back-link watch-back-link" to={mediaDetailPath(item)}><ArrowLeft size={16} /> <span>Back to details</span></Link>
         <div className="player-shell">
-          {playbackLoading ? <div className="player-placeholder player-empty"><div className="player-play"><Play size={26} fill="currentColor" /></div><span>Checking playback access…</span><small>Yangon TV is confirming your viewing entitlement.</small></div> : purchaseOffer ? <div className="prepaid-unlock-card"><div className="prepaid-unlock-card__icon"><WalletCards size={26} /></div><span className="eyebrow">Pay with Points</span><h2>Unlock {purchaseOffer.title}</h2><p>This {purchaseOffer.content_type === 'movie' ? 'movie' : 'episode'} costs <strong>{purchaseOffer.price_points} Points</strong>. Your current balance is <strong>{purchaseOffer.balance_points ?? 0} Points</strong>.</p><p className="prepaid-unlock-card__term">After purchase, you can watch it again for 3 months.</p><button className="button button--primary" type="button" onClick={confirmPrepaidPurchase} disabled={purchasing || (purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points}><KeyRound size={17} />{purchasing ? 'Unlocking…' : `Unlock for ${purchaseOffer.price_points} Points`}</button>{(purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points && <small><AlertCircle size={14} /> Your Point balance is not enough. Redeem a prepaid code from Profile.</small>}</div> : <VideoPlayer source={currentSource} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} />}
+          {playbackLoading ? <div className="player-placeholder player-empty"><div className="player-play"><Play size={26} fill="currentColor" /></div><span>Checking playback access…</span><small>Yangon TV is confirming your viewing entitlement.</small></div> : purchaseOffer ? <div className="prepaid-unlock-card"><div className="prepaid-unlock-card__icon"><WalletCards size={26} /></div><span className="eyebrow">Pay with Points</span><h2>Unlock {purchaseOffer.title}</h2><p>This {purchaseOffer.content_type === 'movie' ? 'movie' : 'episode'} costs <strong>{purchaseOffer.price_points} Points</strong>. Your current balance is <strong>{purchaseOffer.balance_points ?? 0} Points</strong>.</p><p className="prepaid-unlock-card__term">After purchase, you can watch it again for 3 months.</p><button className="button button--primary" type="button" onClick={confirmPrepaidPurchase} disabled={purchasing || (purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points}><KeyRound size={17} />{purchasing ? 'Unlocking…' : `Unlock for ${purchaseOffer.price_points} Points`}</button>{(purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points && <small><AlertCircle size={14} /> Your Point balance is not enough. Redeem a prepaid code from Subscription.</small>}</div> : <VideoPlayer source={currentSource} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} historyContentType={user ? historyContentType : undefined} historyContentId={user && Number.isFinite(historyContentId) ? historyContentId : undefined} />}
         </div>
         {sources.length > 1 && <div className="player-sources" aria-label="Video sources">{sources.map((_, index) => <button key={index} className={index === sourceIndex ? 'player-source player-source--active' : 'player-source'} onClick={() => setSourceIndex(index)}>Source {index + 1}</button>)}</div>}
         <div className="watch-heading">

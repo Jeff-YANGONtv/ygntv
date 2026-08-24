@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvCardRedemption, TvNotificationFeed, TvPlaybackPayload, TvPrepaidPurchase, TvProfileData, TvWalletActivityHistory, TvWalletSummary, TvWalletUnlock, UserNotification } from './types';
+import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvCardRedemption, TvCommentHistoryEntry, TvNotificationFeed, TvPlaybackPayload, TvPrepaidPurchase, TvProfileData, TvWalletActivityHistory, TvWalletSummary, TvWalletUnlock, TvWatchHistoryEntry, UserNotification } from './types';
 import { publicMediaSlug } from './paths';
 
 const remoteApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
@@ -290,6 +290,20 @@ export async function getTvWalletUnlocks(): Promise<TvWalletUnlock[]> {
 export async function getTvWalletActivity(page = 1): Promise<TvWalletActivityHistory> {
   const response = await api.get('/tv/wallet/activity', { params: { page } });
   return unwrap<TvWalletActivityHistory>(response.data);
+}
+
+export async function getTvWatchHistory(page = 1): Promise<ApiPage<TvWatchHistoryEntry>> {
+  const response = await api.get('/tv/library/history', { params: { page } });
+  return pageFrom<TvWatchHistoryEntry>(response.data, page);
+}
+
+export async function saveTvViewingProgress(payload: { content_type: 'movie' | 'episode'; content_id: number; position_seconds: number; duration_seconds?: number; completed?: boolean }): Promise<void> {
+  await api.put('/tv/library/progress', payload);
+}
+
+export async function getTvCommentHistory(page = 1): Promise<ApiPage<TvCommentHistoryEntry>> {
+  const response = await api.get('/tv/history/comments', { params: { page } });
+  return pageFrom<TvCommentHistoryEntry>(response.data, page);
 }
 
 export async function getTvPlayback(contentType: 'movie' | 'episode', contentId: number): Promise<TvPlaybackPayload> {

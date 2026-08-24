@@ -1,7 +1,7 @@
 import type { BlogPost, MediaItem } from './types';
 
 type MediaRouteItem = Pick<MediaItem, 'kind' | 'slug'>;
-type BlogRouteItem = Pick<BlogPost, 'id' | 'slug' | 'date' | 'published_at'>;
+type BlogRouteItem = Pick<BlogPost, 'id' | 'slug' | 'published_at'> & { date?: string | null };
 
 const generatedSlugSuffix = /-[a-f0-9]{10,}$/i;
 

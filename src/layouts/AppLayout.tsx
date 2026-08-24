@@ -31,7 +31,7 @@ export function AppLayout() {
   const isHomePage = location.pathname === '/';
   const accountLabel = user ? (user.name?.trim() || user.email?.split('@')[0] || 'Account') : 'User Profile';
   const accountPath = user ? '/profile' : '/auth';
-  const historyPath = user ? '/profile#billing' : '/auth';
+  const historyPath = user ? '/history' : '/auth';
   const drawerSocials = socials.filter((social) => /facebook|tiktok|music|telegram|send/i.test(`${social.name} ${social.icon} ${social.url}`));
   const marqueeText = marqueeAnnouncements.map((announcement) => announcement.content.trim()).filter(Boolean);
 

@@ -211,6 +211,39 @@ export interface TvWalletActivityHistory {
   pagination: { current_page: number; last_page: number; per_page: number; total: number; has_more: boolean };
 }
 
+export interface TvWatchHistoryEntry {
+  id: number | string;
+  content_type: 'movie' | 'episode';
+  content_id: number | string;
+  position_seconds: number;
+  duration_seconds: number | null;
+  completed: boolean;
+  last_watched_at: string | null;
+  content: {
+    id: number | string;
+    kind: 'movie' | 'episode';
+    slug: string;
+    title: string;
+    poster?: string | null;
+    rating?: number | null;
+    year?: string | number | null;
+  };
+}
+
+export interface TvCommentHistoryEntry {
+  id: number | string;
+  parent_id: number | string | null;
+  body: string;
+  is_visible: boolean;
+  created_at: string | null;
+  blog: {
+    id: number | string;
+    title: string;
+    slug: string;
+    published_at?: string | null;
+  };
+}
+
 export interface UserNotification {
   id: number | string;
   title: string;
