@@ -6,7 +6,7 @@ import { useAuth } from '../lib/auth';
 import { MediaCard, Pill, SectionHeading, EmptyState, ErrorState } from '../components/ui/Primitives';
 import { getMediaBySlug, getMovies, getSeries, getTvPlayback, mediaUrl, purchasePrepaidUnlock, saveTvViewingProgress } from '../lib/api';
 import { mediaDetailPath, mediaWatchPath, publicMediaSlug } from '../lib/paths';
-import type { MediaItem, TvPlaybackAccess, TvPlaybackPayload } from '../lib/types';
+import type { MediaItem, TvPlaybackAccess, TvPlaybackPayload, TvPlaybackSource } from '../lib/types';
 import '../styles/prepaid-access.css';
 
 function safeFilename(title: string): string {
@@ -122,7 +122,7 @@ function providerEmbedUrl(value: string): string | null {
   }
 }
 
-function VideoPlayer({ source, poster, title, historyContentType, historyContentId }: { source: string; poster?: string; title: string; historyContentType?: 'movie' | 'episode'; historyContentId?: number }) {
+function VideoPlayer({ source, playbackSource, poster, title, historyContentType, historyContentId }: { source: string; playbackSource?: TvPlaybackSource; poster?: string; title: string; historyContentType?: 'movie' | 'episode'; historyContentId?: number }) {
 const videoRef = useRef<HTMLVideoElement>(null);
 const playerRef = useRef<HTMLDivElement>(null);
   const [playerError, setPlayerError] = useState('');
@@ -135,10 +135,14 @@ const playerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 const [controlsVisible, setControlsVisible] = useState(true);
 const [speedOpen, setSpeedOpen] = useState(false);
+  const [qualityOpen, setQualityOpen] = useState(false);
+  const [qualityOptions, setQualityOptions] = useState<Array<{ value: number; label: 'Auto' | 'SD' | 'HD' }>>([{ value: -1, label: 'Auto' }]);
+  const [qualityLevel, setQualityLevel] = useState(-1);
 const hideControlsTimer = useRef<number | null>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const lastSavedPosition = useRef(0);
 const sourceUrl = mediaUrl(source);
-  const embedUrl = providerEmbedUrl(sourceUrl);
+  const embedUrl = playbackSource?.mode === 'custom_embed' ? playbackSource.embed_url : providerEmbedUrl(sourceUrl);
   const resolvedSource = directMediaUrl(sourceUrl);
   const resolvedPoster = poster ? mediaUrl(poster) : undefined;
   const provider = providerLabel(sourceUrl);
@@ -193,9 +197,12 @@ const revealControls = () => {
     setIsLoading(true);
     setIsPlaying(false);
     setCurrentTime(0);
-setDuration(0);
-setSpeedOpen(false);
-setControlsVisible(true);
+	setDuration(0);
+	setSpeedOpen(false);
+	setQualityOpen(false);
+	setQualityLevel(-1);
+	setQualityOptions([{ value: -1, label: 'Auto' }]);
+	setControlsVisible(true);
     lastSavedPosition.current = 0;
 timeoutId = window.setTimeout(() => {
       setIsLoading(false);
@@ -207,8 +214,17 @@ timeoutId = window.setTimeout(() => {
 
     if (isHls && Hls.isSupported()) {
       hls = new Hls({ enableWorker: true, lowLatencyMode: false });
+	  hlsRef.current = hls;
       hls.loadSource(resolvedSource);
       hls.attachMedia(video);
+	  hls.on(Hls.Events.MANIFEST_PARSED, () => {
+		const levels = hls?.levels ?? [];
+		const options = levels.reduce<Array<{ value: number; label: 'SD' | 'HD' }>>((items, level, index) => {
+		  const label: 'SD' | 'HD' = level.height <= 480 ? 'SD' : 'HD';
+		  return items.some((item) => item.label === label) ? items : [...items, { value: index, label }];
+		}, []);
+		setQualityOptions([{ value: -1, label: 'Auto' }, ...options]);
+	  });
       hls.on(Hls.Events.ERROR, (_event, data) => {
         if (data.fatal) {
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls?.startLoad();
@@ -229,6 +245,7 @@ timeoutId = window.setTimeout(() => {
       video.removeEventListener('canplay', markLoaded);
       video.removeEventListener('error', showError);
       hls?.destroy();
+	  hlsRef.current = null;
       video.removeAttribute('src');
       video.load();
     };
@@ -319,6 +336,15 @@ video.removeEventListener('volumechange', onVolumeChange);
     revealControls();
   };
 
+  const setPlaybackQuality = (value: number) => {
+    const hls = hlsRef.current;
+    if (!hls) return;
+    hls.currentLevel = value;
+    setQualityLevel(value);
+    setQualityOpen(false);
+    revealControls();
+  };
+
   const toggleFullscreen = async () => {
     const player = playerRef.current;
     if (!player) return;
@@ -380,7 +406,8 @@ video.removeEventListener('volumechange', onVolumeChange);
             <button type="button" className="player-custom__icon" onClick={() => seekBy(10)} aria-label="Forward 10 seconds"><RotateCw size={18} /><span>10</span></button>
             <span className="player-custom__time">{formatTime(currentTime)} <i>/</i> {formatTime(duration)}</span>
             <div className="player-custom__volume"><button type="button" className="player-custom__icon" onClick={toggleMute} aria-label={isMuted ? 'Unmute' : 'Mute'}>{isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button><input type="range" min="0" max="1" step="0.05" value={isMuted ? 0 : volume} onChange={(event) => setPlayerVolume(Number(event.target.value))} aria-label="Volume" /></div>
-            <div className="player-custom__speed"><button type="button" className="player-custom__icon player-custom__speed-toggle" onClick={() => setSpeedOpen((value) => !value)} aria-label="Playback speed"><Settings2 size={17} /><span>Speed</span></button>{speedOpen && <div className="player-custom__speed-menu" role="menu">{[0.75, 1, 1.25, 1.5, 2].map((speed) => <button type="button" key={speed} onClick={() => setPlaybackSpeed(speed)}>{speed}×</button>)}</div>}</div>
+            {isHls && qualityOptions.length > 1 && <div className="player-custom__quality"><button type="button" className="player-custom__icon player-custom__speed-toggle" onClick={() => { setQualityOpen((value) => !value); setSpeedOpen(false); }} aria-label="Video quality"><Settings2 size={17} /><span>{qualityOptions.find((option) => option.value === qualityLevel)?.label || 'Auto'}</span></button>{qualityOpen && <div className="player-custom__speed-menu" role="menu">{qualityOptions.map((option) => <button type="button" key={option.value} onClick={() => setPlaybackQuality(option.value)}>{option.label}</button>)}</div>}</div>}
+            <div className="player-custom__speed"><button type="button" className="player-custom__icon player-custom__speed-toggle" onClick={() => { setSpeedOpen((value) => !value); setQualityOpen(false); }} aria-label="Playback speed"><Settings2 size={17} /><span>Speed</span></button>{speedOpen && <div className="player-custom__speed-menu" role="menu">{[1.5, 2, 2.5, 3].map((speed) => <button type="button" key={speed} onClick={() => setPlaybackSpeed(speed)}>{speed}×</button>)}</div>}</div>
             <button type="button" className="player-custom__icon" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}>{isFullscreen ? <Expand size={18} /> : <Maximize size={18} />}</button>
           </div>
         </div>
@@ -692,6 +719,11 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const sources = playback?.streaming_links ?? [];
   const downloadLinks = playback?.download_links ?? [];
   const currentSource = sources[sourceIndex] || '';
+  const resolvedPlaybackSource = playback?.playback?.mode === 'custom_embed'
+    ? playback.playback.embed_url
+    : playback?.playback?.mode === 'bunny_hls'
+      ? playback.playback.hls_url
+      : currentSource;
   const currentTitle = playback?.title || (selectedEpisode ? `${item.title} — ${selectedEpisode.title}` : item.title);
 
   async function confirmPrepaidPurchase() {
@@ -718,7 +750,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       <section className="container watch-top">
         <Link className="back-link watch-back-link" to={mediaDetailPath(item)}><ArrowLeft size={16} /> <span>Back to details</span></Link>
         <div className="player-shell">
-          {playbackLoading ? <div className="player-placeholder player-empty"><div className="player-play"><Play size={26} fill="currentColor" /></div><span>Checking playback access…</span><small>Yangon TV is confirming your viewing entitlement.</small></div> : purchaseOffer ? <div className="prepaid-unlock-card"><div className="prepaid-unlock-card__icon"><WalletCards size={26} /></div><span className="eyebrow">Pay with Points</span><h2>Unlock {purchaseOffer.title}</h2><p>This {purchaseOffer.content_type === 'movie' ? 'movie' : 'episode'} costs <strong>{purchaseOffer.price_points} Points</strong>. Your current balance is <strong>{purchaseOffer.balance_points ?? 0} Points</strong>.</p><p className="prepaid-unlock-card__term">After purchase, you can watch it again for 3 months.</p><button className="button button--primary" type="button" onClick={confirmPrepaidPurchase} disabled={purchasing || (purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points}><KeyRound size={17} />{purchasing ? 'Unlocking…' : `Unlock for ${purchaseOffer.price_points} Points`}</button>{(purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points && <small><AlertCircle size={14} /> Your Point balance is not enough. Redeem a prepaid code from Subscription.</small>}</div> : <VideoPlayer source={currentSource} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} historyContentType={user ? historyContentType : undefined} historyContentId={user && Number.isFinite(historyContentId) ? historyContentId : undefined} />}
+          {playbackLoading ? <div className="player-placeholder player-empty"><div className="player-play"><Play size={26} fill="currentColor" /></div><span>Checking playback access…</span><small>Yangon TV is confirming your viewing entitlement.</small></div> : purchaseOffer ? <div className="prepaid-unlock-card"><div className="prepaid-unlock-card__icon"><WalletCards size={26} /></div><span className="eyebrow">Pay with Points</span><h2>Unlock {purchaseOffer.title}</h2><p>This {purchaseOffer.content_type === 'movie' ? 'movie' : 'episode'} costs <strong>{purchaseOffer.price_points} Points</strong>. Your current balance is <strong>{purchaseOffer.balance_points ?? 0} Points</strong>.</p><p className="prepaid-unlock-card__term">After purchase, you can watch it again for 3 months.</p><button className="button button--primary" type="button" onClick={confirmPrepaidPurchase} disabled={purchasing || (purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points}><KeyRound size={17} />{purchasing ? 'Unlocking…' : `Unlock for ${purchaseOffer.price_points} Points`}</button>{(purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points && <small><AlertCircle size={14} /> Your Point balance is not enough. Redeem a prepaid code from Subscription.</small>}</div> : <VideoPlayer source={resolvedPlaybackSource} playbackSource={playback?.playback} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} historyContentType={user ? historyContentType : undefined} historyContentId={user && Number.isFinite(historyContentId) ? historyContentId : undefined} />}
         </div>
         {sources.length > 1 && <div className="player-sources" aria-label="Video sources">{sources.map((_, index) => <button key={index} className={index === sourceIndex ? 'player-source player-source--active' : 'player-source'} onClick={() => setSourceIndex(index)}>Source {index + 1}</button>)}</div>}
         <div className="watch-heading">
@@ -726,7 +758,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
           {playback?.access.access === 'premium' ? <DownloadAction links={downloadLinks} title={currentTitle} canDownload={Boolean(user)} onRequireAuth={() => openAuth('login', `${window.location.pathname}${window.location.search}`)} /> : <span className="watch-premium-download">{playback ? 'Downloads are included with Premium membership.' : ''}</span>}
         </div>
       </section>
-      <section className="container watch-lower"><div className="watch-note"><Users size={18} /><div><b>{playback?.access.access === 'premium' ? 'Premium access active.' : playback?.access.access === 'prepaid_unlock' ? 'This title is unlocked for your account.' : 'Make it a Yangon TV night.'}</b><p>{playbackError || (sources.length ? 'Choose the video controls above to start playback.' : purchaseOffer ? 'Confirm the Point unlock to start playback.' : 'Playback will appear when the backend provides a streaming URL.')}</p></div></div></section>
+      <section className="container watch-lower"><div className="watch-note"><Users size={18} /><div><b>{playback?.access.access === 'premium' ? 'Premium access active.' : playback?.access.access === 'prepaid_unlock' ? 'This title is unlocked for your account.' : 'Make it a Yangon TV night.'}</b><p>{playbackError || (resolvedPlaybackSource ? 'Choose the video controls above to start playback.' : purchaseOffer ? 'Confirm the Point unlock to start playback.' : 'Playback will appear when the backend provides a streaming URL.')}</p></div></div></section>
     </div>
   );
 }

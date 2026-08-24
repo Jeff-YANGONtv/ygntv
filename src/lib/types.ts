@@ -165,6 +165,11 @@ export interface TvPlaybackAccess {
   unlock_expires_at: string | null;
 }
 
+export type TvPlaybackSource =
+  | { mode: 'custom_embed'; embed_url: string }
+  | { mode: 'bunny_hls'; hls_url: string }
+  | { mode: 'legacy' };
+
 export interface TvPlaybackPayload {
   content_type: 'movie' | 'episode';
   content_id: number;
@@ -173,6 +178,7 @@ export interface TvPlaybackPayload {
   show_id?: number | null;
   show_title?: string | null;
   streaming_links: string[];
+  playback?: TvPlaybackSource;
   download_links: string[];
   access: TvPlaybackAccess;
 }
