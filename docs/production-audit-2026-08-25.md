@@ -60,6 +60,8 @@ The live Hostinger homepage was separately verified after data settlement: Trend
 
 The Hostinger homepage unauthenticated Watch now flow was also browser-tested. It opens the existing Sign in/Sign up dialog and does not expose a playback source or player content.
 
+The Hostinger clean Movie detail route `/movies/scary-movie` was browser-validated with real production metadata and cast data. It renders the intended Review UI and clearly preserves account-gated Watch and Download access.
+
 ## Constraints
 
 No mock users, payments, content, episodes, casts, blogs, or media will be created during the audit. Backend corrections will be backed up, syntax checked, cache-cleared, and endpoint-validated before release.

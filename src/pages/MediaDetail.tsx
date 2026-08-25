@@ -6,6 +6,7 @@ import { useAuth } from '../lib/auth';
 import { MediaCard, Pill, SectionHeading, EmptyState, ErrorState } from '../components/ui/Primitives';
 import { getMediaBySlug, getMovies, getSeries, getTvPlayback, mediaUrl, purchasePrepaidUnlock, saveTvViewingProgress } from '../lib/api';
 import { mediaDetailPath, mediaWatchPath, publicMediaSlug } from '../lib/paths';
+import { activeSiteOrigin } from '../lib/siteOrigin';
 import type { MediaItem, TvPlaybackAccess, TvPlaybackPayload, TvPlaybackSource } from '../lib/types';
 import '../styles/prepaid-access.css';
 
@@ -607,6 +608,58 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
     });
     return () => { mounted = false; };
   }, [kind, navigate, slug]);
+
+  useEffect(() => {
+    if (!item) return;
+    const title = `${item.title} - MMsub`;
+    const canonicalUrl = `${activeSiteOrigin()}${mediaDetailPath(item)}`;
+    const description = `Watch ${item.title} on Yangon TV.`;
+    const image = mediaUrl(item.backdrop || item.poster);
+    const originalTitle = document.title;
+    const updateMeta = (attribute: 'name' | 'property', key: string, value: string) => {
+      let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
+      const created = !element;
+      if (!element) {
+        element = document.createElement('meta');
+        element.setAttribute(attribute, key);
+        document.head.appendChild(element);
+      }
+      const previous = element.getAttribute('content');
+      element.setAttribute('content', value);
+      return () => {
+        if (created) element?.remove();
+        else if (previous === null) element?.removeAttribute('content');
+        else element?.setAttribute('content', previous);
+      };
+    };
+    let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    const createdCanonical = !canonical;
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    const previousCanonical = canonical.getAttribute('href');
+    canonical.href = canonicalUrl;
+    document.title = title;
+    const restore = [
+      updateMeta('name', 'description', description),
+      updateMeta('property', 'og:title', title),
+      updateMeta('property', 'og:description', description),
+      updateMeta('property', 'og:type', kind === 'series' ? 'video.tv_show' : 'video.movie'),
+      updateMeta('property', 'og:url', canonicalUrl),
+      updateMeta('name', 'twitter:title', title),
+      updateMeta('name', 'twitter:description', description),
+    ];
+    if (image) restore.push(updateMeta('property', 'og:image', image), updateMeta('name', 'twitter:image', image));
+    return () => {
+      document.title = originalTitle;
+      restore.forEach((entry) => entry());
+      if (createdCanonical) canonical?.remove();
+      else if (previousCanonical === null) canonical?.removeAttribute('href');
+      else canonical?.setAttribute('href', previousCanonical);
+    };
+  }, [item, kind]);
 
   if (loading) return <div className="container page-loading"><div className="skeleton skeleton-detail" /></div>;
     if (error || !item) return <div className="container page-state"><ErrorState onRetry={() => window.location.reload()} /></div>;

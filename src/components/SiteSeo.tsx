@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { activeSiteOrigin } from '../lib/siteOrigin';
 
-const DEFAULT_TITLE = 'Yangon TV | မြန်မာစာတန်းထိုး ရုပ်ရှင်ဇာတ်ကားများ';
-const DEFAULT_DESCRIPTION = 'Yangon TV တွင် မြန်မာစာတန်းထိုး ရုပ်ရှင်ဇာတ်ကားများ၊ စီးရီးများ၊ reviews နှင့် entertainment stories များကို ရှာဖွေကြည့်ရှုနိုင်ပါသည်။';
+const DEFAULT_TITLE = 'Welcome To Yangon TV';
+const DEFAULT_DESCRIPTION = 'Yangon TV — Your Digital Theatre in Your Pocket';
 
 type SeoConfig = {
   title: string;
@@ -50,17 +50,17 @@ function pageSeo(pathname: string): SeoConfig | null {
       },
     },
     '/movies': {
-      title: 'မြန်မာစာတန်းထိုး ရုပ်ရှင်ဇာတ်ကားများ | Yangon TV',
+      title: 'Yangon TV - Movies ( မြန်မာစာတန်းထိုး)',
       description: 'Yangon TV တွင် မြန်မာစာတန်းထိုး နိုင်ငံတကာရုပ်ရှင်ဇာတ်ကားများကို genre နှင့် title အလိုက်ရှာဖွေနိုင်ပါသည်။',
       schema: { '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Yangon TV Movies', inLanguage: 'my' },
     },
     '/series': {
-      title: 'မြန်မာစာတန်းထိုး စီးရီးများ | Yangon TV',
+      title: 'Yangon TV - Series (မြန်မာစာတန်းထိုး)',
       description: 'Yangon TV တွင် မြန်မာစာတန်းထိုး နိုင်ငံတကာစီးရီးများနှင့် episode information များကို ရှာဖွေကြည့်ရှုနိုင်ပါသည်။',
       schema: { '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Yangon TV Series', inLanguage: 'my' },
     },
     '/blog': {
-      title: 'ရုပ်ရှင် Reviews နှင့် Entertainment Blog | Yangon TV',
+      title: 'Yangon TV - Community/Blog',
       description: 'Yangon TV Blog တွင် ရုပ်ရှင် reviews၊ watch guides နှင့် entertainment stories များကို မြန်မာဘာသာဖြင့်ဖတ်ရှုနိုင်ပါသည်။',
       schema: { '@context': 'https://schema.org', '@type': 'Blog', name: 'Yangon TV Blog', inLanguage: 'my' },
     },
@@ -100,6 +100,9 @@ export function SiteSeo() {
       setMeta('name', 'twitter:card', 'summary_large_image'),
       setMeta('name', 'twitter:title', seo.title),
       setMeta('name', 'twitter:description', seo.description),
+      setMeta('property', 'og:image', `${activeSiteOrigin()}/yangon-tv-social-cover.png`),
+      setMeta('property', 'og:image:alt', 'Yangon TV — Movies, Series, Entertainment'),
+      setMeta('name', 'twitter:image', `${activeSiteOrigin()}/yangon-tv-social-cover.png`),
     ];
     let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     const createdCanonical = !canonical;
