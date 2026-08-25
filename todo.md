@@ -279,8 +279,8 @@
 - [ ] Rotate the Hostinger SSH password shared during troubleshooting and replace password-based maintenance access with an SSH key
 - [x] Repair clean public Movie and Series detail slugs without falling back to catalogue pagination, using exact canonical lookup followed by the documented generated-suffix format only
 - [x] Remove stream, download, provider, and Telegram delivery paths from public Movie and Series detail payloads while retaining authenticated playback access
-- [ ] Migrate the React frontend from Vercel to Hostinger with a dated backup, SPA route fallback, environment/API compatibility, security headers, and rollback validation before changing the public domain
-- [ ] Set production Page Titles to the owner-approved Home, Movies, Series, Blog, and `{title} - MMsub` Movie/Series detail formats
-- [ ] Use the supplied Yangon TV 16:9 brand cover as the Home Open Graph/Twitter link-preview image with the approved tagline, while retaining each Blog post cover for article previews
-- [ ] Complete the remaining Hostinger frontend and Laravel backend production-regression checks, deployment-source commits, and operational handoff without adding mock data or weakening protected access
+- [x] Migrate the React frontend from Vercel to Hostinger with a dated backup, SPA route fallback, environment/API compatibility, security headers, and rollback validation before changing the public domain
+- [x] Set production Page Titles to the owner-approved Home, Movies, Series, Blog, and `{title} - MMsub` Movie/Series detail formats
+- [x] Use the supplied Yangon TV 16:9 brand cover as the Home Open Graph/Twitter link-preview image with the approved tagline, while retaining each Blog post cover for article previews
+- [x] Complete the remaining Hostinger frontend and Laravel backend production-regression checks, deployment-source commits, and operational handoff without adding mock data or weakening protected access
 - [ ] Cut over the verified production domains to `ygntv.org` for public frontend, `api.ygntv.org` for Laravel API, and `admin.ygntv.org` for the admin panel with SSL, CORS, canonical, sitemap, social-preview, and rollback validation

@@ -12,8 +12,8 @@ The frontend TypeScript check and Vite production build both pass. The current p
 | PA-02 | Movie detail data | Medium | Movies used the same clean-slug route and exact-match lookup pattern, causing an unnecessary catalogue fallback. The same canonical clean-slug resolver has been deployed. | Live Vercel proxy check of `scary-movie` returned HTTP 200 and the canonical stored slug without source metadata. | Fixed and verified |
 | PA-03 | Series content data | Owner data | `Human Vapor` has eight existing Episode records in Season 1, but its cast field remains empty. The audit did not invent cast information. | Live clean-detail response and Series route | Owner action required for real cast names |
 | PA-04 | Nstream embed validation | Owner data | Responsive iframe framing is deployed, but no owner-authorized live Nstream embed has been saved yet for mobile acceptance testing. | Existing tracker and production configuration | Owner action required |
-| PA-05 | Scheduler | Critical | The GitHub Actions Hostinger scheduler workflow has repeatedly failed because the required signed URL secret is absent. The Hostinger user account has no direct crontab entry, so the scheduled Laravel cleanup task is not independently triggered. | Recent GitHub Actions runs and live `crontab -l` | Open |
-| PA-06 | Laravel runtime cache | Medium | Configuration, routes, events, and views are not cached in production. This does not currently break functionality but adds avoidable bootstrap overhead. | Live `php artisan about --only=cache` | Open |
+| PA-05 | Scheduler | Critical | The external signed scheduler endpoint is now stored in the GitHub Actions repository secret and a manual workflow run completed successfully. The Laravel scheduler declares the expected cleanup task. | Successful manual workflow `32858816737` and final `php artisan schedule:list` | Fixed and verified |
+| PA-06 | Laravel runtime cache | Medium | Configuration, routes, events, and views remain uncached because active production code still calls `env()` outside configuration files. Enabling configuration cache before refactoring those calls could disable provider or bot configuration. | Live production application review | Deferred safely |
 | PA-07 | SSH access hardening | High | The Hostinger login banner reports repeated failed SSH authentication attempts. Password authentication remains enabled; key-based access and password rotation remain necessary owner follow-up. | Live SSH login banner | Owner action required |
 | PA-08 | Public media source disclosure | Critical | The public Series detail payload initially contained episode stream/download arrays, provider delivery metadata, and a Telegram delivery path. The formatter sanitized a local variable but did not assign it back to the response. It now returns sanitized nested Seasons/Episodes only; Movie and Series detail payloads explicitly strip provider and Telegram delivery metadata. | Final live Vercel proxy payload checks | Fixed and verified |
 | PA-09 | Dashboard authorization | High | Dashboard totals and chart routes were inside the generic Sanctum group, allowing any signed-in user to obtain administrator metrics. They now reside in the existing `auth:sanctum + admin` group. | Live route table confirms `EnsureUserIsAdmin` on both routes | Fixed and verified |
@@ -28,11 +28,9 @@ The unauthenticated Home-page **Watch now** action opens the intended Sign in / 
 
 A clean-slug Movie detail route renders its public review and cast data successfully through the list fallback, so PA-02 primarily affects efficiency and any detail-only future fields. The clean-slug Series detail issue remains high severity because nested Seasons and Episodes are essential to the Series Watch and Download flow. The public footer also retains a `Useful links` destination that warrants a route check because the owner previously removed the standalone Links navigation.
 
-## Live Laravel Operational Checks
+## Laravel Operational Checks
 
-Laravel is in production mode with debug disabled. All 33 tracked migrations have run, no failed queue jobs are present, and log storage is small. The deployed scheduler declares the intended cleanup task, but no operating-system crontab is configured and the GitHub Actions trigger is failing because `HOSTINGER_SCHEDULER_URL` is empty. Recent Laravel error log entries are from an unsupported historic command option rather than a current application exception.
-
-The available Hostinger browser session did not expose an interactive authenticated hPanel page, so the missing external scheduler trigger cannot be repaired from that session without owner access to the control panel or repository-secret settings.
+Laravel is in production mode with debug disabled. All tracked migrations have run, no failed queue jobs are present, and the deployed scheduler declares the intended cleanup task. The external GitHub Actions scheduler endpoint has been configured and the recorded manual workflow run succeeded. Recent Laravel error log entries are from an unsupported historic command option rather than a current application exception.
 
 Config caching remains intentionally deferred: multiple production controllers and services call `env()` directly outside `config/`, so enabling `config:cache` before that refactor could disable active bot or provider configuration.
 
@@ -61,6 +59,18 @@ The live Hostinger homepage was separately verified after data settlement: Trend
 The Hostinger homepage unauthenticated Watch now flow was also browser-tested. It opens the existing Sign in/Sign up dialog and does not expose a playback source or player content.
 
 The Hostinger clean Movie detail route `/movies/scary-movie` was browser-validated with real production metadata and cast data. It renders the intended Review UI and clearly preserves account-gated Watch and Download access.
+
+The supplied Yangon TV 16:9 brand cover was deployed as the public Home Open Graph/Twitter image with the approved description, `Yangon TV — Your Digital Theatre in Your Pocket`. A file-permission issue that initially returned HTTP `403` for the new image was corrected to public-read mode and revalidated at HTTP `200`. Rendered-DOM checks on the live Hostinger site confirm the requested titles: `Welcome To Yangon TV`, `Yangon TV - Movies ( မြန်မာစာတန်းထိုး)`, `Yangon TV - Series (မြန်မာစာတန်းထိုး)`, `Yangon TV - Community/Blog`, and the real Movie detail `Scary Movie - MMsub`. The detail canonical now resolves to the Hostinger origin rather than Vercel.
+
+## Final Production Regression Record
+
+The isolated Hostinger frontend passed HTTP `200` checks for `/`, `/movies`, `/series`, `/blog`, `/movies/scary-movie`, `/series/human-vapor`, `/contact`, `/subscription`, and `/auth`. The static frontend responses retain `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` headers. The SPA fallback therefore covers the validated catalogue, account, contact, and subscription paths without relying on Vercel.
+
+Credentialed CORS preflight from the Hostinger frontend origin to the Laravel Movies endpoint returned `204` with the same origin and credentials allowed. Public Movie and Show catalogue/detail responses returned `200` and did not contain stream, download, provider, embed, Bunny, or Telegram delivery fields. Unauthenticated requests to watch history, playback, user-count, and dashboard-chart endpoints each returned `401`.
+
+Final Laravel production checks report Laravel `13.23.0`, PHP `8.5.4`, production environment, debug disabled, maintenance mode disabled, no pending migrations, no failed jobs, and the expected minute-level public Telegram cleanup schedule. The public website, API, and panel custom-domain cutover is prepared in `docs/custom-domain-cutover-ygntv.org.md`; it is intentionally not executed until `ygntv.org`, `api.ygntv.org`, and `admin.ygntv.org` are mapped in Hostinger with valid HTTPS certificates.
+
+No public Blog post exists in the current live feed, so a per-post Open Graph cover was not fabricated for test purposes. Once a real post exists, its individual cover must be checked at the real `/blog/{slug}` URL before the custom-domain acceptance is closed.
 
 ## Constraints
 
