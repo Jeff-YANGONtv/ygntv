@@ -74,6 +74,18 @@ On the final readiness check, `ygntv.org`, `api.ygntv.org`, and `admin.ygntv.org
 
 No public Blog post exists in the current live feed, so a per-post Open Graph cover was not fabricated for test purposes. Once a real post exists, its individual cover must be checked at the real `/blog/{slug}` URL before the custom-domain acceptance is closed.
 
+## Final Custom-Domain Cutover Record
+
+The public production frontend is deployed at `https://ygntv.org`, the Laravel API is deployed at `https://api.ygntv.org/api`, and the web administration panel now responds at `https://admin.ygntv.org` with title `YGN TV Admin Panel`. The existing Telegram Admin Bot remains a separate management interface using the same Laravel backend and was not changed by the web-domain migration.
+
+Before deployment, a dated Laravel configuration archive was created under the new API root and a dated frontend archive was created under the `ygntv.org` frontend-backups directory. The Laravel configuration was updated to allow credentialed CORS from `https://ygntv.org` and to generate sitemap links using that origin. PHP syntax checks passed for the two updated configuration files, Laravel caches were cleared, and the effective application frontend URL was confirmed as `https://ygntv.org`.
+
+The final static frontend was rebuilt with `VITE_SITE_ORIGIN=https://ygntv.org`, `VITE_API_BASE_URL=https://api.ygntv.org/api`, and `VITE_MEDIA_BASE_URL=https://api.ygntv.org`. It was deployed backup-first to the new public root with readable static permissions. Live browser-rendered metadata confirms the requested Home, Movies, Series, Blog, Movie-detail, and Series-detail titles; all canonical URLs are now under `https://ygntv.org`. The supplied Home social cover returns `200` from the final public domain.
+
+The final frontend route matrix returned `200` for Home, Movies, Series, Blog, both clean detail routes, Contact, Subscription, Auth, robots, sitemap, and the social cover. The custom-domain CORS preflight returned `204` with origin `https://ygntv.org` and credentials allowed. The real API regression test passed after deployment. Public Movie/Show list and detail endpoints returned `200` without delivery-source fields; unauthenticated history, playback, user-count, and dashboard-chart requests returned `401`. The public sitemap was corrected to serve XML rather than the SPA fallback and its root URL is `https://ygntv.org/`.
+
+The deployed `.htaccess` still contains the intended static security-header rules, but cache-bypassed final CDN responses currently do not expose `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, or `Permissions-Policy`. This is a Hostinger/CDN-layer configuration gap rather than a missing frontend artifact and remains open for the owner or Hostinger support to enable at the public domain layer.
+
 ## Constraints
 
 No mock users, payments, content, episodes, casts, blogs, or media will be created during the audit. Backend corrections will be backed up, syntax checked, cache-cleared, and endpoint-validated before release.

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://cyan-oryx-420193.hostingersite.com/sitemap.xml
+Sitemap: https://ygntv.org/sitemap.xml

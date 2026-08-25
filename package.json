@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:ygntv": "VITE_SITE_ORIGIN=https://ygntv.org VITE_API_BASE_URL=https://api.ygntv.org/api VITE_MEDIA_BASE_URL=https://api.ygntv.org pnpm build",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
   },

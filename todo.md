@@ -284,3 +284,9 @@
 - [x] Use the supplied Yangon TV 16:9 brand cover as the Home Open Graph/Twitter link-preview image with the approved tagline, while retaining each Blog post cover for article previews
 - [x] Complete the remaining Hostinger frontend and Laravel backend production-regression checks, deployment-source commits, and operational handoff without adding mock data or weakening protected access
 - [ ] Cut over the verified production domains to `ygntv.org` for public frontend, `api.ygntv.org` for Laravel API, and `admin.ygntv.org` for the admin panel with SSL, CORS, canonical, sitemap, social-preview, and rollback validation
+- [ ] Verify DNS, HTTPS certificates, and Hostinger mappings for `ygntv.org`, `api.ygntv.org`, and `admin.ygntv.org` before final cutover changes
+- [ ] Execute the backup-first final production domain cutover and complete custom-domain API, frontend, admin, metadata, security, and rollback validation
+- [x] Resolve Hostinger DNS/subdomain mapping and HTTPS for `api.ygntv.org` and `admin.ygntv.org`; public checks currently show only `ygntv.org` resolves and it serves a parked-domain page
+- [x] Verify whether `dimgrey-dugong-679063.hostingersite.com` is the active Yangon TV admin-panel temporary domain before mapping `admin.ygntv.org`
+- [x] Verify the owner-reported completed `ygntv.org`, `api.ygntv.org`, and `admin.ygntv.org` mappings and run the final live production cutover checks
+- [ ] Restore `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` at the Hostinger/CDN layer for `ygntv.org`; the deployed `.htaccess` contains these rules but the final public CDN response does not expose them
