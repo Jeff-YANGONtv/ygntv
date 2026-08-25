@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ygntv.vercel.app/sitemap.xml
+Sitemap: https://cyan-oryx-420193.hostingersite.com/sitemap.xml

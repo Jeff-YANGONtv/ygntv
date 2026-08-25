@@ -279,3 +279,4 @@
 - [ ] Rotate the Hostinger SSH password shared during troubleshooting and replace password-based maintenance access with an SSH key
 - [x] Repair clean public Movie and Series detail slugs without falling back to catalogue pagination, using exact canonical lookup followed by the documented generated-suffix format only
 - [x] Remove stream, download, provider, and Telegram delivery paths from public Movie and Series detail payloads while retaining authenticated playback access
+- [ ] Migrate the React frontend from Vercel to Hostinger with a dated backup, SPA route fallback, environment/API compatibility, security headers, and rollback validation before changing the public domain

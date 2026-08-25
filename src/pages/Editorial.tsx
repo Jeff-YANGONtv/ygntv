@@ -4,12 +4,12 @@ import { ArrowLeft, ArrowRight, BriefcaseBusiness, ExternalLink, Facebook, Hands
 import { Link, useParams } from 'react-router-dom';
 import { getBlogBySlug, getBlogs, getContactAudiences, getSocials, mediaUrl } from '../lib/api';
 import { blogPath } from '../lib/paths';
+import { activeSiteOrigin } from '../lib/siteOrigin';
 import type { BlogPost, ContactAudienceChannel, SocialLink } from '../lib/types';
 import { EmptyState, ErrorState, SearchField, SectionHeading, SkeletonGrid } from '../components/ui/Primitives';
 import { BlogInteractions } from '../components/BlogInteractions';
 import '../styles/rich-blog.css';
 
-const SITE_ORIGIN = 'https://ygntv.vercel.app';
 const SAFE_IFRAME_HOSTS = new Set(['www.youtube.com', 'youtube.com', 'www.youtube-nocookie.com', 'player.vimeo.com']);
 
 function safeRichHtml(html: string | null | undefined): string {
@@ -42,7 +42,7 @@ function useBlogSeo(post: BlogPost | null) {
     if (!post) return;
     const title = post.seo_title || `${post.title} | Yangon TV`;
     const description = post.meta_description || post.excerpt || `Read ${post.title} on Yangon TV.`;
-    const canonical = post.canonical_url || `${SITE_ORIGIN}${blogPath(post)}`;
+    const canonical = post.canonical_url || `${activeSiteOrigin()}${blogPath(post)}`;
     const image = mediaUrl(post.og_image || post.cover || post.image);
     const originalTitle = document.title;
     upsertMeta('name', 'description', description);

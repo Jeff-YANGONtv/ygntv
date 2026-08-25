@@ -3,6 +3,7 @@ import { Angry, Facebook, Heart, Laugh, LoaderCircle, MessageCircle, Music2, Rep
 import { Link } from 'react-router-dom';
 import { getBlogInteractions, getCurrentBlogReaction, postBlogComment, saveBlogReaction } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { activeSiteOrigin } from '../lib/siteOrigin';
 import type { BlogComment, BlogInteractions as BlogInteractionsData, BlogReactionType } from '../lib/types';
 
 const reactions: Array<{ type: BlogReactionType; label: string; icon: typeof Heart }> = [
@@ -109,7 +110,7 @@ export function BlogInteractions({ blogId, returnPath, title }: { blogId: number
     }
   };
 
-  const articleUrl = typeof window === 'undefined' ? `https://ygntv.vercel.app${returnPath}` : window.location.href;
+  const articleUrl = typeof window === 'undefined' ? `${activeSiteOrigin()}${returnPath}` : window.location.href;
   const shareText = `Read “${title}” on Yangon TV`;
   const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(articleUrl)}&text=${encodeURIComponent(shareText)}`;
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`;

@@ -54,6 +54,12 @@ The live Vercel response serves the configured `X-Content-Type-Options`, `X-Fram
 
 The signed Hostinger scheduler endpoint was regenerated without disclosure, stored as the `HOSTINGER_SCHEDULER_URL` GitHub Actions repository secret, and validated by a successful manual run of workflow `32858816737`. Live source and user-cron searches also found no active `--columns` Artisan invocation; the historical log error is therefore not attributable to an active application or user-cron command.
 
+For the Hostinger frontend migration, the dedicated temporary domain `cyan-oryx-420193.hostingersite.com` was granted explicit credentialed API CORS access after a dated Laravel backup. The Laravel sitemap origin is now configuration-backed and emits this frontend origin. The React static artifact was deployed only after a dated frontend-root backup, with an HTTPS SPA fallback, security headers, static sitemap, and corrected robots URL. Live HTTPS checks returned `200` for the root, a clean Series deep link, sitemap, and robots; the real Human Vapor Season/Episode detail data rendered after the API requests settled.
+
+The live Hostinger homepage was separately verified after data settlement: Trending Movies and Popular Series render their real Laravel API catalogue data, and the public Series Season/Episode detail remains functional. Hostinger currently serves a platform-managed temporary-domain `robots.txt` that disallows Googlebot despite the correct deployed file, so public indexing must be revalidated after the owner maps the final custom production domain and clears any Hostinger cache.
+
+The Hostinger homepage unauthenticated Watch now flow was also browser-tested. It opens the existing Sign in/Sign up dialog and does not expose a playback source or player content.
+
 ## Constraints
 
 No mock users, payments, content, episodes, casts, blogs, or media will be created during the audit. Backend corrections will be backed up, syntax checked, cache-cleared, and endpoint-validated before release.

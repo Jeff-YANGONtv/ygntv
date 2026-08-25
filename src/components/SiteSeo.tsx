@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { activeSiteOrigin } from '../lib/siteOrigin';
 
-const SITE_ORIGIN = 'https://ygntv.vercel.app';
 const DEFAULT_TITLE = 'Yangon TV | မြန်မာစာတန်းထိုး ရုပ်ရှင်ဇာတ်ကားများ';
 const DEFAULT_DESCRIPTION = 'Yangon TV တွင် မြန်မာစာတန်းထိုး ရုပ်ရှင်ဇာတ်ကားများ၊ စီးရီးများ၊ reviews နှင့် entertainment stories များကို ရှာဖွေကြည့်ရှုနိုင်ပါသည်။';
 
@@ -31,6 +31,7 @@ function setMeta(attribute: 'name' | 'property', key: string, value: string) {
 }
 
 function pageSeo(pathname: string): SeoConfig | null {
+  const siteOrigin = activeSiteOrigin();
   const pages: Record<string, Omit<SeoConfig, 'canonical'>> = {
     '/': {
       title: DEFAULT_TITLE,
@@ -39,11 +40,11 @@ function pageSeo(pathname: string): SeoConfig | null {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
         name: 'Yangon TV',
-        url: SITE_ORIGIN,
+        url: siteOrigin,
         inLanguage: 'my',
         potentialAction: {
           '@type': 'SearchAction',
-          target: `${SITE_ORIGIN}/movies?search={search_term_string}`,
+          target: `${siteOrigin}/movies?search={search_term_string}`,
           'query-input': 'required name=search_term_string',
         },
       },
@@ -76,7 +77,7 @@ function pageSeo(pathname: string): SeoConfig | null {
   if (pathname.startsWith('/blog/') || pathname.startsWith('/movies/') || pathname.startsWith('/series/') || pathname.startsWith('/profiles/') || pathname === '/auth' || pathname === '/profile' || pathname === '/links') return null;
   const page = pages[pathname];
   if (!page) return null;
-  return { ...page, canonical: `${SITE_ORIGIN}${pathname}` };
+  return { ...page, canonical: `${siteOrigin}${pathname}` };
 }
 
 export function SiteSeo() {
