@@ -48,6 +48,12 @@ The alternate public Season detail and episode-list endpoints were also regressi
 
 Telegram OAuth now resolves its allowed and fallback mobile callback from `services.telegram.tv_return_uri`, independent of the Google OAuth setting. A real Telegram authorization round-trip remains an owner acceptance test because it requires the configured Telegram account and device handoff.
 
+The footer correction was committed to the frontend main branch, but the live Vercel browser response still displayed the pre-change `Useful links` footer during the immediate deployment validation window. This is tracked as a deployment follow-up rather than a failed local build; the committed source and local production build are correct.
+
+The live Vercel response serves the configured `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` headers, plus HTTPS transport enforcement. The Blog rich-HTML renderer was also reviewed: it uses DOMPurify, allows only HTTPS media URLs, limits iframes to the approved YouTube/Vimeo hosts, and adds safe link-rel attributes before rendering.
+
+The signed Hostinger scheduler endpoint was regenerated without disclosure, stored as the `HOSTINGER_SCHEDULER_URL` GitHub Actions repository secret, and validated by a successful manual run of workflow `32858816737`. Live source and user-cron searches also found no active `--columns` Artisan invocation; the historical log error is therefore not attributable to an active application or user-cron command.
+
 ## Constraints
 
 No mock users, payments, content, episodes, casts, blogs, or media will be created during the audit. Backend corrections will be backed up, syntax checked, cache-cleared, and endpoint-validated before release.

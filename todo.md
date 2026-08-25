@@ -228,7 +228,7 @@
 - [x] Move Profile Log Out to the page bottom and rename Premium navigation to Subscription with Monthly Payment and Billing subcategories
 - [x] Complete a production-stage audit, hardening pass, and validation for website, Laravel APIs, payment/wallet access, and Telegram bots
 - [ ] Perform a renewed end-to-end production audit of frontend UI, mobile flows, auth, player, APIs, Laravel backend, Admin Bot, data integrity, security, and deployment; fix only verified defects with backup-first safeguards
-- [ ] Configure the encrypted GitHub Actions `HOSTINGER_SCHEDULER_URL` repository secret and confirm the five-minute Hostinger scheduler workflow succeeds
+- [x] Configure the encrypted GitHub Actions `HOSTINGER_SCHEDULER_URL` repository secret and confirm the five-minute Hostinger scheduler workflow succeeds
 - [x] Add authenticated user Activity History for Point Wallet credits, debits, redemptions, and content unlocks
 - [x] Limit Notification Bell delivery to user-specific transactional events: reply alerts, Premium activation, and wallet redemption
 - [ ] Add opt-in series subscriptions before delivering recipient-specific new-episode Notification Bell alerts
@@ -274,7 +274,7 @@
 - [x] Validate the new User History tabs with the first real signed-in account that has watch, balance, or comment activity; do not create test records
 - [x] Execute the active real-account User History validation session without creating watch, balance, or comment test data
 - [x] Review and consolidate the remaining active Yangon TV production tasks, excluding stale historical tracker entries
-- [ ] Verify the active Hostinger Laravel Scheduler workflow’s next successful run; GitHub secret values cannot be inspected through the current integration
+- [x] Verify the active Hostinger Laravel Scheduler workflow’s next successful run; GitHub secret values cannot be inspected through the current integration
 - [x] Push a clean Laravel API, Admin Panel, and Telegram Bot monorepo backup to `Jeff-YANGONtv/ygntv-backend-official`, excluding `.env`, tokens, runtime files, and database data
 - [ ] Rotate the Hostinger SSH password shared during troubleshooting and replace password-based maintenance access with an SSH key
 - [x] Repair clean public Movie and Series detail slugs without falling back to catalogue pagination, using exact canonical lookup followed by the documented generated-suffix format only
