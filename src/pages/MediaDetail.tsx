@@ -146,6 +146,7 @@ const sourceUrl = mediaUrl(source);
   const resolvedSource = directMediaUrl(sourceUrl);
   const resolvedPoster = poster ? mediaUrl(poster) : undefined;
   const provider = providerLabel(sourceUrl);
+  const isNstreamEmbed = Boolean(embedUrl && /(^|\.)nstream\.cc(?:[/:]|$)/i.test(embedUrl));
   const isUnsupportedWatchPage = /\/watch(?:\/|$)/i.test(resolvedSource);
   const isHls = /\.m3u8(?:$|[?#])/i.test(resolvedSource);
 
@@ -368,13 +369,14 @@ video.removeEventListener('volumechange', onVolumeChange);
 
   if (embedUrl) {
     return (
-      <div className="player-frame player-frame--embed">
+      <div className={`player-frame player-frame--embed${isNstreamEmbed ? ' player-frame--nstream' : ''}`}>
         <iframe
           className="video-embed"
           src={embedUrl}
           title={`Play ${title}`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
+          loading="eager"
           referrerPolicy="strict-origin-when-cross-origin"
         />
       </div>
