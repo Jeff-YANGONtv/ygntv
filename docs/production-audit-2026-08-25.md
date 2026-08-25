@@ -86,6 +86,12 @@ The final frontend route matrix returned `200` for Home, Movies, Series, Blog, b
 
 The deployed `.htaccess` still contains the intended static security-header rules, but cache-bypassed final CDN responses currently do not expose `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, or `Permissions-Policy`. This is a Hostinger/CDN-layer configuration gap rather than a missing frontend artifact and remains open for the owner or Hostinger support to enable at the public domain layer.
 
+## Public Access Repair After Cutover
+
+After the owner reported that the newly cut-over public site could not be entered, DNS, TLS, HTTP routing, API reachability, and browser behavior were rechecked. The final domain had valid DNS, a valid Let’s Encrypt certificate, and HTTP `200`, but the initial browser screenshot was an empty dark viewport while the large initial JavaScript asset loaded. Browser resource timings showed an approximately 19.7-second initial JavaScript transfer and 5–7-second homepage API requests on the tested path.
+
+The frontend was repaired backup-first with route-level code splitting and a critical inline `Loading Yangon TV…` HTML shell. The initial compressed JavaScript entry reduced from roughly 375 KB to roughly 150 KB, and visitors now see a branded loading state immediately rather than an empty screen. A cache-bypassed browser check confirmed the loading state appears first and transitions to the complete interactive homepage. A dated rollback archive was retained under the public frontend backups before this repair deployment.
+
 ## Constraints
 
 No mock users, payments, content, episodes, casts, blogs, or media will be created during the audit. Backend corrections will be backed up, syntax checked, cache-cleared, and endpoint-validated before release.
