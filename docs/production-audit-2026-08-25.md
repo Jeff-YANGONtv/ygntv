@@ -70,6 +70,8 @@ Credentialed CORS preflight from the Hostinger frontend origin to the Laravel Mo
 
 Final Laravel production checks report Laravel `13.23.0`, PHP `8.5.4`, production environment, debug disabled, maintenance mode disabled, no pending migrations, no failed jobs, and the expected minute-level public Telegram cleanup schedule. The public website, API, and panel custom-domain cutover is prepared in `docs/custom-domain-cutover-ygntv.org.md`; it is intentionally not executed until `ygntv.org`, `api.ygntv.org`, and `admin.ygntv.org` are mapped in Hostinger with valid HTTPS certificates.
 
+On the final readiness check, `ygntv.org`, `api.ygntv.org`, and `admin.ygntv.org` did not yet resolve in public DNS. No DNS, SSL, API-origin, or frontend build setting was changed as a result. The temporary Hostinger production-validation release and its dated rollback archives therefore remain the current active deployment.
+
 No public Blog post exists in the current live feed, so a per-post Open Graph cover was not fabricated for test purposes. Once a real post exists, its individual cover must be checked at the real `/blog/{slug}` URL before the custom-domain acceptance is closed.
 
 ## Constraints
