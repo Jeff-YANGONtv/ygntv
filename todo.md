@@ -189,13 +189,16 @@
 - [x] Add a panel-controlled scrolling marquee announcement to the website Header Bar
 - [x] Build a branded custom Yangon TV video player UI for current and future Cloud streaming sources
 - [x] Document verified Nstream direct MP4 or HLS stream access options for the custom player
-- [ ] Deferred: integrate an official Nstream API or a replacement provider only when a workable signed-playback solution is available; do not bypass protected streams
+- [ ] Deferred: Bunny Stream secure playback rollout unless the owner reselects Bunny; do not bypass protected Nstream streams
 - [x] Evaluate Cloudflare Stream, Bunny Stream, and Mux and recommend Bunny Stream as the official non-Nstream platform for Yangon TV custom-player integration
 - [ ] Create and configure a Bunny Stream Video Library after the owner confirms the recommended provider and account setup
 - [ ] Guide the owner through Bunny Library creation, HLS-only 360p/720p settings, and first owner-authorized video upload
 - [ ] Build a restricted Telegram Bot workflow that uploads owner-authorized video files to Bunny Stream and returns the Bunny Video ID
 - [x] Add a per-title playback-source selector so each Movie or Episode uses either an authorized Embed source or Bunny signed HLS custom playback, never both at once
 - [x] Permit Custom Embed source URLs from any provider without a fixed domain allowlist, while requiring valid HTTPS URLs and safe iframe rendering
+- [ ] Use owner-authorized Nstream.cc iframe/embed URLs through the existing Custom Embed mode; do not extract or transform protected streams
+- [x] Optimize the Custom Embed iframe frame for Nstream mobile playback with a stable 16:9 ratio, full-width layout, rounded clipping, and safe overflow handling
+- [ ] Verify the responsive frame with an owner-authorized live Nstream iframe embed on a mobile device without altering provider controls
 - [x] Add explicit Movie and Episode playback metadata for `custom_embed` and `bunny_stream`, preserving legacy streaming links for existing titles
 - [x] Update the Admin Bot to select Custom Embed or Bunny Stream and collect only the relevant URL or Bunny Video ID
 - [x] Update protected playback responses and the website player to select the chosen source type without access-rule bypass
@@ -203,7 +206,11 @@
 - [x] Label Bunny custom-player quality options as Auto, SD (360p), and HD (720p), without showing raw resolution labels in the UI
 - [x] Fix the Review-to-player back-navigation loop by routing Review Back to the relevant Movies or Series catalogue
 - [x] Verify and repair the deployed Series review/player flow so users can visibly select a Season, then an Episode, before using that episode’s Watch or Download source
+- [ ] Replace the Direct Watch YT marker with the Yangon TV brand icon
+- [x] Restore the Series cast metadata workflow through Admin Bot manual entry, TMDB ingestion, and existing-Series editing; do not create mock cast records
+- [ ] Add owner-authorized cast names to existing Series records, including Human Vapor, through the Admin Bot and verify them on the live review page
 - [ ] Verify the selector with a real published Series Season and Episode after the owner adds real episode data through the Admin Bot; do not create mock media
+- [ ] Provide the owner a verified step-by-step Admin Bot workflow for adding real Seasons and Episodes to an existing Series
 - [ ] Configure Bunny secrets and activate short-lived signed HLS only after the owner creates the Bunny Stream Video Library
 - [ ] Validate one owner-authorized Bunny HLS video without VPN from available Myanmar mobile or ISP networks before production rollout
 - [x] Deploy the validated player source-model changes through the owner-authorized Hostinger SSH session only after creating a dated production backup
