@@ -92,6 +92,16 @@ After the owner reported that the newly cut-over public site could not be entere
 
 The frontend was repaired backup-first with route-level code splitting and a critical inline `Loading Yangon TV…` HTML shell. The initial compressed JavaScript entry reduced from roughly 375 KB to roughly 150 KB, and visitors now see a branded loading state immediately rather than an empty screen. A cache-bypassed browser check confirmed the loading state appears first and transitions to the complete interactive homepage. A dated rollback archive was retained under the public frontend backups before this repair deployment.
 
+## Final Frontend and Backend Production Audit
+
+The final `ygntv.org` frontend source checks passed: TypeScript linting, a final-domain production build, and the production dependency audit reported no known high-severity production-package vulnerability. Cache-bypassed public checks returned HTTP `200` for Home, Movies, Series, Blog, clean Movie/Series detail routes, Contact, Subscription, Auth, `robots.txt`, the XML sitemap, and the supplied social cover. The static Home metadata uses the requested title, absolute `https://ygntv.org/` canonical URL, and the public Home social cover; the rendered Movie detail changes its document title to `Scary Movie - MMsub` after loading.
+
+The frontend's final API preflight accepts `https://ygntv.org` with credentials. Public movie and show detail lookups use the supported clean-slug endpoints and return HTTP `200` without stream, download, provider, Bunny, embed, or Telegram delivery fields. The frontend's static `ygntv.org/sitemap.xml` is the public sitemap delivery point; the Laravel application does not register a separate backend sitemap route, so a backend `404` at that unused path is not a public sitemap failure.
+
+The live Laravel audit confirms production mode, debug disabled, maintenance disabled, all migrations applied, no failed queue jobs, and the expected minute-level expired Telegram-message cleanup schedule registered. The final route table verifies that user-count and dashboard chart endpoints require both Sanctum authentication and the admin middleware. Source lint checks passed for the changed app/CORS configuration and public serializers. The application log has no new error entries on 25 or 26 August; its last recorded error entry predates the cutover. Storage logs and framework cache storage remain small, and the host retains substantial free disk capacity.
+
+Independent public reachability checks from Yangon, Singapore, Bangkok, Dhaka, and Germany all returned HTTP `200` for `ygntv.org` after the reported Android timeout. The static public response still exposes only the CDN `upgrade-insecure-requests` content-security policy; the intended `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` remain the one open Hostinger/CDN-layer configuration item.
+
 ## Constraints
 
 No mock users, payments, content, episodes, casts, blogs, or media will be created during the audit. Backend corrections will be backed up, syntax checked, cache-cleared, and endpoint-validated before release.

@@ -291,3 +291,5 @@
 - [x] Verify the owner-reported completed `ygntv.org`, `api.ygntv.org`, and `admin.ygntv.org` mappings and run the final live production cutover checks
 - [ ] Restore `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` at the Hostinger/CDN layer for `ygntv.org`; the deployed `.htaccess` contains these rules but the final public CDN response does not expose them
 - [x] Diagnose and restore the owner-reported inability to access `https://ygntv.org` after final-domain cutover, preserving current API protections and rollback backups
+- [x] Resolve the owner-observed Android Chrome `ERR_TIMED_OUT` connection failure for `https://ygntv.org` by correcting public DNS/CDN delivery rather than frontend rendering
+- [x] Complete a final end-to-end production audit of the live `ygntv.org` frontend and `api.ygntv.org` Laravel backend, fixing only verified defects with rollback-safe deployment
