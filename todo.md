@@ -289,7 +289,9 @@
 - [x] Resolve Hostinger DNS/subdomain mapping and HTTPS for `api.ygntv.org` and `admin.ygntv.org`; public checks currently show only `ygntv.org` resolves and it serves a parked-domain page
 - [x] Verify whether `dimgrey-dugong-679063.hostingersite.com` is the active Yangon TV admin-panel temporary domain before mapping `admin.ygntv.org`
 - [x] Verify the owner-reported completed `ygntv.org`, `api.ygntv.org`, and `admin.ygntv.org` mappings and run the final live production cutover checks
-- [ ] Restore `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` at the Hostinger/CDN layer for `ygntv.org`; the deployed `.htaccess` contains these rules but the final public CDN response does not expose them
+- [x] Restore `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` at the Hostinger/CDN layer for `ygntv.org`; the deployed `.htaccess` contains these rules but the final public CDN response does not expose them
+- [x] Complete final Hostinger/CDN delivery hardening for the public domain without weakening live frontend, API, admin, or rollback behavior
+- [x] Keep all remaining hardening work scoped to Hostinger `ygntv.org` custom-domain delivery; do not route production traffic through Vercel
 - [x] Diagnose and restore the owner-reported inability to access `https://ygntv.org` after final-domain cutover, preserving current API protections and rollback backups
 - [x] Resolve the owner-observed Android Chrome `ERR_TIMED_OUT` connection failure for `https://ygntv.org` by correcting public DNS/CDN delivery rather than frontend rendering
 - [x] Complete a final end-to-end production audit of the live `ygntv.org` frontend and `api.ygntv.org` Laravel backend, fixing only verified defects with rollback-safe deployment

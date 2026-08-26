@@ -102,6 +102,12 @@ The live Laravel audit confirms production mode, debug disabled, maintenance dis
 
 Independent public reachability checks from Yangon, Singapore, Bangkok, Dhaka, and Germany all returned HTTP `200` for `ygntv.org` after the reported Android timeout. The static public response still exposes only the CDN `upgrade-insecure-requests` content-security policy; the intended `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` remain the one open Hostinger/CDN-layer configuration item.
 
+## Hostinger Delivery Hardening Completion
+
+The remaining header gap was traced to the live Hostinger public root using an older minimal `.htaccess` file, not to Vercel and not to CDN stripping. The verified source deployment rules already contained the required LiteSpeed-compatible rewrite, static cache, compression, and security-header directives. The stale live `.htaccess` was backed up under the `ygntv.org` frontend backup directory and replaced with the reviewed source rules.
+
+Both direct LiteSpeed-origin and cache-bypassed public Hostinger CDN responses now expose `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy: geolocation=(), microphone=(), camera=()`, while retaining the provider's `upgrade-insecure-requests` content-security policy. The final public regression returned HTTP `200` for public frontend routes, details, sitemap, and robots; API CORS still permits the final public origin with credentials; clean public media detail endpoints remain `200`; and unauthenticated history and playback endpoints remain `401`.
+
 ## Constraints
 
 No mock users, payments, content, episodes, casts, blogs, or media will be created during the audit. Backend corrections will be backed up, syntax checked, cache-cleared, and endpoint-validated before release.
