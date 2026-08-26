@@ -116,6 +116,14 @@ An external HTTP measurement from a Yangon probe returned HTTP `200` in 406 ms. 
 
 No persistent DNS, TLS, CDN, origin-routing, static-asset, browser-runtime, API, HTTP-redirect, or tested regional-network failure could be reproduced after the Hostinger hardening repair. Any subsequent timeout confined to one device or carrier should be treated as a local resolver/cache/carrier path event until it is independently reproducible, rather than changing the functioning production origin.
 
+## Hostinger CDN Incident Resolution
+
+The owner subsequently confirmed that their phone still could not open the apex domain. The Hostinger CDN was temporarily disabled through hPanel to isolate the actual delivery path. Public DNS then converged on the Hostinger origin address, and the public response identified the direct LiteSpeed server rather than the prior `hcdn` edge.
+
+After CDN disablement, `ygntv.org` returned HTTP `200` for Home, catalog, clean detail, sitemap, and robots routes; the main JavaScript asset returned HTTP `200`; API CORS continued to allow `https://ygntv.org` with credentials; public catalog endpoints remained HTTP `200`; and unauthenticated history and playback endpoints remained HTTP `401`. All configured static security headers were preserved on the direct origin. A fresh external Yangon measurement returned HTTP `200` in 927 ms, with Singapore and Bangkok also returning HTTP `200`.
+
+The production recommendation is to keep the Hostinger CDN disabled while the site is in this confirmed reachable state. If CDN acceleration is required later, configure and validate an independent stable proxy/CDN before re-enabling Hostinger CDN; do not re-enable it without mobile-network verification.
+
 ## Constraints
 
 No mock users, payments, content, episodes, casts, blogs, or media will be created during the audit. Backend corrections will be backed up, syntax checked, cache-cleared, and endpoint-validated before release.
