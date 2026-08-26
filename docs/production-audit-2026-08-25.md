@@ -108,6 +108,14 @@ The remaining header gap was traced to the live Hostinger public root using an o
 
 Both direct LiteSpeed-origin and cache-bypassed public Hostinger CDN responses now expose `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy: geolocation=(), microphone=(), camera=()`, while retaining the provider's `upgrade-insecure-requests` content-security policy. The final public regression returned HTTP `200` for public frontend routes, details, sitemap, and robots; API CORS still permits the final public origin with credentials; clean public media detail endpoints remain `200`; and unauthenticated history and playback endpoints remain `401`.
 
+## Detailed Hostinger Availability Investigation
+
+After a renewed report that the site could not be opened, the full Hostinger delivery path was rechecked rather than assuming a frontend rendering issue. Google Public DNS, Cloudflare DNS, and the system resolver returned the current Hostinger edge records. Each tested public IPv4 edge returned HTTP `200`; direct HTTPS to the Hostinger origin also returned HTTP `200`. Plain HTTP redirects to HTTPS for both the apex and `www` hostnames, and both HTTPS hostnames respond successfully.
+
+An external HTTP measurement from a Yangon probe returned HTTP `200` in 406 ms. Singapore, Bangkok, and Dhaka probes also returned HTTP `200`. An external IPv6-only probe returned HTTP `200` from Singapore. The browser-loaded Hostinger homepage displayed the initial skeleton and then the full real Movies and Series catalog with no console error. The HTML entry asset resolves to the expected final production JavaScript file and is served as Brotli-compressed content at approximately 143 KB; the public movie catalog API returned HTTP `200` during the same check.
+
+No persistent DNS, TLS, CDN, origin-routing, static-asset, browser-runtime, API, HTTP-redirect, or tested regional-network failure could be reproduced after the Hostinger hardening repair. Any subsequent timeout confined to one device or carrier should be treated as a local resolver/cache/carrier path event until it is independently reproducible, rather than changing the functioning production origin.
+
 ## Constraints
 
 No mock users, payments, content, episodes, casts, blogs, or media will be created during the audit. Backend corrections will be backed up, syntax checked, cache-cleared, and endpoint-validated before release.

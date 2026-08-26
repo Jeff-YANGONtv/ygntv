@@ -292,6 +292,7 @@
 - [x] Restore `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` at the Hostinger/CDN layer for `ygntv.org`; the deployed `.htaccess` contains these rules but the final public CDN response does not expose them
 - [x] Complete final Hostinger/CDN delivery hardening for the public domain without weakening live frontend, API, admin, or rollback behavior
 - [x] Keep all remaining hardening work scoped to Hostinger `ygntv.org` custom-domain delivery; do not route production traffic through Vercel
+- [x] Perform a detailed end-to-end Hostinger availability investigation for the owner-reported inability to open `ygntv.org`, covering DNS, TLS, CDN, origin, assets, browser startup, and API dependency behavior
 - [x] Diagnose and restore the owner-reported inability to access `https://ygntv.org` after final-domain cutover, preserving current API protections and rollback backups
 - [x] Resolve the owner-observed Android Chrome `ERR_TIMED_OUT` connection failure for `https://ygntv.org` by correcting public DNS/CDN delivery rather than frontend rendering
 - [x] Complete a final end-to-end production audit of the live `ygntv.org` frontend and `api.ygntv.org` Laravel backend, fixing only verified defects with rollback-safe deployment
