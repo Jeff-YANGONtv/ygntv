@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, BadgeCheck, Clock3, LogOut, ShieldCheck, UserRound } from 'lucide-react';
+import { AlertCircle, BadgeCheck, CheckCircle2, Clock3, KeyRound, LogOut, ShieldCheck, UserRound } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { getTvProfile } from '../lib/api';
+import { getTvProfile, redeemPrepaidCode } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import type { TvProfileData } from '../lib/types';
 
@@ -28,6 +28,9 @@ export function ProfilePage() {
   const [profile, setProfile] = useState<TvProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [redeemCode, setRedeemCode] = useState('');
+  const [redeeming, setRedeeming] = useState(false);
+  const [redeemMessage, setRedeemMessage] = useState('');
 
   useEffect(() => {
     if (!token) return;
@@ -60,6 +63,26 @@ export function ProfilePage() {
   const term = useMemo(() => remainingTerm(entitlement?.valid_until), [entitlement?.valid_until]);
   const membershipLabel = isPremium ? 'Lifetime' : 'Subscription';
 
+  async function redeem() {
+    const code = redeemCode.trim();
+    if (!code) return;
+    setRedeeming(true);
+    setRedeemMessage('');
+    try {
+      await redeemPrepaidCode(code);
+      setRedeemCode('');
+      setRedeemMessage('Subscription redeemed successfully.');
+      const nextProfile = await getTvProfile();
+      setProfile(nextProfile);
+    } catch (reason) {
+      const response = (reason as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } })?.response;
+      const fieldError = response?.data?.errors ? Object.values(response.data.errors).flat()[0] : undefined;
+      setRedeemMessage(fieldError || response?.data?.message || 'This redeem code could not be applied.');
+    } finally {
+      setRedeeming(false);
+    }
+  }
+
   if (!token) return <Navigate to="/auth" replace />;
 
   return <section className="profile-page container">
@@ -77,6 +100,7 @@ export function ProfilePage() {
           <span className={isPremium ? 'premium-state premium-state--active' : 'premium-state'}>{isPremium ? 'Active' : 'Inactive'}</span>
         </article>
       </div>
+      <article className="profile-card redeem-card"><div className="profile-section-icon"><KeyRound size={19} /></div><div className="redeem-card__copy"><span className="profile-card-label">Redeem Subscription</span><h2>Activate your subscription</h2><p>Enter your subscription code to activate access on this account.</p><div className="redeem-form"><input value={redeemCode} onChange={(event) => setRedeemCode(event.target.value.toUpperCase())} placeholder="Enter redeem code" aria-label="Subscription redeem code" autoComplete="off" /><button className="button button--primary" type="button" onClick={redeem} disabled={redeeming || !redeemCode.trim()}><KeyRound size={15} />{redeeming ? 'Redeeming…' : 'Redeem'}</button></div>{redeemMessage && <p className={redeemMessage.includes('successfully') ? 'redeem-message redeem-message--success' : 'redeem-message'} role="status">{redeemMessage.includes('successfully') && <CheckCircle2 size={14} />}{redeemMessage}</p>}</div></article>
       <button className="profile-logout profile-logout--bottom" type="button" onClick={() => { signOut(); navigate('/auth', { replace: true }); }}><LogOut size={16} /> Log out</button>
     </>}
   </section>;
