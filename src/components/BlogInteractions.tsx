@@ -5,6 +5,7 @@ import { getBlogInteractions, getCurrentBlogReaction, postBlogComment, saveBlogR
 import { useAuth } from '../lib/auth';
 import { activeSiteOrigin } from '../lib/siteOrigin';
 import type { BlogComment, BlogInteractions as BlogInteractionsData, BlogReactionType } from '../lib/types';
+import { ConfirmModal } from './SupportChat';
 
 const reactions: Array<{ type: BlogReactionType; label: string; icon: typeof Heart }> = [
   { type: 'love', label: 'Love', icon: Heart },
@@ -44,6 +45,7 @@ export function BlogInteractions({ blogId, returnPath, title }: { blogId: number
   const [savingReaction, setSavingReaction] = useState<BlogReactionType | null>(null);
   const [postingComment, setPostingComment] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -88,6 +90,17 @@ export function BlogInteractions({ blogId, returnPath, title }: { blogId: number
     setReplyTo(target);
     setComment('');
     window.requestAnimationFrame(() => document.getElementById('blog-comment-composer')?.focus());
+  };
+
+  const cancelReply = () => {
+    if (comment.trim()) return setCancelOpen(true);
+    setReplyTo(null);
+  };
+
+  const confirmCancel = () => {
+    setComment('');
+    setReplyTo(null);
+    setCancelOpen(false);
   };
 
   const handleComment = async () => {
@@ -135,8 +148,9 @@ export function BlogInteractions({ blogId, returnPath, title }: { blogId: number
     <div className="blog-interactions-heading"><div><span className="eyebrow">Community</span><h2>Join the conversation</h2></div><span className="blog-comment-total"><MessageCircle size={15} /> {data?.comment_count ?? 0}</span></div>
     <div className="reaction-row">{reactions.map(({ type, label, icon: Icon }) => <button className={reaction === type ? `reaction-button reaction-button--${type} reaction-button--selected` : `reaction-button reaction-button--${type}`} type="button" key={type} onClick={() => handleReaction(type)} disabled={Boolean(savingReaction)} aria-pressed={reaction === type}><Icon size={16} fill={reaction === type ? 'currentColor' : 'none'} /><span>{label}</span><b>{data?.reaction_counts?.[type] ?? 0}</b></button>)}</div>
     <div className="blog-share-row"><span>Share post</span><div><a className="share-button share-button--telegram" href={telegramUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Telegram"><Send size={17} />Telegram</a><a className="share-button share-button--facebook" href={facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook"><Facebook size={17} />Facebook</a><button className="share-button share-button--tiktok" type="button" onClick={shareToTikTok} aria-label="Share to TikTok"><Music2 size={17} />TikTok</button></div></div>
-    <div className={replyTo ? 'comment-composer comment-composer--replying' : 'comment-composer'}><div className="comment-composer-heading"><div><h3>{replyTo ? 'Reply to comment' : 'Comments'}</h3>{replyTo && <span>Replying to <b>{replyTo.user.display_name}</b></span>}</div>{replyTo ? <button className="comment-reply-cancel" type="button" onClick={() => setReplyTo(null)}><X size={14} /> Cancel</button> : !user && <button type="button" onClick={signInForInteraction}>Sign in to comment</button>}</div><textarea id="blog-comment-composer" value={comment} onChange={(event) => setComment(event.target.value)} maxLength={1000} disabled={!user || postingComment} placeholder={user ? replyTo ? `Reply to ${replyTo.user.display_name}…` : 'Write a comment…' : 'Sign in to write a comment'} aria-label={replyTo ? `Reply to ${replyTo.user.display_name}` : 'Write a comment'} /><div className="comment-composer-footer"><small>{comment.length}/1000</small><button className="button button--primary" type="button" onClick={handleComment} disabled={!user || !comment.trim() || postingComment}>{postingComment ? <><LoaderCircle className="spin" size={15} /> Posting…</> : replyTo ? <><Reply size={15} /> Post reply</> : 'Post comment'}</button></div></div>
+    <div className={replyTo ? 'comment-composer comment-composer--replying' : 'comment-composer'}><div className="comment-composer-heading"><div><h3>{replyTo ? 'Reply to comment' : 'Comments'}</h3>{replyTo && <span>Replying to <b>{replyTo.user.display_name}</b></span>}</div>{replyTo ? <button className="comment-reply-cancel" type="button" onClick={cancelReply}><X size={14} /> Cancel</button> : !user && <button type="button" onClick={signInForInteraction}>Sign in to comment</button>}</div><textarea id="blog-comment-composer" value={comment} onChange={(event) => setComment(event.target.value)} maxLength={1000} disabled={!user || postingComment} placeholder={user ? replyTo ? `Reply to ${replyTo.user.display_name}…` : 'Write a comment…' : 'Sign in to write a comment'} aria-label={replyTo ? `Reply to ${replyTo.user.display_name}` : 'Write a comment'} /><div className="comment-composer-footer"><small>{comment.length}/1000</small><button className="button button--primary" type="button" onClick={handleComment} disabled={!user || !comment.trim() || postingComment}>{postingComment ? <><LoaderCircle className="spin" size={15} /> Posting…</> : replyTo ? <><Reply size={15} /> Post reply</> : 'Post comment'}</button></div></div>
     {feedback && <p className="blog-interaction-feedback" role="status">{feedback}</p>}
+    <ConfirmModal open={cancelOpen} title="Discard this message?" description="Your unsent comment will be lost if you cancel now." confirmLabel="Discard" cancelLabel="Keep editing" danger onConfirm={confirmCancel} onCancel={() => setCancelOpen(false)} />
     {loading ? <div className="profile-loading"><LoaderCircle className="spin" size={17} /> Loading discussion…</div> : <div className="comment-list">{data?.comments.length ? data.comments.map((item) => <CommentCard comment={item} key={item.id} onReply={chooseReply} />) : <div className="profile-empty">No comments yet. Be the first to join the conversation.</div>}</div>}
   </section>;
 }
