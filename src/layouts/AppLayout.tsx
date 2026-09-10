@@ -5,6 +5,7 @@ import { FaFacebookF, FaTelegram, FaTiktok } from 'react-icons/fa6';
 import { Logo } from '../components/ui/Primitives';
 import { getAds, getSocials, getTvNotifications, markAllTvNotificationsRead, markTvNotificationRead } from '../lib/api';
 import { AuthDialog, useAuth } from '../lib/auth';
+import { SupportChat } from '../components/SupportChat';
 import type { AdBanner, SocialLink, TvNotificationFeed, UserNotification } from '../lib/types';
 import '../styles/drawer-menu.css';
 import '../styles/subscription-menu.css';
@@ -74,6 +75,7 @@ export function AppLayout() {
     <main><Outlet /></main>
     <footer className={`site-footer ${isHomePage ? 'site-footer--minimal' : ''}`}>{!isHomePage && <div className="container footer-grid"><div><Logo /><p className="footer-copy">Stories worth staying up for. Discover movies, series, recaps, and the people behind them.</p></div><div><span className="footer-label">Explore</span><Link to="/movies">Movies</Link><Link to="/series">Series</Link><Link to="/blog">Blog</Link></div><div><span className="footer-label">Yangon TV</span><Link to="/contact">Contact Us</Link></div></div>}<div className="container footer-bottom"><span>© 2026 Yangon TV. Made for Myanmar audiences.</span><span>All content is for entertainment purposes.</span></div></footer>
     <AuthDialog />
+    <SupportChat />
     <div className="mobile-bottom-nav">{mobileNavigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'mobile-nav-link mobile-nav-link--active' : 'mobile-nav-link'} end={to === '/'}><Icon size={18} /><span>{label}</span></NavLink>)}<button className={menuOpen ? 'mobile-nav-link mobile-nav-link--active mobile-nav-link--menu' : 'mobile-nav-link mobile-nav-link--menu'} type="button" onClick={() => setMenuOpen(true)} aria-label="Open menu"><Menu size={18} /><span>Menu</span></button></div>
   </div>;
 }
