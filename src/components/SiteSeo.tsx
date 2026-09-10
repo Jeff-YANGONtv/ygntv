@@ -64,10 +64,6 @@ function pageSeo(pathname: string): SeoConfig | null {
       description: 'Yangon TV Blog တွင် ရုပ်ရှင် reviews၊ watch guides နှင့် entertainment stories များကို မြန်မာဘာသာဖြင့်ဖတ်ရှုနိုင်ပါသည်။',
       schema: { '@context': 'https://schema.org', '@type': 'Blog', name: 'Yangon TV Blog', inLanguage: 'my' },
     },
-    '/contact': {
-      title: 'Contact Yangon TV | Media & Entertainment',
-      description: 'Yangon TV ကို advertising, collaboration, subscriber support နှင့် job enquiries အတွက် ဆက်သွယ်နိုင်ပါသည်။',
-    },
     '/subscription': {
       title: 'Yangon TV Membership & Points',
       description: 'Yangon TV Membership နှင့် Points redemption options များကို လေ့လာနိုင်ပါသည်။',

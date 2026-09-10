@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import DOMPurify from 'dompurify';
-import { ArrowLeft, ArrowRight, BriefcaseBusiness, ExternalLink, Facebook, Handshake, Megaphone, Music2, PhoneCall, Send, UsersRound, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ExternalLink, Facebook, Music2, Send } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { getBlogBySlug, getBlogs, getContactAudiences, getSocials, mediaUrl } from '../lib/api';
+import { getBlogBySlug, getBlogs, getSocials, mediaUrl } from '../lib/api';
 import { blogPath } from '../lib/paths';
 import { activeSiteOrigin } from '../lib/siteOrigin';
-import type { BlogPost, ContactAudienceChannel, SocialLink } from '../lib/types';
+import type { BlogPost, SocialLink } from '../lib/types';
 import { EmptyState, ErrorState, SearchField, SectionHeading, SkeletonGrid } from '../components/ui/Primitives';
 import { BlogInteractions } from '../components/BlogInteractions';
 import '../styles/rich-blog.css';
@@ -142,31 +142,4 @@ export function LinksPage() {
   };
 
   return <div className="page page-links"><section className="container links-heading"><span className="eyebrow">Stay in the loop</span><h1>Find us<br /><em>everywhere.</em></h1><p>Follow along for new releases, watchlist ideas, and the stories we cannot stop talking about.</p></section><section className="container link-list">{loading ? <div className="state-card"><div className="skeleton state-icon" /><p>Loading social links...</p></div> : error ? <ErrorState onRetry={() => setRetryToken((value) => value + 1)} /> : links.length === 0 ? <EmptyState title="No social links yet" copy="Social accounts added from the panel will appear here." /> : links.map((social) => { const Icon = iconFor(social); return <a className="external-link-card" key={social.id} href={social.url} target="_blank" rel="noopener noreferrer"><span className="external-icon"><Icon size={22} /></span><span><b>{social.name}</b><small>{detailFor(social)}</small></span><ExternalLink size={18} /></a>; })}</section></div>;
-}
-
-export function ContactPage() {
-  const [channels, setChannels] = useState<ContactAudienceChannel[]>([]);
-  const [selectedAudience, setSelectedAudience] = useState<ContactAudienceChannel | null>(null);
-  const audiences = [
-    { key: 'ads_partner_client', label: 'Ads Partner/Client', icon: Megaphone },
-    { key: 'subscribers', label: 'Subscribers', icon: UsersRound },
-    { key: 'job_applier', label: 'Job Applier', icon: BriefcaseBusiness },
-    { key: 'collaborative_partner', label: 'Collaborative Partner', icon: Handshake },
-  ];
-  useEffect(() => {
-    let active = true;
-    getContactAudiences().then((items) => { if (active) setChannels(items); }).catch(() => { if (active) setChannels([]); });
-    return () => { active = false; };
-  }, []);
-  const channelFor = (key: string, fallbackLabel: string): ContactAudienceChannel => channels.find((channel) => channel.key === key) || { key, label: fallbackLabel, telegram_url: null, viber_url: null };
-  return <div className="page page-contact"><section className="container contact-page"><span className="eyebrow">Yangon TV contact</span><h1>Contact<br /><em>Us.</em></h1><p>Choose the option that best describes you so Yangon TV can direct you to the right admin contact.</p><div className="contact-audience-grid">{audiences.map(({ key, label, icon: Icon }) => <button className={selectedAudience?.key === key ? 'contact-audience-card contact-audience-card--selected' : 'contact-audience-card'} key={key} type="button" onClick={() => setSelectedAudience(channelFor(key, label))}><span><Icon size={23} /></span><b>{label}</b><ArrowRight size={17} /></button>)}</div></section>{selectedAudience && <ContactAudienceDialog audience={selectedAudience} onClose={() => setSelectedAudience(null)} />}</div>;
-}
-
-function ContactAudienceDialog({ audience, onClose }: { audience: ContactAudienceChannel; onClose: () => void }) {
-  return <div className="contact-dialog-backdrop" role="presentation" onMouseDown={onClose}><section className="contact-dialog" role="dialog" aria-modal="true" aria-labelledby="contact-dialog-title" onMouseDown={(event) => event.stopPropagation()}><button className="contact-dialog__close" type="button" onClick={onClose} aria-label="Close contact options"><X size={19} /></button><span className="eyebrow">{audience.label}</span><h2 id="contact-dialog-title">Thanks For<br /><em>Choosing Us.</em></h2><p>Please Contact Admin Via</p><div className="contact-dialog__actions"><ContactChannelButton label="Telegram" href={audience.telegram_url} icon={Send} /><ContactChannelButton label="Viber" href={audience.viber_url} icon={PhoneCall} /></div><small>Contact details are managed from the Yangon TV panel.</small></section></div>;
-}
-
-function ContactChannelButton({ label, href, icon: Icon }: { label: string; href?: string | null; icon: typeof Send }) {
-  if (href) return <a className="contact-channel-button" href={href} target="_blank" rel="noopener noreferrer"><Icon size={19} /><span>{label}</span><ArrowRight size={16} /></a>;
-  return <span className="contact-channel-button contact-channel-button--disabled" aria-disabled="true"><Icon size={19} /><span>{label}</span><small>Not configured</small></span>;
 }
