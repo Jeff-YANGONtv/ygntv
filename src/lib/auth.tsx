@@ -51,12 +51,21 @@ export function useAuth() { const value = useContext(AuthContext); if (!value) t
 
 function SocialAuthButtons({ onSuccess, onError }: { onSuccess: (payload: unknown, provider: string) => void; onError: (message: string) => void }) {
   const [busy, setBusy] = useState(false);
+  const socialFailure = (cause: unknown, provider: string) => {
+    if (axios.isAxiosError(cause)) {
+      const data = cause.response?.data as { message?: string; errors?: Record<string, string[]> } | undefined;
+      const firstError = data?.errors ? Object.values(data.errors).flat()[0] : undefined;
+      onError(firstError || data?.message || `${provider} sign-in could not be completed.`);
+      return;
+    }
+    onError(`${provider} sign-in could not be completed.`);
+  };
   useEffect(() => {
     let script: HTMLScriptElement | null = null;
-    const telegramCallback = (user: TelegramLoginUser) => { setBusy(true); api.post('/auth/telegram/web', user).then((response) => onSuccess(response.data, 'Telegram')).catch(() => onError('Telegram sign-in could not be completed.')).finally(() => setBusy(false)); };
+    const telegramCallback = (user: TelegramLoginUser) => { setBusy(true); api.post('/auth/telegram/web', user).then((response) => onSuccess(response.data, 'Telegram')).catch((cause) => socialFailure(cause, 'Telegram')).finally(() => setBusy(false)); };
     window.onTelegramAuth = telegramCallback;
     if (googleClientId) {
-      script = document.createElement('script'); script.src = 'https://accounts.google.com/gsi/client'; script.async = true; script.onload = () => { const target = document.getElementById('google-login-button'); if (target && window.google) { window.google.accounts.id.initialize({ client_id: googleClientId, callback: (response) => { setBusy(true); api.post('/auth/google/web', { credential: response.credential }).then((result) => onSuccess(result.data, 'Google')).catch(() => onError('Google sign-in could not be completed.')).finally(() => setBusy(false)); } }); window.google.accounts.id.renderButton(target, { theme: 'outline', size: 'large', width: 320, text: 'continue_with' }); } }; document.head.appendChild(script);
+      script = document.createElement('script'); script.src = 'https://accounts.google.com/gsi/client'; script.async = true; script.onload = () => { const target = document.getElementById('google-login-button'); if (target && window.google) { window.google.accounts.id.initialize({ client_id: googleClientId, callback: (response) => { setBusy(true); api.post('/auth/google/web', { credential: response.credential }).then((result) => onSuccess(result.data, 'Google')).catch((cause) => socialFailure(cause, 'Google')).finally(() => setBusy(false)); } }); window.google.accounts.id.renderButton(target, { theme: 'outline', size: 'large', width: 320, text: 'continue_with' }); } }; document.head.appendChild(script);
     }
     return () => { if (script) script.remove(); delete window.onTelegramAuth; };
   }, [onError, onSuccess]);
