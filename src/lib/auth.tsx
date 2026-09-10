@@ -51,26 +51,14 @@ export function useAuth() { const value = useContext(AuthContext); if (!value) t
 
 function SocialAuthButtons({ onSuccess, onError }: { onSuccess: (payload: unknown, provider: string) => void; onError: (message: string) => void }) {
   const [busy, setBusy] = useState(false);
-  const socialFailure = (cause: unknown, provider: string) => {
-    if (axios.isAxiosError(cause)) {
-      const data = cause.response?.data as { message?: string; errors?: Record<string, string[]> } | undefined;
-      const firstError = data?.errors ? Object.values(data.errors).flat()[0] : undefined;
-      onError(firstError || data?.message || `${provider} sign-in could not be completed.`);
-      return;
-    }
-    onError(`${provider} sign-in could not be completed.`);
-  };
   useEffect(() => {
-    let script: HTMLScriptElement | null = null;
-    const telegramCallback = (user: TelegramLoginUser) => { setBusy(true); api.post('/auth/telegram/web', user).then((response) => onSuccess(response.data, 'Telegram')).catch((cause) => socialFailure(cause, 'Telegram')).finally(() => setBusy(false)); };
+    const telegramCallback = (user: TelegramLoginUser) => { setBusy(true); api.post('/auth/telegram/web', user).then((response) => onSuccess(response.data, 'Telegram')).catch(() => onError('Telegram sign-in could not be completed.')).finally(() => setBusy(false)); };
     window.onTelegramAuth = telegramCallback;
-    if (googleClientId) {
-      script = document.createElement('script'); script.src = 'https://accounts.google.com/gsi/client'; script.async = true; script.onload = () => { const target = document.getElementById('google-login-button'); if (target && window.google) { window.google.accounts.id.initialize({ client_id: googleClientId, callback: (response) => { setBusy(true); api.post('/auth/google/web', { credential: response.credential }).then((result) => onSuccess(result.data, 'Google')).catch((cause) => socialFailure(cause, 'Google')).finally(() => setBusy(false)); } }); window.google.accounts.id.renderButton(target, { theme: 'outline', size: 'large', width: 320, text: 'continue_with' }); } }; document.head.appendChild(script);
-    }
-    return () => { if (script) script.remove(); delete window.onTelegramAuth; };
+    return () => { delete window.onTelegramAuth; };
   }, [onError, onSuccess]);
+  function startGoogle() { window.location.assign(`https://api.ygntv.org/auth/google/web/redirect?return_to=${encodeURIComponent('https://ygntv.org/auth')}`); }
   return <div className="auth-socials" aria-label="Social sign-in options">
-    <div id="google-login-button" className="auth-social-google">{!googleClientId && <button type="button" className="button button--outline auth-social-button" disabled><Chrome size={17} /> Google login is not configured</button>}</div>
+    {googleClientId ? <button type="button" className="button button--outline auth-social-button" onClick={startGoogle}><Chrome size={17} /> Continue with Google</button> : <button type="button" className="button button--outline auth-social-button" disabled><Chrome size={17} /> Google login is not configured</button>}
     {telegramBotUsername ? <div className="auth-telegram-widget"><script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login={telegramBotUsername.replace(/^@/, '')} data-size="large" data-userpic="false" data-onauth="onTelegramAuth(user)" data-request-access="write" /></div> : <button type="button" className="button button--outline auth-social-button" disabled={busy}><Send size={17} /> Telegram login is not configured</button>}
   </div>;
 }
@@ -79,6 +67,14 @@ export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: 
   const navigate = useNavigate(); const location = useLocation(); const { user, openAuth, closeAuth, setSession } = useAuth();
   const [mode, setMode] = useState<AuthMode>(initialMode); const [name, setName] = useState(''); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [confirmPassword, setConfirmPassword] = useState(''); const [showPassword, setShowPassword] = useState(false); const [submitting, setSubmitting] = useState(false); const [error, setError] = useState(''); const [success, setSuccess] = useState('');
   useEffect(() => { if (user && location.pathname === '/auth' && !success) navigate(redirectTo || '/', { replace: true }); }, [user, location.pathname, navigate, redirectTo, success]);
+  useEffect(() => {
+    const code = new URLSearchParams(location.search).get('oauth_code');
+    const oauthError = new URLSearchParams(location.search).get('oauth_error');
+    if (oauthError) { setError('Google sign-in could not be completed. Please try again.'); window.history.replaceState({}, '', '/auth'); return; }
+    if (!code) return;
+    setSubmitting(true);
+    api.post('/auth/web/exchange', { code }).then((response) => { const nextToken = extractToken(response.data); if (!nextToken) throw new Error('The server did not return a login session.'); setSession(nextToken, extractUser(response.data)); setSuccess('Google sign-in successful.'); window.history.replaceState({}, '', '/auth'); window.setTimeout(() => navigate(redirectTo || '/', { replace: true }), 900); }).catch(() => setError('Google sign-in could not be completed. Please try again.')).finally(() => setSubmitting(false));
+  }, [location.search, navigate, redirectTo, setSession]);
   function switchMode(next: AuthMode) { setMode(next); setError(''); setSuccess(''); if (next === 'login') setConfirmPassword(''); }
   function socialSuccess(payload: unknown, provider: string) { const nextToken = extractToken(payload); if (!nextToken) { setError('The server did not return a login session.'); return; } setSession(nextToken, extractUser(payload)); setSuccess(`${provider} sign-in successful.`); window.setTimeout(() => { closeAuth(); navigate(redirectTo || '/', { replace: true }); }, 900); }
   const socialError = (message: string) => setError(message);
