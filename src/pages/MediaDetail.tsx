@@ -60,6 +60,10 @@ function DownloadAction({ links, title, canDownload = true, onRequireAuth }: { l
   );
 }
 
+function DownloadPanel({ links, title, canDownload, onRequireAuth }: { links: string[]; title: string; canDownload: boolean; onRequireAuth: () => void }) {
+  return <div className="download-panel"><div className="download-panel__icon"><Download size={25} /></div><span className="eyebrow">Offline access</span><h2>Download {title}</h2><p>Choose a download source for offline viewing. This is separate from the online Watch player.</p><DownloadAction links={links} title={title} canDownload={canDownload} onRequireAuth={onRequireAuth} /></div>;
+}
+
 function directMediaUrl(value: string): string {
   try {
     const parsed = new URL(value);
@@ -500,7 +504,7 @@ function ReviewTabs({
 }: {
   item: MediaItem;
   kind: 'movie' | 'series';
-  onDirectAction: (seasonNumber?: number, episodeNumber?: number) => void;
+  onDirectAction: (action: 'watch' | 'download', seasonNumber?: number, episodeNumber?: number) => void;
 }) {
   const [activeTab, setActiveTab] = useState<ReviewTab>('review');
   const [selectedSeasonNumber, setSelectedSeasonNumber] = useState<number | null>(null);
@@ -511,7 +515,7 @@ function ReviewTabs({
   const telegramPostUrl = kind === 'series' ? selectedEpisode?.telegramPostUrl : item.telegramPostUrl;
   const needsEpisodeSelection = kind === 'series' && !selectedEpisode;
   const title = kind === 'movie' ? 'movie' : 'series';
-  const directLabel = activeTab === 'watch' ? 'Direct Watch' : 'Direct Download';
+  const directLabel = activeTab === 'watch' ? 'Direct Watch' : 'Download Options';
   const telegramLabel = activeTab === 'watch' ? 'Watch Via Telegram' : 'Download Via Telegram';
 
   return (
@@ -559,9 +563,9 @@ function ReviewTabs({
         </div>
       ) : (
         <div className="review-tabs__actions" id={`review-panel-${activeTab}`} role="tabpanel">
-          <button className="review-action review-action--direct" type="button" onClick={() => onDirectAction(selectedSeason?.number, selectedEpisode?.number)} disabled={needsEpisodeSelection}>
+          <button className="review-action review-action--direct" type="button" onClick={() => onDirectAction(activeTab, selectedSeason?.number, selectedEpisode?.number)} disabled={needsEpisodeSelection}>
             <span className="review-action__mark" aria-hidden="true">YT</span>
-            <span><b>{directLabel}</b><small>{needsEpisodeSelection ? 'Choose a Season and Episode first' : 'Open this selection in Yangon TV player'}</small></span>
+            <span><b>{directLabel}</b><small>{needsEpisodeSelection ? 'Choose a Season and Episode first' : activeTab === 'watch' ? 'Open this selection in Yangon TV player' : 'Open separate download options'}</small></span>
             {activeTab === 'watch' ? <Play size={18} fill="currentColor" /> : <Download size={18} />}
           </button>
           {telegramPostUrl ? (
@@ -691,7 +695,10 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
               <ReviewTabs
                 item={item}
                 kind={kind}
-                onDirectAction={(seasonNumber, episodeNumber) => startWatching(kind === 'movie' ? mediaWatchPath(item) : mediaWatchPath(item, { season: seasonNumber, episode: episodeNumber }))}
+                onDirectAction={(action, seasonNumber, episodeNumber) => {
+                  const path = kind === 'movie' ? mediaWatchPath(item) : mediaWatchPath(item, { season: seasonNumber, episode: episodeNumber });
+                  startWatching(action === 'download' ? `${path}${path.includes('?') ? '&' : '?'}action=download` : path);
+                }}
               />
             </div>
           </div>
@@ -713,6 +720,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const [searchParams] = useSearchParams();
   const selectedSeasonNumber = Number(searchParams.get('season'));
   const selectedEpisodeNumber = Number(searchParams.get('episode'));
+  const downloadMode = searchParams.get('action') === 'download';
   const [item, setItem] = useState<MediaItem | null>(null);
   const [sourceIndex, setSourceIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -821,11 +829,11 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       <section className="container watch-top">
         <Link className="back-link watch-back-link" to={mediaDetailPath(item)}><ArrowLeft size={16} /> <span>Back to details</span></Link>
         <div className="player-shell">
-          {playbackLoading ? <div className="player-placeholder player-empty"><div className="player-play"><Play size={26} fill="currentColor" /></div><span>Checking playback access…</span><small>Yangon TV is confirming your viewing entitlement.</small></div> : purchaseOffer ? <div className="prepaid-unlock-card"><div className="prepaid-unlock-card__icon"><WalletCards size={26} /></div><span className="eyebrow">Pay with Points</span><h2>Unlock {purchaseOffer.title}</h2><p>This {purchaseOffer.content_type === 'movie' ? 'movie' : 'episode'} costs <strong>{purchaseOffer.price_points} Points</strong>. Your current balance is <strong>{purchaseOffer.balance_points ?? 0} Points</strong>.</p><p className="prepaid-unlock-card__term">After purchase, you can watch it again for 3 months.</p><button className="button button--primary" type="button" onClick={confirmPrepaidPurchase} disabled={purchasing || (purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points}><KeyRound size={17} />{purchasing ? 'Unlocking…' : `Unlock for ${purchaseOffer.price_points} Points`}</button>{(purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points && <small><AlertCircle size={14} /> Your Point balance is not enough. Redeem a prepaid code from Subscription.</small>}</div> : <VideoPlayer source={resolvedPlaybackSource} playbackSource={playback?.playback} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} historyContentType={user ? historyContentType : undefined} historyContentId={user && Number.isFinite(historyContentId) ? historyContentId : undefined} />}
+          {downloadMode ? <DownloadPanel links={downloadLinks} title={currentTitle} canDownload={Boolean(user && playback?.access.access === 'premium')} onRequireAuth={() => openAuth('login', `${window.location.pathname}${window.location.search}`)} /> : playbackLoading ? <div className="player-placeholder player-empty"><div className="player-play"><Play size={26} fill="currentColor" /></div><span>Checking playback access…</span><small>Yangon TV is confirming your viewing entitlement.</small></div> : purchaseOffer ? <div className="prepaid-unlock-card"><div className="prepaid-unlock-card__icon"><WalletCards size={26} /></div><span className="eyebrow">Pay with Points</span><h2>Unlock {purchaseOffer.title}</h2><p>This {purchaseOffer.content_type === 'movie' ? 'movie' : 'episode'} costs <strong>{purchaseOffer.price_points} Points</strong>. Your current balance is <strong>{purchaseOffer.balance_points ?? 0} Points</strong>.</p><p className="prepaid-unlock-card__term">After purchase, you can watch it again for 3 months.</p><button className="button button--primary" type="button" onClick={confirmPrepaidPurchase} disabled={purchasing || (purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points}><KeyRound size={17} />{purchasing ? 'Unlocking…' : `Unlock for ${purchaseOffer.price_points} Points`}</button>{(purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points && <small><AlertCircle size={14} /> Your Point balance is not enough. Redeem a prepaid code from Subscription.</small>}</div> : <VideoPlayer source={resolvedPlaybackSource} playbackSource={playback?.playback} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} historyContentType={user ? historyContentType : undefined} historyContentId={user && Number.isFinite(historyContentId) ? historyContentId : undefined} />}
         </div>
         {sources.length > 1 && <div className="player-sources" aria-label="Video sources">{sources.map((_, index) => <button key={index} className={index === sourceIndex ? 'player-source player-source--active' : 'player-source'} onClick={() => setSourceIndex(index)}>Source {index + 1}</button>)}</div>}
         <div className="watch-heading">
-          <div><span className="eyebrow">Now watching</span><h1>{currentTitle}</h1></div>
+          <div><span className="eyebrow">{downloadMode ? 'Download center' : 'Now watching'}</span><h1>{currentTitle}</h1></div>
           {playback?.access.access === 'premium' ? <DownloadAction links={downloadLinks} title={currentTitle} canDownload={Boolean(user)} onRequireAuth={() => openAuth('login', `${window.location.pathname}${window.location.search}`)} /> : <span className="watch-premium-download">{playback ? 'Downloads are included with Premium membership.' : ''}</span>}
         </div>
       </section>
