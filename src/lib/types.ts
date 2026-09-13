@@ -306,6 +306,34 @@ export interface ContactAudienceChannel {
   viber_url?: string | null;
 }
 
+export type SupportSenderType = 'visitor' | 'admin' | 'system' | string;
+
+export interface SupportMessage {
+  id: number;
+  sender_type: SupportSenderType;
+  body: string;
+  attachment_url?: string | null;
+  attachment_name?: string | null;
+  attachment_mime?: string | null;
+  attachment_size?: number | null;
+  created_at?: string | null;
+}
+
+export interface SupportConversation {
+  public_token: string;
+  token?: string;
+  status?: string;
+  created_at?: string | null;
+  last_message_at?: string | null;
+  messages_count?: number;
+}
+
+export interface SupportMessagesResponse {
+  conversation: { public_token?: string; token?: string; status?: string };
+  messages: SupportMessage[];
+  next_after_id: number;
+}
+
 export interface ApiPage<T> {
   data: T[];
   currentPage: number;

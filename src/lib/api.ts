@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, TvCardRedemption, TvCommentHistoryEntry, TvNotificationFeed, TvPlaybackPayload, TvPrepaidPurchase, TvProfileData, TvWalletActivityHistory, TvWalletSummary, TvWalletUnlock, TvWatchHistoryEntry, UserNotification } from './types';
+import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, SupportConversation, SupportMessage, SupportMessagesResponse, TvCardRedemption, TvCommentHistoryEntry, TvNotificationFeed, TvPlaybackPayload, TvPrepaidPurchase, TvProfileData, TvWalletActivityHistory, TvWalletSummary, TvWalletUnlock, TvWatchHistoryEntry, UserNotification } from './types';
 import { publicMediaSlug } from './paths';
 
 const remoteApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://khaki-yak-457838.hostingersite.com/api';
@@ -411,4 +411,34 @@ export async function submitOrderReceipt(orderId: number | string, receipt: File
   if (receiptReference?.trim()) body.append('receipt_reference', receiptReference.trim());
   const response = await api.post(`/tv/payment-orders/${orderId}/submit-receipt`, body);
   return unwrap<PaymentOrder>(response.data);
+}
+
+export async function startSupportConversation(publicToken?: string, pageUrl?: string): Promise<SupportMessagesResponse> {
+  const response = await api.post('/support/start', {
+    public_token: publicToken || undefined,
+    page_url: pageUrl || window.location.href,
+  });
+  return unwrap<SupportMessagesResponse>(response.data);
+}
+
+export async function getSupportConversations(): Promise<SupportConversation[]> {
+  const response = await api.get('/support/conversations');
+  const payload = unwrap<{ conversations?: SupportConversation[] }>(response.data);
+  return Array.isArray(payload?.conversations) ? payload.conversations : [];
+}
+
+export async function getSupportMessages(token: string, afterId = 0): Promise<SupportMessagesResponse> {
+  const response = await api.get(`/support/${encodeURIComponent(token)}/messages`, { params: { after_id: afterId } });
+  return unwrap<SupportMessagesResponse>(response.data);
+}
+
+export async function sendSupportMessage(token: string, body: string, attachment?: File): Promise<SupportMessage> {
+  const form = new FormData();
+  if (body.trim()) form.append('body', body.trim());
+  if (attachment) form.append('attachment', attachment);
+  form.append('page_url', window.location.href);
+  const response = await api.post(`/support/${encodeURIComponent(token)}/messages`, form);
+  const payload = unwrap<{ message?: SupportMessage }>(response.data);
+  if (!payload?.message) throw new Error('The support message response was incomplete.');
+  return payload.message;
 }
