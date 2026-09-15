@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPaymentOrder, getPremiumPlans, getPublicPaymentAccounts, submitOrderReceipt } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import type { PaymentAccount, PaymentOrder, PremiumPlan } from '../lib/types';
+import '../styles/subscription-tabs.css';
 
 type Step = 'plans' | 'methods' | 'payment' | 'confirmed';
 
