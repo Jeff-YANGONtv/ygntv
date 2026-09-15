@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, SupportConversation, SupportMessage, SupportMessagesResponse, TvCardRedemption, TvCommentHistoryEntry, TvNotificationFeed, TvPlaybackPayload, TvPrepaidPurchase, TvProfileData, TvWalletActivityHistory, TvWalletSummary, TvWalletUnlock, TvWatchHistoryEntry, UserNotification } from './types';
+import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, SupportConversation, SupportMessage, SupportMessagesResponse, TvCommentHistoryEntry, TvNotificationFeed, TvMembershipRedemption, TvPlaybackPayload, TvProfileData, TvWatchHistoryEntry, UserNotification } from './types';
 import { publicMediaSlug } from './paths';
 
 const remoteApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.ygntv.org/api';
@@ -261,35 +261,13 @@ export async function getSocials(): Promise<SocialLink[]> {
   return Array.isArray(rows) ? rows : [];
 }
 
+export async function redeemMembershipCode(code: string): Promise<TvMembershipRedemption> {
+  const response = await api.post('/tv/membership/redeem', { code: code.trim() });
+  return unwrap<TvMembershipRedemption>(response.data);
+}
 export async function getTvProfile(): Promise<TvProfileData> {
   const response = await api.get('/tv/profile');
   return unwrap<TvProfileData>(response.data);
-}
-
-export async function getTvWallet(): Promise<TvWalletSummary> {
-  const response = await api.get('/tv/wallet');
-  return unwrap<TvWalletSummary>(response.data);
-}
-
-export async function redeemPrepaidCode(code: string): Promise<TvCardRedemption> {
-  const response = await api.post('/tv/wallet/redeem', { code });
-  return unwrap<TvCardRedemption>(response.data);
-}
-
-export async function purchasePrepaidUnlock(contentType: 'movie' | 'episode', contentId: number): Promise<TvPrepaidPurchase> {
-  const response = await api.post('/tv/wallet/purchases', { content_type: contentType, content_id: contentId });
-  return unwrap<TvPrepaidPurchase>(response.data);
-}
-
-export async function getTvWalletUnlocks(): Promise<TvWalletUnlock[]> {
-  const response = await api.get('/tv/wallet/unlocks');
-  const data = unwrap<unknown>(response.data);
-  return Array.isArray(data) ? data as TvWalletUnlock[] : [];
-}
-
-export async function getTvWalletActivity(page = 1): Promise<TvWalletActivityHistory> {
-  const response = await api.get('/tv/wallet/activity', { params: { page } });
-  return unwrap<TvWalletActivityHistory>(response.data);
 }
 
 export async function getTvWatchHistory(page = 1): Promise<ApiPage<TvWatchHistoryEntry>> {

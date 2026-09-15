@@ -124,6 +124,12 @@ export interface AdBanner {
   is_active?: boolean;
 }
 
+export interface TvMembershipRedemption {
+  plan_key: string;
+  access_months: number;
+  valid_until: string | null;
+}
+
 export interface TvEntitlement {
   active: boolean;
   plan_key: string | null;
@@ -136,33 +142,13 @@ export interface TvProfileData {
   user: { id?: number | string; uid?: string | null; name?: string; email?: string; role?: string; created_at?: string | null };
   profile: { display_name?: string | null; avatar_url?: string | null; preferences?: Record<string, unknown> | null };
   entitlement: TvEntitlement;
-  wallet?: TvWalletSummary;
-}
-
-export interface TvWalletSummary {
-  mode: 'premium' | 'prepaid';
-  balance_points: number | null;
-  code_redeem_available: boolean;
-  premium_valid_until?: string | null;
-}
-
-export interface TvCardRedemption {
-  card_type: 'points' | 'premium_time';
-  credited_points?: number;
-  balance_points?: number;
-  premium_plan_key?: string;
-  premium_months?: number;
-  premium_valid_until?: string;
 }
 
 export interface TvPlaybackAccess {
-  access: 'premium' | 'prepaid_unlock' | 'purchase_required';
+  access: 'premium' | 'purchase_required';
   content_type: 'movie' | 'episode';
   content_id: number;
   title: string;
-  price_points: number;
-  balance_points: number | null;
-  unlock_expires_at: string | null;
 }
 
 export type TvPlaybackSource =
@@ -181,40 +167,6 @@ export interface TvPlaybackPayload {
   playback?: TvPlaybackSource;
   download_links: string[];
   access: TvPlaybackAccess;
-}
-
-export interface TvPrepaidPurchase {
-  already_unlocked: boolean;
-  balance_points: number;
-  unlock_expires_at: string;
-  content: { content_type: 'movie' | 'episode'; content_id: number; title: string; price_points: number };
-}
-
-export interface TvWalletUnlock {
-  content_type: 'movie' | 'episode';
-  content_id: number;
-  price_points: number;
-  unlocked_at: string;
-  expires_at: string;
-}
-
-export interface TvWalletActivityEntry {
-  id: number;
-  type: 'prepaid_redemption' | 'content_unlock' | 'admin_adjustment' | string;
-  points_delta: number;
-  balance_after: number;
-  title: string;
-  description: string;
-  content_type: 'movie' | 'episode' | null;
-  content_id: number | null;
-  unlock_expires_at: string | null;
-  created_at: string | null;
-}
-
-export interface TvWalletActivityHistory {
-  mode: 'premium' | 'prepaid';
-  entries: TvWalletActivityEntry[];
-  pagination: { current_page: number; last_page: number; per_page: number; total: number; has_more: boolean };
 }
 
 export interface TvWatchHistoryEntry {

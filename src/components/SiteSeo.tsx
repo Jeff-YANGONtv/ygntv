@@ -69,8 +69,8 @@ function pageSeo(pathname: string): SeoConfig | null {
       description: 'Yangon TV ကို advertising, collaboration, subscriber support နှင့် job enquiries အတွက် ဆက်သွယ်နိုင်ပါသည်။',
     },
     '/subscription': {
-      title: 'Yangon TV Membership & Points',
-      description: 'Yangon TV Membership နှင့် Points redemption options များကို လေ့လာနိုင်ပါသည်။',
+      title: 'Yangon TV Membership',
+      description: 'Yangon TV Premium membership plans နှင့် membership code redemption အကြောင်း လေ့လာနိုင်ပါသည်။',
     },
   };
 

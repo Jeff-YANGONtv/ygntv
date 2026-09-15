@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, ArrowLeft, CalendarDays, ChevronDown, Download, Expand, KeyRound, Maximize, Pause, Play, RotateCcw, RotateCw, Send, Settings2, Star, Tags, Users, Volume2, VolumeX, WalletCards } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CalendarDays, ChevronDown, Download, Expand, Maximize, Pause, Play, RotateCcw, RotateCw, Send, Settings2, Star, Tags, Users, Volume2, VolumeX } from 'lucide-react';
 import Hls from 'hls.js';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { MediaCard, Pill, SectionHeading, EmptyState, ErrorState } from '../components/ui/Primitives';
-import { getMediaBySlug, getMovies, getSeries, getTvPlayback, mediaUrl, purchasePrepaidUnlock, saveTvViewingProgress } from '../lib/api';
+import { getMediaBySlug, getMovies, getSeries, getTvPlayback, mediaUrl, saveTvViewingProgress } from '../lib/api';
 import { mediaDetailPath, mediaWatchPath, publicMediaSlug } from '../lib/paths';
 import { activeSiteOrigin } from '../lib/siteOrigin';
-import type { MediaItem, TvPlaybackAccess, TvPlaybackPayload, TvPlaybackSource } from '../lib/types';
-import '../styles/prepaid-access.css';
+import type { MediaItem, TvPlaybackPayload, TvPlaybackSource } from '../lib/types';
 
 function safeFilename(title: string): string {
   return `${title.replace(/[^a-z0-9ก-๙\u1000-\u109f]+/gi, '-').replace(/^-|-$/g, '') || 'yangon-tv-video'}.mp4`;
@@ -737,8 +736,6 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const [playback, setPlayback] = useState<TvPlaybackPayload | null>(null);
   const [playbackLoading, setPlaybackLoading] = useState(false);
   const [playbackError, setPlaybackError] = useState('');
-  const [purchaseOffer, setPurchaseOffer] = useState<TvPlaybackAccess | null>(null);
-  const [purchasing, setPurchasing] = useState(false);
 
   const selectedEpisode = useMemo(() => kind === 'series'
     ? item?.seasons?.flatMap((season) => season.episodes.map((episode) => ({ season, episode }))).find(({ season, episode }) => season.number === selectedSeasonNumber && episode.number === selectedEpisodeNumber)?.episode
@@ -782,19 +779,13 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
     setPlaybackLoading(true);
     setPlaybackError('');
     setPlayback(null);
-    setPurchaseOffer(null);
     setSourceIndex(0);
     getTvPlayback(historyContentType, historyContentId).then((value) => {
       if (mounted) setPlayback(value);
     }).catch((cause) => {
       if (!mounted) return;
       const response = (cause as { response?: { status?: number; data?: { data?: unknown; message?: string } } })?.response;
-      const offer = response?.data?.data as TvPlaybackAccess | undefined;
-      if (response?.status === 402 && offer?.access === 'purchase_required') {
-        setPurchaseOffer(offer);
-      } else {
-        setPlaybackError(response?.data?.message || 'Playback access is temporarily unavailable. Please try again.');
-      }
+      setPlaybackError(response?.data?.message || 'Premium membership is required to watch this title.');
     }).finally(() => {
       if (mounted) setPlaybackLoading(false);
     });
@@ -814,31 +805,13 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       : currentSource;
   const currentTitle = playback?.title || (selectedEpisode ? `${item.title} — ${selectedEpisode.title}` : item.title);
 
-  async function confirmPrepaidPurchase() {
-    if (!purchaseOffer || purchasing) return;
-    setPurchasing(true);
-    setPlaybackError('');
-    try {
-      await purchasePrepaidUnlock(purchaseOffer.content_type, purchaseOffer.content_id);
-      const protectedPlayback = await getTvPlayback(purchaseOffer.content_type, purchaseOffer.content_id);
-      setPlayback(protectedPlayback);
-      setPurchaseOffer(null);
-      setSourceIndex(0);
-    } catch (cause) {
-      const response = (cause as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } })?.response;
-      const fieldError = response?.data?.errors ? Object.values(response.data.errors).flat()[0] : undefined;
-      setPlaybackError(fieldError || response?.data?.message || 'Unable to unlock this title. Please try again.');
-    } finally {
-      setPurchasing(false);
-    }
-  }
 
   return (
     <div className="page page-watch">
       <section className="container watch-top">
         <Link className="back-link watch-back-link" to={mediaDetailPath(item)}><ArrowLeft size={16} /> <span>Back to details</span></Link>
         <div className="player-shell">
-          {downloadMode ? (playback?.access.access === 'premium' ? <DownloadPanel links={downloadLinks} title={currentTitle} canDownload={Boolean(user)} onRequireAuth={() => openAuth('login', `${window.location.pathname}${window.location.search}`)} /> : <PremiumGate onJoin={() => navigate('/subscription')} />) : playbackLoading ? <div className="player-placeholder player-empty"><div className="player-play"><Play size={26} fill="currentColor" /></div><span>Checking playback access…</span><small>Yangon TV is confirming your viewing entitlement.</small></div> : purchaseOffer ? <div className="prepaid-unlock-card"><div className="prepaid-unlock-card__icon"><WalletCards size={26} /></div><span className="eyebrow">Pay with Points</span><h2>Unlock {purchaseOffer.title}</h2><p>This {purchaseOffer.content_type === 'movie' ? 'movie' : 'episode'} costs <strong>{purchaseOffer.price_points} Points</strong>. Your current balance is <strong>{purchaseOffer.balance_points ?? 0} Points</strong>.</p><p className="prepaid-unlock-card__term">After purchase, you can watch it again for 3 months.</p><button className="button button--primary" type="button" onClick={confirmPrepaidPurchase} disabled={purchasing || (purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points}><KeyRound size={17} />{purchasing ? 'Unlocking…' : `Unlock for ${purchaseOffer.price_points} Points`}</button>{(purchaseOffer.balance_points ?? 0) < purchaseOffer.price_points && <small><AlertCircle size={14} /> Your Point balance is not enough. Redeem a prepaid code from Subscription.</small>}</div> : playback && playback.access.access !== 'premium' && playback.access.access !== 'prepaid_unlock' ? <PremiumGate onJoin={() => navigate('/subscription')} /> : <VideoPlayer source={resolvedPlaybackSource} playbackSource={playback?.playback} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} historyContentType={user ? historyContentType : undefined} historyContentId={user && Number.isFinite(historyContentId) ? historyContentId : undefined} />}
+          {downloadMode ? (playback?.access.access === 'premium' ? <DownloadPanel links={downloadLinks} title={currentTitle} canDownload={Boolean(user)} onRequireAuth={() => openAuth('login', `${window.location.pathname}${window.location.search}`)} /> : <PremiumGate onJoin={() => navigate('/subscription')} />) : playbackLoading ? <div className="player-placeholder player-empty"><div className="player-play"><Play size={26} fill="currentColor" /></div><span>Checking playback access…</span><small>Yangon TV is confirming your viewing entitlement.</small></div> : playback && playback.access.access !== 'premium' ? <PremiumGate onJoin={() => navigate('/subscription')} /> : <VideoPlayer source={resolvedPlaybackSource} playbackSource={playback?.playback} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} historyContentType={user ? historyContentType : undefined} historyContentId={user && Number.isFinite(historyContentId) ? historyContentId : undefined} />}
         </div>
         {sources.length > 1 && <div className="player-sources" aria-label="Video sources">{sources.map((_, index) => <button key={index} className={index === sourceIndex ? 'player-source player-source--active' : 'player-source'} onClick={() => setSourceIndex(index)}>Source {index + 1}</button>)}</div>}
         <div className="watch-heading">
@@ -846,7 +819,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
           {playback?.access.access === 'premium' ? <DownloadAction links={downloadLinks} title={currentTitle} canDownload={Boolean(user)} onRequireAuth={() => openAuth('login', `${window.location.pathname}${window.location.search}`)} /> : <span className="watch-premium-download">{playback ? 'Downloads are included with Premium membership.' : ''}</span>}
         </div>
       </section>
-      <section className="container watch-lower"><div className="watch-note"><Users size={18} /><div><b>{playback?.access.access === 'premium' ? 'Premium access active.' : playback?.access.access === 'prepaid_unlock' ? 'This title is unlocked for your account.' : 'Make it a Yangon TV night.'}</b><p>{playbackError || (resolvedPlaybackSource ? 'Choose the video controls above to start playback.' : purchaseOffer ? 'Confirm the Point unlock to start playback.' : 'Playback will appear when the backend provides a streaming URL.')}</p></div></div></section>
+      <section className="container watch-lower"><div className="watch-note"><Users size={18} /><div><b>{playback?.access.access === 'premium' ? 'Premium access active.' : 'Make it a Yangon TV night.'}</b><p>{playbackError || (resolvedPlaybackSource ? 'Choose the video controls above to start playback.' : 'Premium membership is required to watch this title.')}</p></div></div></section>
     </div>
   );
 }
