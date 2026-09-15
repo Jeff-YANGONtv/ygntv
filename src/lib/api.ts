@@ -364,10 +364,7 @@ export async function getPublicPaymentAccounts(): Promise<PaymentAccount[]> {
       id,
       name,
       account_name: typeof account.account_name === 'string' ? account.account_name : null,
-      description: typeof account.description === 'string' ? account.description : null,
-      phone_number: typeof account.phone_number === 'string' ? account.phone_number : null,
       account_number: typeof account.account_number === 'string' ? account.account_number : null,
-      qr_image_url: typeof account.qr_image_url === 'string' ? account.qr_image_url : null,
       is_active: account.is_active == null ? true : Boolean(account.is_active),
     }];
   });
