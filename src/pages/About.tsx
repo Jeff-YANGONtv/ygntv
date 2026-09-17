@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, BookOpen, Check, MonitorPlay, Smartphone, Tv, X } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, MonitorPlay, Smartphone, Tv } from 'lucide-react';
 import { useState } from 'react';
 import '../styles/about.css';
 
@@ -47,12 +47,11 @@ function PhaseCard({ phase, open, onToggle }: { phase: Phase; open: boolean; onT
         <strong>{phase.title}</strong>
         <span className="roadmap-card__action">{phase.current ? 'CURRENT PHASE  •  ' : ''}CLICK TO VIEW <ArrowRight size={15} aria-hidden="true" /></span>
       </button>
-      <div className="roadmap-card__face roadmap-card__back" aria-hidden={!open}>
-        <div className="roadmap-card__back-head"><span className="roadmap-card__label">{phase.label}</span><button type="button" onClick={onToggle} aria-label="Back to overview"><X size={17} /></button></div>
+      <div className="roadmap-card__face roadmap-card__back" role="button" tabIndex={open ? 0 : -1} aria-label={`${phase.title} details. Tap to return to overview`} aria-hidden={!open} onClick={onToggle} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onToggle(); } }}>
+        <div className="roadmap-card__back-head"><span className="roadmap-card__label">{phase.label}</span><span className="roadmap-card__back-hint" aria-hidden="true">TAP CARD TO RETURN</span></div>
         <h3>{phase.title}</h3>
         <ul>{phase.items.map((item) => <li key={item}><Check size={14} aria-hidden="true" />{item}</li>)}</ul>
         <div className="roadmap-card__goal"><b>Goal</b><p>{phase.goal}</p></div>
-        <button className="roadmap-card__back-action" type="button" onClick={onToggle}><ArrowLeft size={14} />BACK TO OVERVIEW</button>
       </div>
     </div>
   </div>;
