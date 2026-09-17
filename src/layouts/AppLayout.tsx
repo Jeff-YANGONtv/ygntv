@@ -89,7 +89,7 @@ function AboutUsDrawerLink() {
 }
 
 function AboutMarquee() {
-  const text = 'Yangon TV သည် နိုင်ငံတကာ ရုပ်ရှင်နှင့် ရုပ်သံဇာတ်လမ်းတွဲများကို မြန်မာဘာသာစာတန်းထိုးဖြင့် ကြည့်ရှုနိုင်သော သာမန် ဒစ်ဂျစ်တယ် ရုပ်သံပလက်ဖောင်းမှသည် ပြည်တွင်းအွန်လိုင်းအသုံးပြုသူများ၏ နေ့စဉ်ဘဝအတွင်း ထဲထဲဝင်ဝင်စိမ့်ဝင်နိုင်သည်အထိ ဆက်လက်ကြိုးစားသွားမည်ဖြစ်သည်။';
+  const text = 'Yangon TV သည် နိုင်ငံတကာ ရုပ်ရှင်ကားကြီးများ၊ နာမည်ကြီး ဇာတ်လမ်းတွဲများနှင့် ရုပ်သံဖျော်ဖြေရေးအစီအစဉ်များကို မြန်မာစာတန်းထိုးဖြင့် ကြည်လင်ပြတ်သားစွာ တစ်နေရာတည်းမှာ ကြည့်ရှုနိုင်စေတဲ့ Online Streaming Platform ဖြစ်ပါတယ်။';
   return <section className="about-marquee" aria-label="About Yangon TV"><div className="about-marquee__viewport"><div className="about-marquee__track"><span>{text}</span><span aria-hidden="true">{text}</span></div></div></section>;
 }
 
