@@ -144,3 +144,27 @@
   .about-hero__stats small{font-size:8px}
   .about-phase,.about-vision-card{padding:16px}
 }
+
+
+/* About page final rhythm overrides. Keep these global because legacy About rules are loaded here. */
+@media (min-width: 1201px){
+  .about-page{padding-top:58px}
+  .about-hero{align-items:end;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(270px,.85fr);column-gap:72px;max-width:920px;padding-bottom:0;padding-top:0}
+  .about-hero>.eyebrow{grid-column:1/-1}
+  .about-hero h1{font-size:clamp(62px,7vw,82px);margin:15px 0 0;max-width:590px}
+  .about-hero p{align-self:end;margin:0 0 5px;max-width:360px}
+  .about-hero__stats{align-items:end;display:flex;gap:34px;grid-column:1/-1;margin-top:30px}
+  .about-intro{margin-top:48px;padding:26px 28px}
+  .about-roadmap,.about-vision{margin-top:72px}
+  .about-phase-grid{gap:14px;margin-top:26px}
+  .about-phase{display:flex;flex-direction:column;min-height:286px;padding:21px}
+  .about-phase__goal{margin-top:auto}
+}
+@media (min-width: 701px) and (max-width: 1200px){
+  .about-hero{align-items:end;display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,.75fr);column-gap:36px;padding-bottom:0;padding-top:0}
+  .about-hero>.eyebrow{grid-column:1/-1}
+  .about-hero h1{font-size:clamp(54px,8vw,76px);margin:15px 0 0}
+  .about-hero p{margin:0;max-width:340px}
+  .about-hero__stats{grid-column:1/-1}
+  .about-intro{margin-top:48px}
+}
