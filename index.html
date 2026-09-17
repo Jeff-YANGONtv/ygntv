@@ -47,7 +47,23 @@
     <script>(()=>{const dismiss=()=>{const s=document.querySelector('.ygntv-legacy-splash');if(!s)return;window.setTimeout(()=>{s.style.transition='opacity .35s ease';s.style.opacity='0';window.setTimeout(()=>s.remove(),400)},1200)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',dismiss,{once:true});else dismiss()})();</script>
     <script type="module" crossorigin src="/assets/index-B67xVHr7.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-BTrYmSOc.css">
-  </head>
+
+    <style id="critical-about-mobile">
+      @media (max-width: 900px) {
+        .about-page { overflow: hidden !important; }
+        .about-hero { max-width: 100% !important; min-width: 0 !important; width: 100% !important; }
+        .about-hero h1 { font-size: clamp(42px, 13vw, 64px) !important; line-height: .94 !important; max-width: 100% !important; }
+        .about-hero p, .about-intro p, .about-section-heading p, .about-phase p, .about-vision-card p { font-size: 12px !important; line-height: 1.75 !important; overflow-wrap: anywhere !important; }
+        .about-hero__stats { display: grid !important; gap: 16px !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; width: 100% !important; }
+        .about-intro { max-width: 100% !important; min-width: 0 !important; }
+        .about-intro > div:last-child, .about-phase, .about-vision-card { min-width: 0 !important; }
+        .about-phase-grid, .about-vision-grid { grid-template-columns: minmax(0, 1fr) !important; }
+      }
+      @media (max-width: 390px) {
+        .about-intro { flex-direction: column !important; }
+      }
+    </style>
+</head>
   <body></div>
     <div id="root"><main class="boot-loading" aria-live="polite"><span class="boot-loading__brand">YANGON <strong>TV</strong></span><span class="boot-loading__message">Loading Yangon TV…</span></main></div>
   </body>
