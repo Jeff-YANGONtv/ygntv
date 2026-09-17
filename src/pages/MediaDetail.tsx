@@ -508,7 +508,7 @@ function ReviewTabs({
   const [selectedSeasonNumber, setSelectedSeasonNumber] = useState<number | null>(null);
   const [selectedEpisodeNumber, setSelectedEpisodeNumber] = useState<number | null>(null);
   const seasons = [...(item.seasons ?? [])].sort((left, right) => left.number - right.number);
-  const selectedSeason = seasons.find((season) => season.number === selectedSeasonNumber);
+  const selectedSeason = seasons.length === 1 ? seasons[0] : seasons.find((season) => season.number === selectedSeasonNumber);
   const selectedEpisode = selectedSeason?.episodes.find((episode) => episode.number === selectedEpisodeNumber);
   const telegramPostUrl = kind === 'series' ? selectedEpisode?.telegramPostUrl : item.telegramPostUrl;
   const needsEpisodeSelection = kind === 'series' && !selectedEpisode;
@@ -539,14 +539,14 @@ function ReviewTabs({
       </div>
 
       {kind === 'series' && <div className="series-source-picker" aria-label="Series episode selector">
-        <div className="series-source-picker__group">
+        {seasons.length > 1 && <div className="series-source-picker__group">
           <span>1. Choose Season</span>
-          {seasons.length ? <div className="series-source-picker__choices" role="list" aria-label="Choose season">
+          <div className="series-source-picker__choices" role="list" aria-label="Choose season">
             {seasons.map((season) => <button key={String(season.id)} type="button" className={selectedSeasonNumber === season.number ? 'series-source-choice series-source-choice--active' : 'series-source-choice'} onClick={() => { setSelectedSeasonNumber(season.number); setSelectedEpisodeNumber(null); }}>Season {season.number}</button>)}
-          </div> : <small className="series-source-picker__hint">No Season has been published for this Series yet.</small>}
-        </div>
+          </div>
+        </div>}
         <div className="series-source-picker__group">
-          <span>2. Choose Episode</span>
+          <span>{seasons.length > 1 ? '2. Choose Episode' : 'Choose Episode'}</span>
           {selectedSeason ? selectedSeason.episodes.length ? <div className="series-source-picker__choices" role="list" aria-label={`Choose episode from Season ${selectedSeason.number}`}>
             {[...selectedSeason.episodes].sort((left, right) => left.number - right.number).map((episode) => <button key={String(episode.id)} type="button" className={selectedEpisodeNumber === episode.number ? 'series-source-choice series-source-choice--active' : 'series-source-choice'} onClick={() => setSelectedEpisodeNumber(episode.number)}>EP {episode.number}</button>)}
           </div> : <small className="series-source-picker__hint">No Episode has been published in this Season yet.</small> : <small className="series-source-picker__hint">Select a Season first.</small>}
