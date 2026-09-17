@@ -16,8 +16,8 @@ type Phase = {
 const phases: Phase[] = [
   {
     number: '01', label: 'CURRENT', status: 'လက်ရှိကာလ', title: 'Platform Launch & Core Content', icon: MonitorPlay, current: true,
-    items: ['Yangon TV web streaming platform ကို တည်ဆောက်ခြင်း', 'မြန်မာစာတန်းထိုး ရုပ်ရှင်နှင့် ဇာတ်လမ်းတွဲများကို စုစည်းတင်ဆက်ခြင်း', 'တစ်လ ၂၅၀၀ ကျပ်ဖြင့် ရုပ်ရှင်နှင့် ဇာတ်လမ်းတွဲများကို ကြည့်ရှုနိုင်ခြင်း'],
-    goal: 'လွယ်ကူရှင်းလင်းသော အသုံးပြုမှုစနစ်ဖြင့် အရည်အသွေးကောင်းသော entertainment ကို တစ်နေရာတည်းတွင် ရရှိစေရန်။',
+    items: ['Yangon TV web streaming platform ကို တည်ဆောက်ခြင်း', 'မြန်မာစာတန်းထိုး ရုပ်ရှင်နှင့် ဇာတ်လမ်းတွဲများကို စုစည်းတင်ဆက်ခြင်း', 'အသက်သာဆုံးလစဉ်ကြေးဖြင့်သင့်တင့်ကောင်းမွန်သောတင်ဆက်မှုစနစ်စတင်ခြင်း'],
+    goal: 'အသက်သာဆုံးဝန် ဆောင်ခဖြင့် ရိုးရှင်းစုံလင်သောတင်ဆက်မှု',
   },
   {
     number: '02', label: 'PHASE 02', title: 'Mobile Apps & Custom Features', icon: Smartphone,
