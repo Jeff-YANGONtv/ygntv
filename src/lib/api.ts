@@ -22,6 +22,11 @@ export function mediaUrl(value?: string | null, fallback = ''): string {
   return `${mediaBaseUrl.replace(/\/$/, '')}/${value.replace(/^\//, '')}`;
 }
 
+export function mediaPlaybackUrl(value: string): string {
+  if (!/^https?:\/\/stream\.abxapi\.online\//i.test(value)) return value;
+  return `${mediaBaseUrl.replace(/\/$/, '')}/api/tv/stream?url=${encodeURIComponent(value)}`;
+}
+
 function unwrap<T>(payload: unknown): T {
   if (payload && typeof payload === 'object' && 'data' in payload) {
     return (payload as { data: T }).data;
