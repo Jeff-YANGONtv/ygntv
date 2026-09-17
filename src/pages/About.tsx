@@ -1,6 +1,5 @@
 import { ArrowRight, BookOpen, Check, MonitorPlay, Smartphone, Tv } from 'lucide-react';
 import { useState } from 'react';
-import '../styles/about.css';
 
 type Phase = {
   number: string;
@@ -67,8 +66,6 @@ export function AboutPage() {
   const toggleCard = (number: string) => setOpenCards((state) => ({ ...state, [number]: !state[number] }));
 
   return <div className="page about-page">
-    <section className="about-marquee" aria-label="About Yangon TV"><div className="about-marquee__viewport"><div className="about-marquee__track"><span>Yangon TV သည် နိုင်ငံတကာ ရုပ်ရှင်နှင့် ရုပ်သံဇာတ်လမ်းတွဲများကို မြန်မာဘာသာစာတန်းထိုးဖြင့် ကြည့်ရှုနိုင်သော သာမန် ဒစ်ဂျစ်တယ် ရုပ်သံပလက်ဖောင်းမှသည် ပြည်တွင်းအွန်လိုင်းအသုံးပြုသူများ၏ နေ့စဉ်ဘဝအတွင်း ထဲထဲဝင်ဝင်စိမ့်ဝင်နိုင်သည်အထိ ဆက်လက်ကြိုးစားသွားမည်ဖြစ်သည်။</span><span aria-hidden="true">Yangon TV သည် နိုင်ငံတကာ ရုပ်ရှင်နှင့် ရုပ်သံဇာတ်လမ်းတွဲများကို မြန်မာဘာသာစာတန်းထိုးဖြင့် ကြည့်ရှုနိုင်သော သာမန် ဒစ်ဂျစ်တယ် ရုပ်သံပလက်ဖောင်းမှသည် ပြည်တွင်းအွန်လိုင်းအသုံးပြုသူများ၏ နေ့စဉ်ဘဝအတွင်း ထဲထဲဝင်ဝင်စိမ့်ဝင်နိုင်သည်အထိ ဆက်လက်ကြိုးစားသွားမည်ဖြစ်သည်။</span></div></div></section>
-
     <section className="container about-tagline" aria-labelledby="tagline-title"><span className="eyebrow">MORE THAN JUST STREAMING</span><h2 id="tagline-title">More than <em>just streaming.</em></h2><p>နိုင်ငံတကာ ရုပ်ရှင်နှင့် ရုပ်သံဇာတ်လမ်းတွဲများကို မြန်မာဘာသာစာတန်းထိုးဖြင့် ကြည့်ရှုနိုင်သော သာမန် ဒစ်ဂျစ်တယ် ရုပ်သံပလက်ဖောင်းမှသည် ပြည်တွင်းအွန်လိုင်းအသုံးပြုသူများ၏နေ့စဉ်ဘဝအတွင်း ထဲထဲဝင်ဝင်စိမ့်ဝင်နိုင်သည်အထိ ဆက်လက်ကြိုးစားသွားမည်ဖြစ်သည်။</p></section>
     <section className="container about-roadmap" aria-labelledby="roadmap-title">
       <div className="about-section-heading"><span className="eyebrow">THE ROADMAP</span><h1 id="roadmap-title">Building what comes next.</h1><p>Yangon TV ကို ပိုမိုကောင်းမွန်သော entertainment platform တစ်ခုဖြစ်လာစေရန် အဆင့်ဆင့် တည်ဆောက်နေပါတယ်။</p></div>

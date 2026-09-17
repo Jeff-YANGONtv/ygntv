@@ -8,6 +8,7 @@ import { getAds, getSocials, getTvNotifications, markAllTvNotificationsRead, mar
 import { AuthDialog, useAuth } from '../lib/auth';
 import type { AdBanner, SocialLink, TvNotificationFeed, UserNotification } from '../lib/types';
 import '../styles/drawer-menu.css';
+import '../styles/about.css';
 import '../styles/subscription-menu.css';
 import '../styles/mobile-typography.css';
 
@@ -73,6 +74,7 @@ export function AppLayout() {
         <div className="header-actions">{user && <NotificationBell />}</div>
       </div>
     </header>
+    {location.pathname.startsWith('/about') && <AboutMarquee />}
     {location.pathname.startsWith('/about') && <div className="about-page-header-slot" aria-hidden="true" />}
     {menuOpen && <><button className="drawer-backdrop" type="button" aria-label="Close navigation menu" onClick={() => setMenuOpen(false)} /><aside className="mobile-drawer" aria-label="Website menu"><div className="mobile-drawer__top"><span className="profile-card-label">Welcome To Yangon TV</span><button className="icon-button" type="button" onClick={() => setMenuOpen(false)} aria-label="Close navigation menu"><X size={20} /></button></div><nav className="mobile-drawer__nav"><NavLink to={accountPath} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__account mobile-drawer__link--active' : 'mobile-drawer__link mobile-drawer__account'}><UserRound size={18} />{accountLabel}</NavLink><NavLink to={historyPath} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__link--active' : 'mobile-drawer__link'}><History size={18} />User History</NavLink><NavLink to="/subscription" className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__link--active' : 'mobile-drawer__link'}><Crown size={18} />Subscription</NavLink>{navigation.map(({ label, to, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__link--active' : 'mobile-drawer__link'}><Icon size={18} />{label}</NavLink>)}</nav>{drawerSocials.length > 0 && <div className="mobile-drawer__socials"><span className="profile-card-label">Follow Us</span>{drawerSocials.map((social) => { const Icon = socialIcon(social); return <a className="mobile-drawer__social" href={social.url} key={social.id} target="_blank" rel="noopener noreferrer"><Icon size={17} className={`mobile-drawer__social-icon mobile-drawer__social-icon--${socialIconName(social)}`} /><span>{social.name}</span></a>; })}</div>}{user && <button className="mobile-drawer__logout" type="button" onClick={() => { signOut(); navigate('/auth', { replace: true }); }}><LogOut size={18} />Log Out</button>}</aside></>}
     <main><Outlet /></main>
@@ -85,6 +87,11 @@ export function AppLayout() {
 
 function AboutUsDrawerLink() {
   return <NavLink to="/about" className={({ isActive }) => isActive ? 'mobile-drawer__link mobile-drawer__link--active' : 'mobile-drawer__link'}><Info size={18} />About Us</NavLink>;
+}
+
+function AboutMarquee() {
+  const text = 'Yangon TV သည် နိုင်ငံတကာ ရုပ်ရှင်နှင့် ရုပ်သံဇာတ်လမ်းတွဲများကို မြန်မာဘာသာစာတန်းထိုးဖြင့် ကြည့်ရှုနိုင်သော သာမန် ဒစ်ဂျစ်တယ် ရုပ်သံပလက်ဖောင်းမှသည် ပြည်တွင်းအွန်လိုင်းအသုံးပြုသူများ၏ နေ့စဉ်ဘဝအတွင်း ထဲထဲဝင်ဝင်စိမ့်ဝင်နိုင်သည်အထိ ဆက်လက်ကြိုးစားသွားမည်ဖြစ်သည်။';
+  return <section className="about-marquee" aria-label="About Yangon TV"><div className="about-marquee__viewport"><div className="about-marquee__track"><span>{text}</span><span aria-hidden="true">{text}</span></div></div></section>;
 }
 
 function socialIcon(social: SocialLink) {
