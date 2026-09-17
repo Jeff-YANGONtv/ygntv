@@ -25,12 +25,17 @@ const phases: Phase[] = [
     goal: 'နည်းပညာနှင့် လုပ်ငန်းလည်ပတ်မှုအဆင့်အတန်းကို မြှင့်တင်ရန်။',
   },
   {
-    number: '03', label: 'PHASE 03', title: 'Ultra-Fast Streaming & Smart TV', icon: Tv,
+    number: '03', label: 'PHASE 03', title: 'Mobile Apps & Custom Features', icon: Smartphone,
+    items: ['Android နှင့် iOS app များ', 'Offline download', 'Subtitle နှင့် audio options များ'],
+    goal: 'ဖုန်းအသုံးပြုသူများအတွက် ပိုမိုလွယ်ကူပြီး အဆင်ပြေစေရန်။',
+  },
+  {
+    number: '04', label: 'PHASE 04', title: 'Ultra-Fast Streaming & Smart TV', icon: Tv,
     items: ['Smart TV နှင့် Android TV support', 'ပိုမိုမြန်ဆန်သော streaming', 'Personalized recommendations'],
     goal: 'အိမ်တွင်းကြည့်ရှုမှုအတွေ့အကြုံကို ပိုမိုကောင်းမွန်စေရန်။',
   },
   {
-    number: '04', label: 'PHASE 04', title: 'Education & Original Content', icon: BookOpen,
+    number: '05', label: 'PHASE 05', title: 'Education & Original Content', icon: BookOpen,
     items: ['IT နှင့် Tech Talk အစီအစဉ်များ', 'Original shows နှင့် documentary များ', 'Yangon TV ကိုယ်ပိုင်ဖန်တီးမှုများ'],
     goal: 'ဖျော်ဖြေရေးအပြင် အသိပညာနှင့် မူရင်းအကြောင်းအရာများပါ ပေးစွမ်းနိုင်သော digital media platform ဖြစ်လာစေရန်။',
   },
