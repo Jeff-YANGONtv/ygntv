@@ -68,6 +68,10 @@ function pageSeo(pathname: string): SeoConfig | null {
       title: 'Contact Yangon TV | Media & Entertainment',
       description: 'Yangon TV ကို advertising, collaboration, subscriber support နှင့် job enquiries အတွက် ဆက်သွယ်နိုင်ပါသည်။',
     },
+    '/about': {
+      title: 'About Yangon TV | Stories Worth Staying Up For',
+      description: 'Yangon TV ၏ ရည်ရွယ်ချက်၊ အမြင်နှင့် Myanmar audiences အတွက် ဖန်တီးထားသော entertainment platform အကြောင်း လေ့လာနိုင်ပါသည်။',
+    },
     '/subscription': {
       title: 'Yangon TV Membership',
       description: 'Yangon TV Premium membership plans နှင့် membership code redemption အကြောင်း လေ့လာနိုင်ပါသည်။',
