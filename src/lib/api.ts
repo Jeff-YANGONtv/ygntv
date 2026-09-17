@@ -15,6 +15,9 @@ export const api = axios.create({
 
 export function mediaUrl(value?: string | null, fallback = ''): string {
   if (!value) return fallback;
+  if (/^https?:\/\/image\.tmdb\.org\//i.test(value)) {
+    return `${mediaBaseUrl.replace(/\/$/, '')}/api/poster-proxy?url=${encodeURIComponent(value)}`;
+  }
   if (/^https?:\/\//i.test(value)) return value;
   return `${mediaBaseUrl.replace(/\/$/, '')}/${value.replace(/^\//, '')}`;
 }
