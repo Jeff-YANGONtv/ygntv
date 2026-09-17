@@ -20,9 +20,9 @@ const phases: Phase[] = [
     goal: 'အသက်သာဆုံးဝန် ဆောင်ခဖြင့် ရိုးရှင်းစုံလင်သောတင်ဆက်မှု',
   },
   {
-    number: '02', label: 'PHASE 02', title: 'Mobile Apps & Custom Features', icon: Smartphone,
-    items: ['Android နှင့် iOS app များ', 'Offline download', 'Subtitle နှင့် audio options များ'],
-    goal: 'ဖုန်းအသုံးပြုသူများအတွက် ပိုမိုလွယ်ကူပြီး အဆင်ပြေစေရန်။',
+    number: '02', label: 'PHASE 02', title: 'Platform Upgrade & Business Operations', icon: Smartphone,
+    items: ['ပလက်ဖောင်းအား နည်းပညာပိုင်းအရ အဆင့်မြှင့်တင်ခြင်းနှင့် လုပ်ငန်းလိုင်စင်လျှောက်ထားခြင်း', 'အလုပ်အဖွဲ့ယန္တရားအားပြန်လည်ဖွဲ့စည်း၍ လုပ်ငန်းလည်ပတ်ုအရှိန်နှင့်အဆင့်အတန်းပုံရိပ်အားမြှင့်တင်ခြင်း'],
+    goal: 'နည်းပညာနှင့် လုပ်ငန်းလည်ပတ်မှုအဆင့်အတန်းကို မြှင့်တင်ရန်။',
   },
   {
     number: '03', label: 'PHASE 03', title: 'Ultra-Fast Streaming & Smart TV', icon: Tv,
