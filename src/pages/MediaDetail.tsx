@@ -815,8 +815,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
         </div>
         {sources.length > 1 && <div className="player-sources" aria-label="Video sources">{sources.map((_, index) => <button key={index} className={index === sourceIndex ? 'player-source player-source--active' : 'player-source'} onClick={() => setSourceIndex(index)}>Source {index + 1}</button>)}</div>}
         <div className="watch-heading">
-          <div><span className="eyebrow">{downloadMode ? 'Download center' : 'Now watching'}</span><h1>{currentTitle}</h1></div>
-          {playback?.access.access === 'premium' ? <DownloadAction links={downloadLinks} title={currentTitle} canDownload={Boolean(user)} onRequireAuth={() => openAuth('login', `${window.location.pathname}${window.location.search}`)} /> : <span className="watch-premium-download">{playback ? 'Downloads are included with Premium membership.' : ''}</span>}
+          <div><span className="eyebrow">Now watching</span><h1>{currentTitle}</h1></div>
         </div>
       </section>
       <section className="container watch-lower"><div className="watch-note"><Users size={18} /><div><b>{playback?.access.access === 'premium' ? 'Premium access active.' : 'Make it a Yangon TV night.'}</b><p>{playbackError || (resolvedPlaybackSource ? 'Choose the video controls above to start playback.' : 'Premium membership is required to watch this title.')}</p></div></div></section>
