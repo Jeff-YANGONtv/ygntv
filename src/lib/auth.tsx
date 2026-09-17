@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { createContext, useContext, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Eye, EyeOff, LockKeyhole, Mail, UserRound, X } from 'lucide-react';
 import { api } from './api';
 
@@ -180,9 +180,33 @@ export function AuthForm({ initialMode = 'login', redirectTo }: { initialMode?: 
       {error && <div className="auth-error" role="alert">{error}</div>}
       {success && <div className="auth-success" role="status"><CheckCircle2 size={18} /><div><strong>{success}</strong><span>Redirecting you now…</span></div></div>}
       <button className="button button--primary auth-submit" type="submit" disabled={submitting || Boolean(success)}>{submitting ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'} <ArrowRight size={17} /></button>
+      {mode === 'login' && <><div className="auth-divider"><span>or</span></div><button className="button auth-google" type="button" onClick={() => { const callback = `${window.location.origin}/auth/google/callback`; const base = String(api.defaults.baseURL || '').replace(/\/$/, ''); window.location.assign(`${base}/auth/google/redirect?return_uri=${encodeURIComponent(callback)}`); }} disabled={submitting || Boolean(success)}>Continue with Google</button></>}
     </form>
     <p className="auth-switch">{mode === 'login' ? 'New to Yangon TV?' : 'Already have an account?'} <button type="button" onClick={() => { const next = mode === 'login' ? 'register' : 'login'; switchMode(next); openAuth(next, redirectTo); }}>{mode === 'login' ? 'Sign up' : 'Sign in'}</button></p>
   </div>;
+}
+
+export function GoogleCallback() {
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const { setSession } = useAuth();
+  const [message, setMessage] = useState('Completing Google sign-in…');
+  useEffect(() => {
+    const code = params.get('code');
+    const error = params.get('error');
+    if (error || !code) { setMessage(error || 'Google sign-in could not be completed.'); return; }
+    let cancelled = false;
+    api.post('/auth/google/exchange', { code }).then((response) => {
+      if (cancelled) return;
+      const nextToken = extractToken(response.data);
+      const nextUser = extractUser(response.data);
+      if (!nextToken) throw new Error('The server did not return a login session.');
+      setSession(nextToken, nextUser);
+      navigate('/', { replace: true });
+    }).catch(() => { if (!cancelled) setMessage('Google sign-in could not be completed. Please try again.'); });
+    return () => { cancelled = true; };
+  }, [navigate, params, setSession]);
+  return <main className="auth-page"><div className="auth-card"><div className="auth-card-heading"><span className="eyebrow">Yangon TV account</span><h1>{message}</h1><p>You can close this page if sign-in does not continue.</p></div></div></main>;
 }
 
 export function AuthDialog() {
