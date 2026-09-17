@@ -116,3 +116,31 @@
 /* Blog article reading order: title, cover, metadata, body. */
 .article-heading{margin:0 auto 24px;max-width:920px;text-align:left}.article-heading h1{font-size:clamp(34px,5vw,58px);line-height:1.08;margin:0;max-width:760px;text-align:left}.article-cover{display:block;margin:0 auto;width:100%;max-width:920px;height:auto;max-height:620px;object-fit:cover}.article-post-meta{align-items:center;border-bottom:1px solid var(--line);border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr 1fr;margin:18px auto 0;max-width:920px;padding:13px 0}.article-post-meta span{color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.02em}.article-post-meta__topic{text-align:left}.article-post-meta__date{text-align:center}.article-post-meta__author{text-align:right}.article-body{margin:32px auto 0;max-width:820px}
 @media (max-width:640px){.article-heading{margin-bottom:18px}.article-heading h1{font-size:31px;line-height:1.12}.article-post-meta{margin-top:13px;padding:11px 0}.article-post-meta span{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.article-body{margin-top:24px}}
+
+/* About page mobile safety overrides: keep critical responsive rules in the global stylesheet so they load before the route is fully hydrated. */
+@media (max-width:900px){
+  .about-page{padding:42px 0 130px;overflow:hidden}
+  .about-hero{max-width:none;min-width:0;width:100%}
+  .about-hero h1{font-size:clamp(42px,13vw,64px);line-height:.94;letter-spacing:-.08em;margin:15px 0 20px;max-width:100%;overflow-wrap:normal}
+  .about-hero p,.about-intro p,.about-section-heading p,.about-phase p,.about-vision-card p{font-size:12px;line-height:1.75;overflow-wrap:anywhere}
+  .about-hero__stats{display:grid;gap:16px;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:28px;width:100%}
+  .about-hero__stats span{min-width:0}
+  .about-hero__stats b{font-size:24px}
+  .about-hero__stats small{font-size:9px;line-height:1.35;overflow-wrap:anywhere}
+  .about-intro{border-radius:19px;gap:13px;margin-top:38px;max-width:none;min-width:0;padding:20px}
+  .about-intro>div:last-child{min-width:0}
+  .about-intro h2{font-size:clamp(22px,7vw,31px);line-height:1.18}
+  .about-phase-grid,.about-vision-grid{grid-template-columns:minmax(0,1fr)}
+  .about-section-heading h2{font-size:clamp(28px,9vw,42px);line-height:1.05}
+  .about-roadmap,.about-vision{margin-top:54px}
+  .about-phase,.about-vision-card{min-width:0;padding:18px}
+  .about-phase h3,.about-vision-card h3{font-size:19px;line-height:1.25}
+  .about-phase ul{overflow-wrap:anywhere;padding-left:17px}
+}
+@media (max-width:390px){
+  .about-intro{align-items:flex-start;flex-direction:column;padding:18px}
+  .about-intro__mark{height:50px;width:50px}
+  .about-hero__stats{gap:10px}
+  .about-hero__stats small{font-size:8px}
+  .about-phase,.about-vision-card{padding:16px}
+}
