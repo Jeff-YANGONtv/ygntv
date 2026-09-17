@@ -705,7 +705,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
       <section className="container detail-section detail-extra-grid">
         <div className="detail-extra-card"><span className="eyebrow">Cast</span>{item.casts?.length ? <div className="cast-list">{item.casts.map((cast) => <span className="cast-chip" key={cast}>{cast}</span>)}</div> : <p>No cast information available.</p>}</div>
       </section>
-      {kind === 'series' && <section className="container detail-section"><SectionHeading eyebrow="Season guide" title="Seasons & episodes" /><SeriesEpisodes item={item} /></section>}
+      {kind === 'series' && <section className="container detail-section"><SeriesEpisodes item={item} /></section>}
       <section className="container detail-section"><SectionHeading eyebrow="You might also like" title="More to discover" />{related.length ? <div className="media-grid">{related.map((entry) => <MediaCard key={entry.id} item={entry} />)}</div> : <EmptyState title="No related titles" copy="Explore the catalog for more stories." />}</section>
     </div>
   );
