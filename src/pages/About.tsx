@@ -1,5 +1,6 @@
-import { ArrowRight, BookOpen, Check, MonitorPlay, Smartphone, Tv } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, Mail, MessageCircle, MonitorPlay, Send, Smartphone, Tv } from 'lucide-react';
 import { useState } from 'react';
+import '../styles/about-contact.css';
 
 type Phase = {
   number: string;
@@ -66,6 +67,10 @@ export function AboutPage() {
   const toggleCard = (number: string) => setOpenCards((state) => ({ ...state, [number]: !state[number] }));
 
   return <div className="page about-page">
+    <section className="about-contact" aria-labelledby="contact-title">
+      <div className="about-contact__marquee" aria-label="Contact information"><div className="about-contact__track"><span>လုပ်ငန်းပါတနာအဖြစ်ချိတ်ဆက်လို၍ဖြစ်စေ ၊ စီးပွားရေးမိတ်ဖက်အဖြစ်ပူးပေါင်းလို၍ဖြစ်စေ ဆက်သွယ်လိုသည့်အခါတွင်း၎င်း သက်ဆိုင်ရာအာဏာပိုင်အဖွဲ့အစည်းများမှ တစုံတရာ စစ်ဆေးစုံစမ်းမေးမြန်းလိုသည်များရှိပါက အောက်ဖော်ပြပါဆိုရှယ်မီဒီယာနှင့်မေးလ်လိပ်စာများထံ တိုက်ရိုက်ဆက်သွယ်မေးမြန်းနိုင်ပါသည်။</span><span aria-hidden="true">လုပ်ငန်းပါတနာအဖြစ်ချိတ်ဆက်လို၍ဖြစ်စေ ၊ စီးပွားရေးမိတ်ဖက်အဖြစ်ပူးပေါင်းလို၍ဖြစ်စေ ဆက်သွယ်လိုသည့်အခါတွင်း၎င်း သက်ဆိုင်ရာအာဏာပိုင်အဖွဲ့အစည်းများမှ တစုံတရာ စစ်ဆေးစုံစမ်းမေးမြန်းလိုသည်များရှိပါက အောက်ဖော်ပြပါဆိုရှယ်မီဒီယာနှင့်မေးလ်လိပ်စာများထံ တိုက်ရိုက်ဆက်သွယ်မေးမြန်းနိုင်ပါသည်။</span></div></div>
+      <div className="container about-contact__inner"><div className="about-contact__heading"><span className="eyebrow"><i aria-hidden="true" />CONTACT US</span><h2 id="contact-title">Let’s connect.</h2></div><div className="about-contact__links"><a href="mailto:office@ygntv.org" className="about-contact__link"><span className="about-contact__icon about-contact__icon--mail"><Mail size={21} aria-hidden="true" /></span><span><b>MAIL</b><small>office@ygntv.org</small></span></a><a href="https://t.me/officeygntvbot" target="_blank" rel="noreferrer" className="about-contact__link"><span className="about-contact__icon about-contact__icon--telegram"><Send size={21} aria-hidden="true" /></span><span><b>TELEGRAM</b><small>officeygntvbot</small></span></a><a href="https://messenger.com/yangontvfbpage" target="_blank" rel="noreferrer" className="about-contact__link"><span className="about-contact__icon about-contact__icon--messenger"><MessageCircle size={21} aria-hidden="true" /></span><span><b>MESSENGER</b><small>yangontvfbpage</small></span></a></div></div>
+    </section>
     <section className="container about-tagline" aria-labelledby="tagline-title"><span className="eyebrow">MORE THAN JUST STREAMING</span><h2 id="tagline-title">More than <em>just streaming.</em></h2><p>နိုင်ငံတကာ ရုပ်ရှင်နှင့် ရုပ်သံဇာတ်လမ်းတွဲများကို မြန်မာဘာသာစာတန်းထိုးဖြင့် ကြည့်ရှုနိုင်သော သာမန် ဒစ်ဂျစ်တယ် ရုပ်သံပလက်ဖောင်းမှသည် ပြည်တွင်းအွန်လိုင်းအသုံးပြုသူများ၏နေ့စဉ်ဘဝအတွင်း ထဲထဲဝင်ဝင်စိမ့်ဝင်နိုင်သည်အထိ ဆက်လက်ကြိုးစားသွားမည်ဖြစ်သည်။</p></section>
     <section className="container about-roadmap" aria-labelledby="roadmap-title">
       <div className="about-section-heading"><span className="eyebrow">THE ROADMAP</span><h1 id="roadmap-title">Building what comes next.</h1><p>Yangon TV ကို ပိုမိုကောင်းမွန်သော entertainment platform တစ်ခုဖြစ်လာစေရန် အဆင့်ဆင့် တည်ဆောက်နေပါတယ်။</p></div>
