@@ -100,18 +100,30 @@ export function SupportChat() {
 
   return <div className="support-chat">
     {open && <section className="support-chat__panel" aria-label="Customer support chat">
-      <header className="support-chat__header"><div><span className="eyebrow">Subscription help</span><strong>Yangon TV Support</strong><small><span className="support-chat__status-dot" /> Usually replies shortly</small></div><button className="icon-button" type="button" aria-label="Close support chat" onClick={() => setOpen(false)}><X size={18} /></button></header>
+      <header className="support-chat__header">
+        <div className="support-chat__brand"><img src="/yangon-tv-logo.jpg" alt="Yangon TV" /><strong>customer care</strong></div>
+        <div className="support-chat__header-actions">
+          <button type="button" aria-label="Close support chat" onClick={() => setOpen(false)}><X size={23} /></button>
+        </div>
+      </header>
       <div className="support-chat__messages" aria-live="polite">
-        {loading && !messages.length ? <div className="support-chat__empty"><LoaderCircle className="spin" size={18} /> Loading conversation…</div> : messages.length ? messages.map((message) => <article className={`support-chat__message support-chat__message--${message.sender_type}`} key={message.id}><span className="support-chat__sender">{messageLabel(message.sender_type)}</span>{message.body && <p>{message.body}</p>}{message.attachment_url && <a href={message.attachment_url} target="_blank" rel="noreferrer">{message.attachment_name || 'View attachment'}</a>}<time>{message.created_at ? new Date(message.created_at).toLocaleString() : ''}</time></article>) : <div className="support-chat__empty">How can we help with your subscription?</div>}
+        {loading && !messages.length ? <div className="support-chat__empty"><LoaderCircle className="spin" size={18} /> Loading conversation…</div> : messages.length ? messages.map((message) => <article className={`support-chat__message support-chat__message--${message.sender_type}`} key={message.id}>
+          {message.sender_type !== 'visitor' && <img className="support-chat__avatar" src="/yangon-tv-logo.jpg" alt="Yangon TV support" />}
+          <div className="support-chat__message-body">
+            {message.sender_type !== 'visitor' && <span className="support-chat__sender">{messageLabel(message.sender_type)}</span>}
+            {message.body && <p>{message.body}</p>}
+            {message.attachment_url && <a href={message.attachment_url} target="_blank" rel="noreferrer">{message.attachment_name || 'View attachment'}</a>}
+            {message.sender_type === 'visitor' ? <time>Read</time> : <time>{message.created_at ? new Date(message.created_at).toLocaleString() : ''}</time>}
+          </div>
+        </article>) : <div className="support-chat__empty">How can we help with your subscription?</div>}
         <div ref={endRef} />
       </div>
       {error && <p className="support-chat__error" role="alert">{error}</p>}
       {attachment && <div className="support-chat__attachment"><Paperclip size={14} />{attachment.name}<button type="button" onClick={() => setAttachment(undefined)} aria-label="Remove attachment"><X size={13} /></button></div>}
-      <div className="support-chat__composer"><label className="support-chat__attach" aria-label="Attach image"><Paperclip size={17} /><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setAttachment(event.target.files?.[0])} /></label><input value={body} onChange={(event) => setBody(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void send(); } }} placeholder="Write a message…" aria-label="Message" /><button type="button" aria-label="Send message" onClick={() => void send()} disabled={sending || (!body.trim() && !attachment)}>{sending ? <LoaderCircle className="spin" size={17} /> : <Send size={17} />}</button></div>
+      <div className="support-chat__composer"><label className="support-chat__attach" aria-label="Attach image"><Paperclip size={17} /><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setAttachment(event.target.files?.[0])} /></label><input value={body} onChange={(event) => setBody(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void send(); } }} placeholder="Write a message..." aria-label="Message" /><button type="button" aria-label="Send message" onClick={() => void send()} disabled={sending || (!body.trim() && !attachment)}>{sending ? <LoaderCircle className="spin" size={17} /> : <Send size={23} />}</button></div>
     </section>}
-    <button className="support-chat__launcher" type="button" aria-label={open ? 'Close support chat' : 'Open customer support'} onClick={() => { if (!user) openAuth('login'); else setOpen((value) => !value); }}><MessageCircle size={22} /></button>
+    {!open && <button className="support-chat__launcher" type="button" aria-label="Open customer support" aria-expanded={false} onClick={() => { if (!user) openAuth('login'); else setOpen(true); }}><MessageCircle size={22} /></button>}
   </div>;
 }
 
 export default SupportChat;
-
