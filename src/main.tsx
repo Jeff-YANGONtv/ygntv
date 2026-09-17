@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './lib/auth';
 import './styles.css';
+import './styles/about.css';
 
 window.addEventListener('vite:preloadError', () => {
   const recoveryKey = 'yangon-tv-chunk-recovery';
