@@ -472,7 +472,6 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
                           }
                         }}
                       >
-                        <img src={mediaUrl(episode.thumbnail, item.poster)} alt="" />
                         <span className="episode-number">{String(episode.number).padStart(2, '0')}</span>
                         <span className="episode-title">
                           <b>{episode.title}</b>
