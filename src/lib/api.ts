@@ -199,10 +199,21 @@ export async function getSeries(params: { page?: number; search?: string; genre?
 }
 
 export async function getMediaBySlug(kind: 'movie' | 'series', slug: string): Promise<MediaItem | null> {
+  const cacheKey = `yangon-tv:media:${kind}:${slug}`;
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(cacheKey) || 'null') as { savedAt?: number; item?: MediaItem } | null;
+    if (cached?.item && Number(cached.savedAt) > Date.now() - 300000) return cached.item;
+  } catch {
+    // Ignore unavailable or malformed session storage and use the API.
+  }
   try {
     const response = await api.get(`/${kind === 'movie' ? 'movies' : 'shows'}/slug/${slug}`);
     const raw = unwrap<unknown>(response.data);
-    if (raw) return normalizeMediaItem(raw, kind);
+    if (raw) {
+      const item = normalizeMediaItem(raw, kind);
+      try { sessionStorage.setItem(cacheKey, JSON.stringify({ savedAt: Date.now(), item })); } catch { /* storage is optional */ }
+      return item;
+    }
   } catch {
     // Clean public URLs omit the backend-generated suffix, so resolve them against live catalog data below.
   }
