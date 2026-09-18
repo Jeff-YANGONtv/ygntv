@@ -674,12 +674,12 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
   return (
     <div className="page page-detail">
       <section className="detail-hero">
-        <img src={mediaUrl(item.backdrop, item.poster)} alt="" />
+        <img src={mediaUrl(item.backdrop, item.poster)} alt="" fetchPriority="high" decoding="async" width="1280" height="720" />
         <div className="detail-shade" />
         <div className="container detail-hero-content">
           <Link className="back-link detail-back-button" to={kind === 'movie' ? '/movies' : '/series'} aria-label={kind === 'movie' ? 'Back to Movies' : 'Back to Series'}><ArrowLeft size={16} /> <span>Back</span></Link>
           <div className="detail-layout">
-            <img className="detail-poster" src={mediaUrl(item.poster)} alt={`${item.title} poster`} />
+            <img className="detail-poster" src={mediaUrl(item.poster)} alt={`${item.title} poster`} decoding="async" width="342" height="513" />
             <div className="detail-copy">
               <div className="pills">
                 <Pill>{kind === 'movie' ? 'Movie' : 'Series'}</Pill>

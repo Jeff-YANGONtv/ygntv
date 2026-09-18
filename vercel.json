@@ -10,6 +10,18 @@
       ]
     },
     {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(yangon-tv-logo.jpg|yangon-tv-social-cover.png|icon-192.png|icon-512.png|apple-touch-icon.png|favicon.ico)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=2592000, stale-while-revalidate=86400" }
+      ]
+    },
+    {
       "source": "/(auth|profile|history|subscription|profiles/.*|movies/.*/watch|series/.*/watch)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }

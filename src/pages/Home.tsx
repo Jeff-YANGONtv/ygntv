@@ -58,17 +58,17 @@ export function Home() {
 function MediaBanner({ item, onWatch, featured = false }: { item: MediaItem; onWatch: () => void; featured?: boolean }) {
   const detailPath = mediaDetailPath(item);
   return <article className={`home-banner-card ${featured ? 'home-banner-card--featured' : ''}`}>
-    <img src={mediaUrl(item.backdrop, item.poster)} alt="" loading={featured ? 'eager' : 'lazy'} />
+    <img src={mediaUrl(item.backdrop, item.poster)} alt="" loading={featured ? 'eager' : 'lazy'} decoding="async" fetchPriority={featured ? 'high' : 'low'} width="1280" height="720" />
     <div className="home-banner-card__shade" />
     <div className="home-banner-card__content">{featured && <span className="eyebrow eyebrow--light"><Sparkles size={13} /> Yangon TV original pick</span>}<h2>{item.title}</h2><p>{item.synopsis || item.description}</p><div className="home-banner-card__meta"><span><Star size={12} fill="currentColor" /> {item.rating.toFixed(1)}</span><i /><span>{item.year || 'New release'}</span><i /><span>{item.kind === 'series' ? 'Series' : 'Movie'}</span></div><div className="home-banner-card__actions"><button className="button button--primary" type="button" onClick={onWatch}><Play size={15} fill="currentColor" /> Watch now</button><Link className="button button--glass" to={detailPath}>Details <ArrowRight size={15} /></Link></div></div>
   </article>;
 }
 
 function BlogBanner({ post }: { post: BlogPost }) {
-  return <Link className="home-banner-card home-banner-card--blog" to={blogPath(post)}><img src={mediaUrl(post.cover || post.image)} alt={post.cover_alt || post.title} loading="lazy" /><div className="home-banner-card__shade" /><div className="home-banner-card__content"><span className="eyebrow eyebrow--light">{post.topic || post.category} · {post.date}</span><h2>{post.title}</h2><p>{post.excerpt}</p><span className="button button--glass">Read story <ArrowRight size={15} /></span></div></Link>;
+  return <Link className="home-banner-card home-banner-card--blog" to={blogPath(post)}><img src={mediaUrl(post.cover || post.image)} alt={post.cover_alt || post.title} loading="lazy" decoding="async" width="1280" height="720" /><div className="home-banner-card__shade" /><div className="home-banner-card__content"><span className="eyebrow eyebrow--light">{post.topic || post.category} · {post.date}</span><h2>{post.title}</h2><p>{post.excerpt}</p><span className="button button--glass">Read story <ArrowRight size={15} /></span></div></Link>;
 }
 
 function AdBannerSlide({ ad }: { ad: AdBanner }) {
-  const image = <img src={mediaUrl(ad.content)} alt={ad.name} loading="lazy" />;
+  const image = <img src={mediaUrl(ad.content)} alt={ad.name} loading="lazy" decoding="async" width="1280" height="360" />;
   return ad.link_url ? <a className="home-banner-ad" href={ad.link_url} target="_blank" rel="noopener noreferrer">{image}</a> : <div className="home-banner-ad">{image}</div>;
 }
