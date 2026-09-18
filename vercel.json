@@ -8,13 +8,15 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" }
       ]
+    },
+    {
+      "source": "/(auth|profile|history|subscription|profiles/.*|movies/.*/watch|series/.*/watch)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
     }
   ],
   "rewrites": [
-    {
-      "source": "/sitemap.xml",
-      "destination": "https://khaki-yak-457838.hostingersite.com/api/public/sitemap.xml"
-    },
     {
       "source": "/api/:path*",
       "destination": "https://khaki-yak-457838.hostingersite.com/api/:path*"

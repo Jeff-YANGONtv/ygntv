@@ -1,4 +1,11 @@
 User-agent: *
 Allow: /
+Disallow: /auth
+Disallow: /profile
+Disallow: /history
+Disallow: /subscription
+Disallow: /profiles/
+Disallow: /movies/*/watch
+Disallow: /series/*/watch
 
 Sitemap: https://ygntv.org/sitemap.xml
