@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, ArrowLeft, CalendarDays, ChevronDown, Download, Expand, Maximize, Pause, Play, RotateCcw, RotateCw, Send, Settings2, Star, Tags, Users, Volume2, VolumeX } from 'lucide-react';
-import Hls from 'hls.js';
+import type Hls from 'hls.js';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { MediaCard, Pill, SectionHeading, EmptyState, ErrorState } from '../components/ui/Primitives';
@@ -187,6 +187,7 @@ const revealControls = () => {
     const video = videoRef.current;
     if (isUnsupportedWatchPage || !video || !resolvedSource) return;
     let hls: Hls | null = null;
+    let active = true;
     let timeoutId = 0;
     const markLoaded = () => {
       setIsLoading(false);
@@ -202,14 +203,14 @@ const revealControls = () => {
     setIsLoading(true);
     setIsPlaying(false);
     setCurrentTime(0);
-	setDuration(0);
-	setSpeedOpen(false);
-	setQualityOpen(false);
-	setQualityLevel(-1);
-	setQualityOptions([{ value: -1, label: 'Auto' }]);
-	setControlsVisible(true);
+    setDuration(0);
+    setSpeedOpen(false);
+    setQualityOpen(false);
+    setQualityLevel(-1);
+    setQualityOptions([{ value: -1, label: 'Auto' }]);
+    setControlsVisible(true);
     lastSavedPosition.current = 0;
-timeoutId = window.setTimeout(() => {
+    timeoutId = window.setTimeout(() => {
       setIsLoading(false);
       setPlayerError('The streaming server did not send video data. Please add a new direct MP4 or HLS URL.');
     }, 15000);
@@ -217,44 +218,53 @@ timeoutId = window.setTimeout(() => {
     video.addEventListener('canplay', markLoaded);
     video.addEventListener('error', showError);
 
-    if (isHls && Hls.isSupported()) {
-      hls = new Hls({ enableWorker: true, lowLatencyMode: false });
-	  hlsRef.current = hls;
-      hls.loadSource(resolvedSource);
-      hls.attachMedia(video);
-	  hls.on(Hls.Events.MANIFEST_PARSED, () => {
-		const levels = hls?.levels ?? [];
-		const options = levels.reduce<Array<{ value: number; label: 'SD' | 'HD' }>>((items, level, index) => {
-		  const label: 'SD' | 'HD' = level.height <= 480 ? 'SD' : 'HD';
-		  return items.some((item) => item.label === label) ? items : [...items, { value: index, label }];
-		}, []);
-		setQualityOptions([{ value: -1, label: 'Auto' }, ...options]);
-	  });
-      hls.on(Hls.Events.ERROR, (_event, data) => {
-        if (data.fatal) {
-          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls?.startLoad();
-          else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls?.recoverMediaError();
-          else showError();
-        }
-      });
-    } else if (!isHls || video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = resolvedSource;
-      video.load();
-    } else {
-      showError();
-    }
+    const setupPlayer = async () => {
+      if (isHls) {
+        const { default: HlsModule } = await import('hls.js');
+        if (!active) return;
+        if (HlsModule.isSupported()) {
+          hls = new HlsModule({ enableWorker: true, lowLatencyMode: false });
+          hlsRef.current = hls;
+          hls.loadSource(resolvedSource);
+          hls.attachMedia(video);
+          hls.on(HlsModule.Events.MANIFEST_PARSED, () => {
+            const levels = hls?.levels ?? [];
+            const options = levels.reduce<Array<{ value: number; label: 'SD' | 'HD' }>>((items, level, index) => {
+              const label: 'SD' | 'HD' = level.height <= 480 ? 'SD' : 'HD';
+              return items.some((item) => item.label === label) ? items : [...items, { value: index, label }];
+            }, []);
+            setQualityOptions([{ value: -1, label: 'Auto' }, ...options]);
+          });
+          hls.on(HlsModule.Events.ERROR, (_event, data) => {
+            if (data.fatal) {
+              if (data.type === HlsModule.ErrorTypes.NETWORK_ERROR) hls?.startLoad();
+              else if (data.type === HlsModule.ErrorTypes.MEDIA_ERROR) hls?.recoverMediaError();
+              else showError();
+            }
+          });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = resolvedSource;
+          video.load();
+        } else showError();
+      } else {
+        video.src = resolvedSource;
+        video.load();
+      }
+    };
+    void setupPlayer();
 
     return () => {
+      active = false;
       window.clearTimeout(timeoutId);
       video.removeEventListener('loadedmetadata', markLoaded);
       video.removeEventListener('canplay', markLoaded);
       video.removeEventListener('error', showError);
       hls?.destroy();
-	  hlsRef.current = null;
+      hlsRef.current = null;
       video.removeAttribute('src');
       video.load();
     };
-  }, [isUnsupportedWatchPage, resolvedSource]);
+  }, [isUnsupportedWatchPage, isHls, resolvedSource]);
 
   useEffect(() => {
 const video = videoRef.current;
