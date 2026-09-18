@@ -1,7 +1,7 @@
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Clipboard, Clock3, Copy, Crown, FileImage, Film, Headphones, LoaderCircle, LockKeyhole, MonitorPlay, RefreshCw, ScanText, ShieldCheck, Sparkles, UploadCloud, WalletCards, Wifi } from 'lucide-react';
+import { CheckCircle2, Clipboard, Clock3, Copy, Crown, FileImage, Film, Gift, Headphones, LoaderCircle, LockKeyhole, MonitorPlay, RefreshCw, ScanText, ShieldCheck, Sparkles, UploadCloud, WalletCards, Wifi } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { createPaymentOrder, getPremiumPlans, getPublicPaymentAccounts, submitOrderReceipt } from '../lib/api';
+import { createPaymentOrder, getPremiumPlans, getPublicPaymentAccounts, redeemMembershipCode, submitOrderReceipt } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import type { PaymentAccount, PaymentOrder, PremiumPlan } from '../lib/types';
 import '../styles/subscription-tabs.css';
@@ -65,6 +65,10 @@ export function SubscriptionPage() {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState('');
   const [countdown, setCountdown] = useState(5);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoBusy, setPromoBusy] = useState(false);
+  const [promoSuccess, setPromoSuccess] = useState('');
+  const [subscriptionTab, setSubscriptionTab] = useState<'plans' | 'promo'>('plans');
   const orderedPlans = useMemo(() => [...plans].sort((a, b) => a.access_months - b.access_months), [plans]);
 
   useEffect(() => {
@@ -120,12 +124,26 @@ export function SubscriptionPage() {
     finally { setBusy(false); }
   };
 
+  const redeemPromo = async () => {
+    if (!token) { openAuth('login', '/subscription'); return; }
+    if (!promoCode.trim() || promoBusy) return;
+    setPromoBusy(true); setError(''); setPromoSuccess('');
+    try {
+      const result = await redeemMembershipCode(promoCode);
+      setPromoCode('');
+      const validUntil = result.valid_until ? new Date(result.valid_until).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+      setPromoSuccess(`Promo code activated${validUntil ? ` · Premium valid until ${validUntil}` : ''}.`);
+    } catch (requestError) {
+      setError(errorMessage(requestError, 'This promo code is invalid or has already been redeemed.'));
+    } finally { setPromoBusy(false); }
+  };
+
   return <section className="subscription-page container">
     <div className="subscription-heading"><span className="eyebrow">Yangon TV membership</span><h1><em>Premium</em> Subscription</h1><p>{step === 'plans' ? 'Choose a plan, select a payment method, then submit your transfer receipt for review.' : 'Premium activates automatically after the Yangon TV team verifies your submitted receipt.'}</p></div>
     <div className="purchase-progress" aria-label="Subscription purchase progress"><span className={step === 'plans' ? 'purchase-progress__item purchase-progress__item--active' : 'purchase-progress__item purchase-progress__item--done'}><b>1</b>Plan</span><i /><span className={step === 'methods' ? 'purchase-progress__item purchase-progress__item--active' : step === 'payment' || step === 'confirmed' ? 'purchase-progress__item purchase-progress__item--done' : 'purchase-progress__item'}><b>2</b>Payment</span><i /><span className={step === 'payment' ? 'purchase-progress__item purchase-progress__item--active' : step === 'confirmed' ? 'purchase-progress__item purchase-progress__item--done' : 'purchase-progress__item'}><b>3</b>Receipt</span></div>
     {loading && <div className="profile-loading" role="status"><LoaderCircle className="spin" size={18} /> Loading current subscription options…</div>}
     {error && <div className="profile-alert subscription-alert" role="alert">{error}</div>}
-    {!loading && step === 'plans' && <PlanStep plans={orderedPlans} signedIn={Boolean(token)} onChoose={choosePlan} />}
+    {!loading && step === 'plans' && <><div className="subscription-tabs" role="tablist" aria-label="Subscription options"><button type="button" role="tab" aria-selected={subscriptionTab === 'plans'} className={subscriptionTab === 'plans' ? 'subscription-tab subscription-tab--active' : 'subscription-tab'} onClick={() => setSubscriptionTab('plans')}><Crown size={15} /> Membership plans</button><button type="button" role="tab" aria-selected={subscriptionTab === 'promo'} className={subscriptionTab === 'promo' ? 'subscription-tab subscription-tab--active' : 'subscription-tab'} onClick={() => setSubscriptionTab('promo')}><Gift size={15} /> Promo code redeem</button></div>{subscriptionTab === 'plans' ? <PlanStep plans={orderedPlans} signedIn={Boolean(token)} onChoose={choosePlan} /> : <section className="subscription-card-redeem" aria-labelledby="promo-code-title"><div className="subscription-stage__heading"><div><span className="profile-card-label">Have a promo code?</span><h2 id="promo-code-title">Redeem your membership code</h2><p>Enter a code from Yangon TV to activate Premium access instantly.</p></div><Gift size={22} /></div><div className="subscription-card-redeem__form"><input value={promoCode} onChange={(event) => setPromoCode(event.target.value.toUpperCase())} onKeyDown={(event) => { if (event.key === 'Enter') redeemPromo(); }} placeholder="Enter promo code" aria-label="Promo code" autoComplete="off" /><button className="button button--primary" type="button" onClick={redeemPromo} disabled={promoBusy || !promoCode.trim()}>{promoBusy ? <><LoaderCircle className="spin" size={16} /> Redeeming…</> : 'Redeem code'}</button></div>{!token && <small className="subscription-redeem-note">Sign in is required to redeem a code.</small>}{promoSuccess && <p className="subscription-card-success" role="status"><CheckCircle2 size={16} /> {promoSuccess}</p>}</section>}</>}
     {!loading && step === 'methods' && plan && <MethodStep plan={plan} accounts={accounts} busy={busy} onChoose={chooseAccount} onBack={() => setStep('plans')} />}
     {!loading && step === 'payment' && plan && account && order && <PaymentStep plan={plan} account={account} order={order} preview={preview} reference={reference} scanning={scanning} busy={busy} copied={copied} onCopy={copy} onUpload={upload} onReference={setReference} onSubmit={submit} />}
     {!loading && step === 'confirmed' && <Confirmation seconds={countdown} onHome={() => navigate('/')} />}
