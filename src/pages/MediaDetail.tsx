@@ -509,7 +509,9 @@ function ReviewTabs({
   const [selectedEpisodeNumber, setSelectedEpisodeNumber] = useState<number | null>(null);
   const seasons = [...(item.seasons ?? [])].sort((left, right) => left.number - right.number);
   const selectedSeason = seasons.length === 1 ? seasons[0] : seasons.find((season) => season.number === selectedSeasonNumber);
-  const selectedEpisode = selectedSeason?.episodes.find((episode) => episode.number === selectedEpisodeNumber);
+  const defaultEpisodeNumber = seasons.length === 1 ? selectedSeason?.episodes[0]?.number ?? null : null;
+  const effectiveSelectedEpisodeNumber = selectedEpisodeNumber ?? defaultEpisodeNumber;
+  const selectedEpisode = selectedSeason?.episodes.find((episode) => episode.number === effectiveSelectedEpisodeNumber);
   const telegramPostUrl = kind === 'series' ? selectedEpisode?.telegramPostUrl : item.telegramPostUrl;
   const needsEpisodeSelection = kind === 'series' && !selectedEpisode;
   const title = kind === 'movie' ? 'movie' : 'series';
@@ -705,7 +707,6 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
       <section className="container detail-section detail-extra-grid">
         <div className="detail-extra-card"><span className="eyebrow">Cast</span>{item.casts?.length ? <div className="cast-list">{item.casts.map((cast) => <span className="cast-chip" key={cast}>{cast}</span>)}</div> : <p>No cast information available.</p>}</div>
       </section>
-      {kind === 'series' && <section className="container detail-section"><SeriesEpisodes item={item} /></section>}
       <section className="container detail-section"><SectionHeading eyebrow="You might also like" title="More to discover" />{related.length ? <div className="media-grid">{related.map((entry) => <MediaCard key={entry.id} item={entry} />)}</div> : <EmptyState title="No related titles" copy="Explore the catalog for more stories." />}</section>
     </div>
   );
