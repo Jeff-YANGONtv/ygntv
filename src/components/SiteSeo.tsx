@@ -4,7 +4,7 @@ import { activeSiteOrigin } from '../lib/siteOrigin';
 
 const DEFAULT_TITLE = 'Yangon TV | မြန်မာစာတန်းထိုး Movies, Series & Entertainment';
 const DEFAULT_DESCRIPTION = 'Yangon TV မှာ မြန်မာစာတန်းထိုး Movies, Series, Blog နဲ့ Entertainment content တွေကို တစ်နေရာတည်းမှာ ရှာဖွေကြည့်ရှုနိုင်ပါသည်။';
-const SOCIAL_IMAGE = '/yangon-tv-social-cover.png';
+const SOCIAL_IMAGE = '/yangon-tv-social-cover.webp';
 
 type SeoConfig = {
   title: string;
@@ -107,6 +107,7 @@ export function SiteSeo() {
       setMeta('property', 'og:site_name', 'Yangon TV'),
       setMeta('property', 'og:locale', 'my_MM'),
       setMeta('property', 'og:image', `${activeSiteOrigin()}${SOCIAL_IMAGE}`),
+      setMeta('property', 'og:image:type', 'image/webp'),
       setMeta('property', 'og:image:alt', 'Yangon TV — Movies, Series, Entertainment'),
       setMeta('name', 'twitter:card', 'summary_large_image'),
       setMeta('name', 'twitter:title', seo.title),
