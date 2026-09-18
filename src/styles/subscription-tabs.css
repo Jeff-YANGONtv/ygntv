@@ -55,3 +55,30 @@
 
 
 .subscription-tabs{margin:28px 0 18px;max-width:560px}.subscription-tabs .subscription-tab{align-items:center;justify-content:center}.subscription-tabs .subscription-tab svg{flex:none}
+
+@media (max-width:640px){
+  .subscription-page{padding:42px 14px 120px}
+  .subscription-heading h1{font-size:clamp(38px,12vw,52px);line-height:.98}
+  .subscription-heading p{font-size:13px;line-height:1.6}
+  .purchase-progress{gap:7px;margin:22px 0 18px}
+  .purchase-progress__item{font-size:10px;gap:5px}
+  .purchase-progress__item b{height:25px;width:25px}
+  .subscription-tabs{margin:20px 0 14px;max-width:none;width:100%}
+  .subscription-tab{font-size:11px;gap:5px;padding:10px 7px}
+  .subscription-stage{border-radius:16px;padding:18px}
+  .subscription-stage__heading{gap:10px;margin-bottom:18px}
+  .subscription-stage__heading h2{font-size:22px;line-height:1.12}
+  .subscription-stage__heading p{font-size:12px;line-height:1.55}
+  .membership-plans{grid-template-columns:1fr;gap:12px}
+  .membership-plan{min-height:0;padding:18px;border-radius:18px}
+  .membership-plan__top{margin-bottom:18px}
+  .membership-plan>strong{font-size:24px}
+  .subscription-card-redeem{margin:0;padding:18px}
+  .subscription-card-redeem .subscription-stage__heading h2{font-size:21px}
+  .subscription-card-redeem__form input{font-size:16px;min-height:46px}
+  .subscription-card-redeem__form .button{min-height:46px}
+  .payment-layout{gap:12px}
+  .payment-panel{border-radius:16px;padding:18px}
+  .payment-panel .subscription-stage__heading h2{font-size:21px}
+  .receipt-submit{width:100%}
+}
