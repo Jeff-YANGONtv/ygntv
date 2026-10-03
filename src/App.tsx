@@ -5,8 +5,7 @@ import { SiteSeo } from './components/SiteSeo';
 
 const Home = lazy(() => import('./pages/Home').then(({ Home }) => ({ default: Home })));
 const CatalogPage = lazy(() => import('./pages/Catalog').then(({ CatalogPage }) => ({ default: CatalogPage })));
-const MediaDetail = lazy(() => import('./pages/MediaDetail').then(({ MediaDetail }) => ({ default: MediaDetail })));
-const WatchPage = lazy(() => import('./pages/MediaDetail').then(({ WatchPage }) => ({ default: WatchPage })));
+const ComingSoonPage = lazy(() => import('./pages/ComingSoon').then(({ ComingSoonPage }) => ({ default: ComingSoonPage })));
 const BlogPage = lazy(() => import('./pages/Editorial').then(({ BlogPage }) => ({ default: BlogPage })));
 const BlogDetail = lazy(() => import('./pages/Editorial').then(({ BlogDetail }) => ({ default: BlogDetail })));
 const LinksPage = lazy(() => import('./pages/Editorial').then(({ LinksPage }) => ({ default: LinksPage })));
@@ -17,7 +16,6 @@ const SubscriptionPage = lazy(() => import('./pages/Subscription').then(({ Subsc
 const PublicProfilePage = lazy(() => import('./pages/PublicProfile').then(({ PublicProfilePage }) => ({ default: PublicProfilePage })));
 const PrivacyPolicyPage = lazy(() => import('./pages/Policies').then(({ PrivacyPolicyPage }) => ({ default: PrivacyPolicyPage })));
 const TermsOfServicePage = lazy(() => import('./pages/Policies').then(({ TermsOfServicePage }) => ({ default: TermsOfServicePage })));
-const AuthForm = lazy(() => import('./lib/auth').then(({ AuthForm }) => ({ default: AuthForm })));
 const GoogleCallback = lazy(() => import('./lib/auth').then(({ GoogleCallback }) => ({ default: GoogleCallback })));
 
 function AppLoadingFallback() {
@@ -25,5 +23,36 @@ function AppLoadingFallback() {
 }
 
 export default function App() {
-  return <BrowserRouter><SiteSeo /><Suspense fallback={<AppLoadingFallback />}><Routes><Route element={<AppLayout />}><Route path="/" element={<Home />} /><Route path="/auth" element={<div className="auth-page"><AuthForm /></div>} /><Route path="/auth/google/callback" element={<GoogleCallback />} /><Route path="/movies" element={<CatalogPage kind="movie" />} /><Route path="/movies/:slug" element={<MediaDetail kind="movie" />} /><Route path="/movies/:slug/watch" element={<WatchPage kind="movie" />} /><Route path="/series" element={<CatalogPage kind="series" />} /><Route path="/series/:slug" element={<MediaDetail kind="series" />} /><Route path="/series/:slug/watch" element={<WatchPage kind="series" />} /><Route path="/blog" element={<BlogPage />} /><Route path="/blog/:postRef/:slug" element={<BlogDetail />} /><Route path="/blog/:slug" element={<BlogDetail />} /><Route path="/links" element={<LinksPage />} /><Route path="/about" element={<AboutPage />} /><Route path="/privacy-policy" element={<PrivacyPolicyPage />} /><Route path="/terms-of-service" element={<TermsOfServicePage />} /><Route path="/profile" element={<ProfilePage />} /><Route path="/history" element={<UserHistoryPage />} /><Route path="/profiles/:id" element={<PublicProfilePage />} /><Route path="/subscription" element={<SubscriptionPage />} /><Route path="*" element={<Navigate to="/" replace />} /></Route></Routes></Suspense></BrowserRouter>;
+  return (
+    <BrowserRouter>
+      <SiteSeo />
+      <Suspense fallback={<AppLoadingFallback />}>
+        <Routes>
+          <Route path="/auth" element={<ComingSoonPage />} />
+          <Route path="/movies/:slug" element={<ComingSoonPage />} />
+          <Route path="/movies/:slug/watch" element={<ComingSoonPage />} />
+          <Route path="/series/:slug" element={<ComingSoonPage />} />
+          <Route path="/series/:slug/watch" element={<ComingSoonPage />} />
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/auth/google/callback" element={<GoogleCallback />} />
+            <Route path="/movies" element={<CatalogPage kind="movie" />} />
+            <Route path="/series" element={<CatalogPage kind="series" />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:postRef/:slug" element={<BlogDetail />} />
+            <Route path="/blog/:slug" element={<BlogDetail />} />
+            <Route path="/links" element={<LinksPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/history" element={<UserHistoryPage />} />
+            <Route path="/profiles/:id" element={<PublicProfilePage />} />
+            <Route path="/subscription" element={<SubscriptionPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
 }
