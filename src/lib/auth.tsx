@@ -211,6 +211,11 @@ export function GoogleCallback() {
 
 export function AuthDialog() {
   const { dialog, closeAuth } = useAuth();
-  if (!dialog.open) return null;
-  return <div className="auth-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeAuth(); }}><div className="auth-dialog" role="dialog" aria-modal="true" aria-label="Sign in to continue"><button className="icon-button auth-dialog-close" type="button" onClick={closeAuth} aria-label="Close authentication dialog"><X size={19} /></button><div className="auth-dialog-mark"><CheckCircle2 size={20} /></div><AuthForm initialMode={dialog.mode} redirectTo={dialog.redirectTo} /></div></div>;
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!dialog.open) return;
+    closeAuth();
+    navigate('/auth');
+  }, [dialog.open, closeAuth, navigate]);
+  return null;
 }
