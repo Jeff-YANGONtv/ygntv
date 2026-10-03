@@ -37,7 +37,7 @@ function pageSeo(pathname: string): SeoConfig {
   const siteOrigin = activeSiteOrigin();
   const isComingSoonRoute = pathname === '/auth' || /^\/(?:movies|series)\/[^/]+(?:\/watch)?\/?$/.test(pathname);
   if (isComingSoonRoute) {
-    return { title: 'မကြာမီ ပြန်လာမည် | Yangon TV', description: '၂၀၂၇ ခုနှစ်၊ ဇန်နဝါရီ ၁ ရက်တွင် YANGON TV အတွေ့အကြုံသစ်နှင့် ပြန်လည်ဆုံတွေ့ကြပါမည်။', canonical: `${siteOrigin}${pathname}`, index: false, type: 'website' };
+    return { title: 'COMING SOON', description: 'COMING SOON', canonical: `${siteOrigin}${pathname}`, index: false, type: 'website' };
   }
   const publicPages: Record<string, Omit<SeoConfig, 'canonical' | 'index'>> = {
     '/': {

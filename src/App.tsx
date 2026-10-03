@@ -2,10 +2,10 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from './layouts/AppLayout';
 import { SiteSeo } from './components/SiteSeo';
+import { ComingSoonPage } from './pages/ComingSoon';
 
 const Home = lazy(() => import('./pages/Home').then(({ Home }) => ({ default: Home })));
 const CatalogPage = lazy(() => import('./pages/Catalog').then(({ CatalogPage }) => ({ default: CatalogPage })));
-const ComingSoonPage = lazy(() => import('./pages/ComingSoon').then(({ ComingSoonPage }) => ({ default: ComingSoonPage })));
 const BlogPage = lazy(() => import('./pages/Editorial').then(({ BlogPage }) => ({ default: BlogPage })));
 const BlogDetail = lazy(() => import('./pages/Editorial').then(({ BlogDetail }) => ({ default: BlogDetail })));
 const LinksPage = lazy(() => import('./pages/Editorial').then(({ LinksPage }) => ({ default: LinksPage })));
