@@ -17,8 +17,8 @@ const SubscriptionPage = lazy(() => import('./pages/Subscription').then(({ Subsc
 const PublicProfilePage = lazy(() => import('./pages/PublicProfile').then(({ PublicProfilePage }) => ({ default: PublicProfilePage })));
 const PrivacyPolicyPage = lazy(() => import('./pages/Policies').then(({ PrivacyPolicyPage }) => ({ default: PrivacyPolicyPage })));
 const TermsOfServicePage = lazy(() => import('./pages/Policies').then(({ TermsOfServicePage }) => ({ default: TermsOfServicePage })));
-const AuthForm = lazy(() => import('./lib/auth').then(({ AuthForm }) => ({ default: AuthForm })));
-const GoogleCallback = lazy(() => import('./lib/auth').then(({ GoogleCallback }) => ({ default: GoogleCallback })));
+const AuthForm = lazy(() => import('./lib/auth-ui').then(({ AuthForm }) => ({ default: AuthForm })));
+const GoogleCallback = lazy(() => import('./lib/auth-ui').then(({ GoogleCallback }) => ({ default: GoogleCallback })));
 
 function AppLoadingFallback() {
   return <main className="app-loading" aria-live="polite"><span className="app-loading__brand">YANGON <strong>TV</strong></span><span className="app-loading__message">Loading Yangon TV…</span></main>;
