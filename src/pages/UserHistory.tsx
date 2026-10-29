@@ -14,7 +14,15 @@ function formatDate(value?: string | null): string {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? 'Date unavailable' : new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
 }
-function watchPath(entry: TvWatchHistoryEntry): string { return mediaDetailPath({ kind: entry.content.kind === 'movie' ? 'movie' : 'series', slug: entry.content.slug }); }
+function watchPath(entry: TvWatchHistoryEntry): string {
+  const kind = entry.content_type === 'movie' ? 'movie' : 'series';
+  const detailPath = mediaDetailPath({ kind, slug: entry.content.slug });
+  const params = new URLSearchParams();
+  if (kind === 'series') params.set('episodeId', String(entry.content_id));
+  if (!entry.completed && entry.position_seconds > 0) params.set('resumeAt', String(Math.floor(entry.position_seconds)));
+  const query = params.toString();
+  return `${detailPath}/watch${query ? `?${query}` : ''}`;
+}
 function watchProgress(entry: TvWatchHistoryEntry): string {
   if (entry.completed) return 'Completed';
   if (!entry.duration_seconds) return 'Watched';

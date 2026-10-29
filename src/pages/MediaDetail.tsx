@@ -1,16 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, ArrowLeft, CalendarDays, ChevronDown, Download, Expand, Maximize, Pause, Play, RotateCcw, RotateCw, Send, Settings2, Star, Tags, Users, Volume2, VolumeX } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Download, Expand, Maximize, Pause, Play, RotateCcw, RotateCw, Send, Settings2, Star, Tags, Users, Volume2, VolumeX } from 'lucide-react';
 import type Hls from 'hls.js';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { MediaCard, Pill, SectionHeading, EmptyState, ErrorState } from '../components/ui/Primitives';
-import { getMediaBySlug, getMovies, getSeries, getTvPlayback, mediaPlaybackUrl, mediaUrl, saveTvViewingProgress } from '../lib/api';
+import { getMediaBySlug, getMovies, getSeries, getTvPlayback, getTvWatchHistory, mediaPlaybackUrl, mediaUrl, saveTvViewingProgress } from '../lib/api';
 import { mediaDetailPath, mediaWatchPath, publicMediaSlug } from '../lib/paths';
 import { activeSiteOrigin } from '../lib/siteOrigin';
 import type { MediaItem, TvPlaybackPayload, TvPlaybackSource } from '../lib/types';
+import '../styles/episode-navigation.css';
 
 function safeFilename(title: string): string {
   return `${title.replace(/[^a-z0-9ก-๙\u1000-\u109f]+/gi, '-').replace(/^-|-$/g, '') || 'yangon-tv-video'}.mp4`;
+}
+
+function formatPlaybackTime(value: number): string {
+  const total = Math.max(0, Math.floor(Number.isFinite(value) ? value : 0));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+  return hours ? `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}` : `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
 function DownloadAction({ links, title, canDownload = true, onRequireAuth }: { links: string[]; title: string; canDownload?: boolean; onRequireAuth?: () => void }) {
@@ -126,7 +135,7 @@ function providerEmbedUrl(value: string): string | null {
   }
 }
 
-function VideoPlayer({ source, playbackSource, poster, title, historyContentType, historyContentId }: { source: string; playbackSource?: TvPlaybackSource; poster?: string; title: string; historyContentType?: 'movie' | 'episode'; historyContentId?: number }) {
+function VideoPlayer({ source, playbackSource, poster, title, historyContentType, historyContentId, initialPosition = 0 }: { source: string; playbackSource?: TvPlaybackSource; poster?: string; title: string; historyContentType?: 'movie' | 'episode'; historyContentId?: number; initialPosition?: number }) {
 const videoRef = useRef<HTMLVideoElement>(null);
 const playerRef = useRef<HTMLDivElement>(null);
   const [playerError, setPlayerError] = useState('');
@@ -278,6 +287,23 @@ const revealControls = () => {
       video.load();
     };
   }, [isUnsupportedWatchPage, isHls, resolvedSource]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || embedUrl || isUnsupportedWatchPage || initialPosition <= 0) return;
+    const resume = () => {
+      if (!Number.isFinite(video.duration) || video.duration <= 0) return;
+      const target = Math.min(initialPosition, Math.max(0, video.duration - 1));
+      video.currentTime = target;
+      setCurrentTime(target);
+      lastSavedPosition.current = target;
+    };
+    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) resume();
+    else {
+      video.addEventListener('loadedmetadata', resume);
+      return () => video.removeEventListener('loadedmetadata', resume);
+    }
+  }, [embedUrl, initialPosition, isUnsupportedWatchPage, resolvedSource]);
 
   useEffect(() => {
 const video = videoRef.current;
@@ -789,6 +815,8 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const [searchParams] = useSearchParams();
   const selectedSeasonNumber = Number(searchParams.get('season'));
   const selectedEpisodeNumber = Number(searchParams.get('episode'));
+  const selectedEpisodeId = searchParams.get('episodeId') || '';
+  const resumeAt = Math.max(0, Number(searchParams.get('resumeAt')) || 0);
   const downloadMode = searchParams.get('action') === 'download';
   const [item, setItem] = useState<MediaItem | null>(null);
   const [sourceIndex, setSourceIndex] = useState(0);
@@ -797,12 +825,19 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const [playback, setPlayback] = useState<TvPlaybackPayload | null>(null);
   const [playbackLoading, setPlaybackLoading] = useState(false);
   const [playbackError, setPlaybackError] = useState('');
+  const [resumeProgress, setResumeProgress] = useState<{ key: string; seconds: number } | null>(null);
 
-  const selectedEpisode = useMemo(() => kind === 'series'
-    ? item?.seasons?.flatMap((season) => season.episodes.map((episode) => ({ season, episode }))).find(({ season, episode }) => season.number === selectedSeasonNumber && episode.number === selectedEpisodeNumber)?.episode
-    : undefined, [item, kind, selectedEpisodeNumber, selectedSeasonNumber]);
-  const historyContentType = selectedEpisode ? 'episode' : 'movie';
-  const historyContentId = Number(selectedEpisode?.id ?? item?.id);
+  const episodeSequence = useMemo(() => [...(item?.seasons ?? [])]
+    .sort((left, right) => left.number - right.number)
+    .flatMap((season) => [...season.episodes].sort((left, right) => left.number - right.number).map((episode) => ({ season, episode }))), [item]);
+  const selectedEpisodeEntry = episodeSequence.find(({ season, episode }) => selectedEpisodeId
+    ? String(episode.id) === selectedEpisodeId
+    : season.number === selectedSeasonNumber && episode.number === selectedEpisodeNumber);
+  const selectedEpisode = selectedEpisodeEntry?.episode;
+  const historyContentType = kind === 'series' ? 'episode' : 'movie';
+  const historyContentId = Number(kind === 'series' ? selectedEpisode?.id : item?.id);
+  const historyKey = `${historyContentType}:${historyContentId}`;
+  const resumePosition = resumeProgress?.key === historyKey ? resumeProgress.seconds : 0;
 
   useEffect(() => {
     if (!loading && !user) openAuth('login', `${window.location.pathname}${window.location.search}`);
@@ -816,7 +851,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       if (mounted) {
         setItem(value);
         setSourceIndex(0);
-        if (value && slug !== publicMediaSlug(value.slug)) navigate(mediaWatchPath(value, { season: selectedSeasonNumber, episode: selectedEpisodeNumber }), { replace: true });
+        if (value && slug !== publicMediaSlug(value.slug)) navigate(`${mediaDetailPath(value)}/watch${window.location.search}`, { replace: true });
       }
     }).catch(() => {
       if (mounted) setError(true);
@@ -824,7 +859,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       if (mounted) setLoading(false);
     });
     return () => { mounted = false; };
-  }, [kind, navigate, selectedEpisodeNumber, selectedSeasonNumber, slug]);
+  }, [kind, navigate, slug]);
 
   useEffect(() => {
     if (loading || !item || !user) return;
@@ -853,6 +888,18 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
     return () => { mounted = false; };
   }, [historyContentId, historyContentType, item, kind, loading, selectedEpisode, user]);
 
+  useEffect(() => {
+    if (loading || !item || !user || (kind === 'series' && !selectedEpisode)) return;
+    let mounted = true;
+    setResumeProgress({ key: historyKey, seconds: resumeAt });
+    if (resumeAt > 0) return () => { mounted = false; };
+    getTvWatchHistory().then(({ data }) => {
+      const saved = data.find((entry) => entry.content_type === historyContentType && String(entry.content_id) === String(historyContentId));
+      if (mounted && saved && !saved.completed) setResumeProgress({ key: historyKey, seconds: Math.max(0, saved.position_seconds) });
+    }).catch(() => undefined);
+    return () => { mounted = false; };
+  }, [historyContentId, historyContentType, historyKey, item, kind, loading, resumeAt, selectedEpisode, user]);
+
   if (loading) return <div className="container page-loading"><div className="skeleton skeleton-player" /></div>;
   if (error || !item) return <div className="container page-state"><ErrorState onRetry={() => window.location.reload()} /></div>;
 
@@ -865,6 +912,10 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       ? playback.playback.hls_url
       : currentSource;
   const currentTitle = playback?.title || (selectedEpisode ? `${item.title} — ${selectedEpisode.title}` : item.title);
+  const currentEpisodeIndex = selectedEpisodeEntry ? episodeSequence.findIndex(({ episode }) => String(episode.id) === String(selectedEpisodeEntry.episode.id)) : -1;
+  const previousEpisode = currentEpisodeIndex > 0 ? episodeSequence[currentEpisodeIndex - 1] : undefined;
+  const nextEpisode = currentEpisodeIndex >= 0 ? episodeSequence[currentEpisodeIndex + 1] : undefined;
+  const embeddedSource = playback?.playback?.mode === 'custom_embed' || Boolean(currentSource && providerEmbedUrl(mediaUrl(currentSource)));
 
 
   return (
@@ -872,14 +923,19 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       <section className="container watch-top">
         <Link className="back-link watch-back-link" to={mediaDetailPath(item)}><ArrowLeft size={16} /> <span>Back to details</span></Link>
         <div className="player-shell">
-          {downloadMode ? (playback?.access.access === 'premium' ? <DownloadPanel links={downloadLinks} title={currentTitle} canDownload={Boolean(user)} onRequireAuth={() => openAuth('login', `${window.location.pathname}${window.location.search}`)} /> : <PremiumGate onJoin={() => navigate('/subscription')} />) : playbackLoading ? <div className="player-placeholder player-empty"><div className="player-play"><Play size={26} fill="currentColor" /></div><span>Checking playback access…</span><small>Yangon TV is confirming your viewing entitlement.</small></div> : playback && playback.access.access !== 'premium' ? <PremiumGate onJoin={() => navigate('/subscription')} /> : <VideoPlayer source={resolvedPlaybackSource} playbackSource={playback?.playback} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} historyContentType={user ? historyContentType : undefined} historyContentId={user && Number.isFinite(historyContentId) ? historyContentId : undefined} />}
+          {downloadMode ? (playback?.access.access === 'premium' ? <DownloadPanel links={downloadLinks} title={currentTitle} canDownload={Boolean(user)} onRequireAuth={() => openAuth('login', `${window.location.pathname}${window.location.search}`)} /> : <PremiumGate onJoin={() => navigate('/subscription')} />) : playbackLoading ? <div className="player-placeholder player-empty"><div className="player-play"><Play size={26} fill="currentColor" /></div><span>Checking playback access…</span><small>Yangon TV is confirming your viewing entitlement.</small></div> : playback && playback.access.access !== 'premium' ? <PremiumGate onJoin={() => navigate('/subscription')} /> : <VideoPlayer source={resolvedPlaybackSource} playbackSource={playback?.playback} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} historyContentType={user ? historyContentType : undefined} historyContentId={user && Number.isFinite(historyContentId) ? historyContentId : undefined} initialPosition={resumePosition} />}
         </div>
         {sources.length > 1 && <div className="player-sources" aria-label="Video sources">{sources.map((_, index) => <button key={index} className={index === sourceIndex ? 'player-source player-source--active' : 'player-source'} onClick={() => setSourceIndex(index)}>Source {index + 1}</button>)}</div>}
         <div className="watch-heading">
           <div><span className="eyebrow">Now watching</span><h1>{currentTitle}</h1></div>
         </div>
+        {kind === 'series' && selectedEpisode && selectedEpisodeEntry && <nav className="watch-episode-nav" aria-label="Episode navigation">
+          {previousEpisode ? <Link className="watch-episode-nav__link" to={mediaWatchPath(item, { season: previousEpisode.season.number, episode: previousEpisode.episode.number })}><ChevronLeft size={16} /><span><small>Previous episode</small><b>{previousEpisode.episode.title}</b></span></Link> : <span className="watch-episode-nav__link watch-episode-nav__link--disabled" aria-disabled="true"><ChevronLeft size={16} /><span><small>Previous episode</small><b>First episode</b></span></span>}
+          <span className="watch-episode-nav__position">Season {selectedEpisodeEntry.season.number} · Episode {selectedEpisode.number} of {episodeSequence.length}</span>
+          {nextEpisode ? <Link className="watch-episode-nav__link watch-episode-nav__link--next" to={mediaWatchPath(item, { season: nextEpisode.season.number, episode: nextEpisode.episode.number })}><span><small>Next episode</small><b>{nextEpisode.episode.title}</b></span><ChevronRight size={16} /></Link> : <span className="watch-episode-nav__link watch-episode-nav__link--disabled watch-episode-nav__link--next" aria-disabled="true"><span><small>Next episode</small><b>Last episode</b></span><ChevronRight size={16} /></span>}
+        </nav>}
       </section>
-      <section className="container watch-lower"><div className="watch-note"><Users size={18} /><div><b>{playback?.access.access === 'premium' ? 'Premium access active.' : 'Make it a Yangon TV night.'}</b><p>{playbackError || (resolvedPlaybackSource ? 'Choose the video controls above to start playback.' : 'Premium membership is required to watch this title.')}</p></div></div></section>
+      <section className="container watch-lower"><div className="watch-note"><Users size={18} /><div><b>{playback?.access.access === 'premium' ? 'Premium access active.' : 'Make it a Yangon TV night.'}</b><p>{playbackError || (resumePosition > 0 ? embeddedSource ? `Saved progress at ${formatPlaybackTime(resumePosition)}. Use the source player controls to seek.` : `The player will resume from ${formatPlaybackTime(resumePosition)} when you press play.` : resolvedPlaybackSource ? 'Choose the video controls above to start playback.' : 'Premium membership is required to watch this title.')}</p></div></div></section>
     </div>
   );
 }
