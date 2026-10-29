@@ -456,7 +456,7 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
   const [openSeasons, setOpenSeasons] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    setOpenSeasons(Object.fromEntries(seasons.map((season) => [String(season.id), true])));
+    setOpenSeasons(Object.fromEntries(seasons.map((season, index) => [String(season.id), index === 0])));
   }, [item.id]);
 
   if (!seasons.length) {
@@ -759,6 +759,12 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
           </div>
         </div>
       </section>
+      {kind === 'series' && (
+        <section id="episode-guide" className="container detail-section" aria-label="Episode guide">
+          <SectionHeading eyebrow="Series episodes" title="Episode guide" />
+          <SeriesEpisodes item={item} />
+        </section>
+      )}
       <section className="container detail-section detail-extra-grid">
         <div className="detail-extra-card"><span className="eyebrow">Cast</span>{item.casts?.length ? <div className="cast-list">{item.casts.map((cast) => <span className="cast-chip" key={cast}>{cast}</span>)}</div> : <p>No cast information available.</p>}</div>
       </section>
