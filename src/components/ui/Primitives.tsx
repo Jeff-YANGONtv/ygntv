@@ -32,8 +32,8 @@ export function SearchField({ value, onChange, onSubmit, placeholder = 'Search t
 }
 
 export function Pill({ children, active = false, onClick }: { children: React.ReactNode; active?: boolean; onClick?: () => void }) {
-  const Component = onClick ? 'button' : 'span';
-  return <Component className={`pill ${active ? 'pill--active' : ''}`} onClick={onClick}>{children}</Component>;
+  const className = `pill ${active ? 'pill--active' : ''}`;
+  return onClick ? <button className={className} type="button" aria-pressed={active} onClick={onClick}>{children}</button> : <span className={className}>{children}</span>;
 }
 
 export function Pagination({ page, lastPage, onChange }: { page: number; lastPage: number; onChange: (page: number) => void }) {
