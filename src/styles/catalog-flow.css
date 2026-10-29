@@ -1,0 +1,4 @@
+.catalog-options { align-items: center; display: flex; flex-wrap: wrap; gap: 16px; margin-top: 18px; }
+.catalog-sort { align-items: center; color: var(--muted); display: flex; font-size: 12px; gap: 10px; }
+.catalog-sort select { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font: inherit; min-height: 44px; padding: 8px 12px; }
+.catalog-sort select:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
