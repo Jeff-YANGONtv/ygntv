@@ -1,1 +1,31 @@
-.watch-episode-nav{align-items:center;border-top:1px solid var(--line);display:grid;gap:16px;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);margin-top:20px;padding-top:16px}.watch-episode-nav__link{align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;color:var(--text);display:flex;gap:10px;max-width:100%;min-height:54px;padding:9px 12px;text-decoration:none;transition:border-color .18s ease,background .18s ease}.watch-episode-nav__link:hover{background:var(--surface-2);border-color:rgba(229,69,79,.5)}.watch-episode-nav__link span{display:grid;min-width:0}.watch-episode-nav__link small{color:var(--muted);font-size:10px}.watch-episode-nav__link b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.watch-episode-nav__link--disabled{cursor:default;opacity:.5}.watch-episode-nav__link--next{justify-self:end;text-align:right}.watch-episode-nav__position{color:var(--muted);font-size:11px;text-align:center;white-space:nowrap}@media(max-width:640px){.watch-episode-nav{gap:8px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin-top:15px;padding-top:12px}.watch-episode-nav__position{grid-column:1/-1;grid-row:1}.watch-episode-nav__link{gap:6px;min-height:49px;padding:8px}.watch-episode-nav__link b{font-size:11px}.watch-episode-nav__link--next{justify-self:stretch;justify-content:flex-end}}
+.series-source-picker__field { display: grid; gap: 6px; min-width: 0; }
+.series-source-picker__field > span { color: var(--muted); font-size: 11px; font-weight: 700; }
+.series-source-picker__field select { background: var(--surface-3); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font: inherit; font-size: 13px; min-height: 44px; padding: 9px 11px; width: 100%; }
+.series-source-picker__field select:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.series-source-picker__empty { color: var(--muted); font-size: 13px; margin: 0; }
+.season-list .episode-row { gap: 12px; grid-template-columns: 80px 24px minmax(0, 1fr) 36px; min-height: 65px; }
+.season-list .episode-row img { border-radius: 6px; height: 47px; object-fit: cover; width: 80px; }
+.season-list .episode-title { min-width: 0; }
+.season-list .episode-title small { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.episode-availability { color: var(--muted); font-size: 10px; text-align: right; }
+.watch-episode-nav { align-items: center; border-top: 1px solid var(--line); display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); margin-top: 20px; padding-top: 16px; }
+.watch-episode-nav__link { align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; color: var(--text); display: flex; gap: 10px; max-width: 100%; min-height: 54px; padding: 9px 12px; text-decoration: none; transition: border-color .18s ease, background .18s ease; }
+.watch-episode-nav__link:hover { background: var(--surface-2); border-color: rgba(229,69,79,.5); }
+.watch-episode-nav__link span { display: grid; min-width: 0; }
+.watch-episode-nav__link small { color: var(--muted); font-size: 10px; }
+.watch-episode-nav__link b { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.watch-episode-nav__link--disabled { cursor: default; opacity: .5; }
+.watch-episode-nav__link--next { justify-self: end; text-align: right; }
+.watch-episode-nav__position { color: var(--muted); font-size: 11px; text-align: center; white-space: nowrap; }
+.player-empty .button { margin-top: 12px; }
+@media (max-width: 640px) {
+  .season-list .episode-row { gap: 8px; grid-template-columns: 64px 20px minmax(0, 1fr) 30px; }
+  .season-list .episode-row img { height: 44px; width: 64px; }
+  .season-list .episode-title b { font-size: 13px; }
+  .season-list .episode-title small { font-size: 11px; }
+  .watch-episode-nav { gap: 8px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin-top: 15px; padding-top: 12px; }
+  .watch-episode-nav__position { grid-column: 1 / -1; grid-row: 1; }
+  .watch-episode-nav__link { gap: 6px; min-height: 49px; padding: 8px; }
+  .watch-episode-nav__link b { font-size: 11px; }
+  .watch-episode-nav__link--next { justify-self: stretch; justify-content: flex-end; }
+}

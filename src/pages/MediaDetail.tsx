@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AlertCircle, ArrowLeft, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Download, Expand, Maximize, Pause, Play, RotateCcw, RotateCw, Send, Settings2, Star, Tags, Users, Volume2, VolumeX } from 'lucide-react';
 import type Hls from 'hls.js';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -208,7 +208,7 @@ const revealControls = () => {
       window.clearTimeout(timeoutId);
       if (video.error?.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) {
         setPlayerError('This browser or device cannot decode this video. H.265/HEVC requires compatible system support; try H.264 or an HEVC-capable device.');
-      } else setPlayerError('This video server did not return playable data. Please replace the streaming URL in the admin panel.');
+      } else setPlayerError('This video source could not be loaded. Try another source or try again later.');
     };
 
     setPlayerError('');
@@ -226,7 +226,7 @@ const revealControls = () => {
     lastSavedPosition.current = 0;
     timeoutId = window.setTimeout(() => {
       setIsLoading(false);
-      setPlayerError('The streaming server did not send video data. Please add a new direct MP4 or HLS URL.');
+      setPlayerError('The video source is taking too long to respond. Try another source or try again later.');
     }, 15000);
     video.addEventListener('loadedmetadata', markLoaded);
     video.addEventListener('canplay', markLoaded);
@@ -418,7 +418,7 @@ video.removeEventListener('volumechange', onVolumeChange);
       <div className="player-placeholder player-empty">
         <div className="player-play"><Play size={26} fill="currentColor" /></div>
         <span>Video source is not available</span>
-        <small>The backend has not provided a streaming URL for this title yet.</small>
+        <small>This video is not available yet. Please try another episode or check back later.</small>
       </div>
     );
   }
@@ -444,7 +444,7 @@ video.removeEventListener('volumechange', onVolumeChange);
       <div className="player-placeholder player-empty">
         <div className="player-play"><Play size={26} fill="currentColor" /></div>
         <span>{provider ? `${provider} link` : 'Unsupported watch-page link'}</span>
-        <small>{provider ? `${provider} does not expose a universal browser player. Open the provider page to watch or download it.` : 'Please save a direct MP4 or HLS (.m3u8) streaming URL in the admin panel.'}</small>
+        <small>{provider ? `Open ${provider} to watch or download this video.` : 'This source must be opened on its provider website.'}</small>
         <a className="button button--outline" href={resolvedSource} target="_blank" rel="noreferrer">Open {provider || 'source'}</a>
       </div>
     );
@@ -486,7 +486,7 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
   }, [item.id]);
 
   if (!seasons.length) {
-    return <EmptyState title="No seasons available" copy="Season and episode information will appear when the backend provides it." />;
+    return <EmptyState title="Episodes are not available yet" copy="Please check back soon for this series' episode guide." />;
   }
 
   return (
@@ -494,7 +494,7 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
       {seasons.map((season) => {
         const key = String(season.id);
         const episodes = [...season.episodes].sort((left, right) => left.number - right.number);
-        const isOpen = openSeasons[key] ?? true;
+        const isOpen = openSeasons[key] ?? key === String(seasons[0]?.id);
         return (
           <div className="season" key={key}>
             <button
@@ -512,10 +512,18 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
                 {season.year && <span className="season-year">{season.year}</span>}
                 {episodes.length ? (
                   <div className="episode-list">
-                    {episodes.map((episode) => (
-                      <Link
+                    {episodes.map((episode) => {
+                      const content = <>
+                        <img src={mediaUrl(episode.thumbnail || item.poster)} alt="" loading="lazy" width="80" height="47" />
+                        <span className="episode-number">{String(episode.number).padStart(2, '0')}</span>
+                        <span className="episode-title"><b>{episode.title}</b><small>{[episode.duration, episode.review || `Season ${season.number} · Episode ${episode.number}`].filter(Boolean).join(' · ')}</small></span>
+                        {episode.available === false ? <span className="episode-availability">Soon</span> : <Play size={16} fill="currentColor" />}
+                      </>;
+                      if (episode.available === false) return <div className="episode-row episode-row--disabled" key={String(episode.id)} aria-disabled="true">{content}</div>;
+                      return <Link
                         className="episode-row"
                         key={String(episode.id)}
+                        aria-label={`Watch Season ${season.number}, Episode ${episode.number}: ${episode.title}`}
                         to={mediaWatchPath(item, { season: season.number, episode: episode.number })}
                         onClick={(event) => {
                           if (!user) {
@@ -524,17 +532,12 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
                           }
                         }}
                       >
-                        <span className="episode-number">{String(episode.number).padStart(2, '0')}</span>
-                        <span className="episode-title">
-                          <b>{episode.title}</b>
-                          <small>{episode.review || episode.duration || `Season ${season.number} · Episode ${episode.number}`}</small>
-                        </span>
-                        <Play size={16} fill="currentColor" />
-                      </Link>
-                    ))}
+                        {content}
+                      </Link>;
+                    })}
                   </div>
                 ) : (
-                  <p className="season-empty">No episodes have been added to this season yet.</p>
+                  <p className="season-empty">Episodes are not available in this season yet. Please check back soon.</p>
                 )}
               </div>
             )}
@@ -560,10 +563,12 @@ function ReviewTabs({
   const [selectedSeasonNumber, setSelectedSeasonNumber] = useState<number | null>(null);
   const [selectedEpisodeNumber, setSelectedEpisodeNumber] = useState<number | null>(null);
   const seasons = [...(item.seasons ?? [])].sort((left, right) => left.number - right.number);
-  const selectedSeason = seasons.length === 1 ? seasons[0] : seasons.find((season) => season.number === selectedSeasonNumber);
-  const defaultEpisodeNumber = seasons.length === 1 ? selectedSeason?.episodes[0]?.number ?? null : null;
+  const defaultSeason = seasons.find((season) => season.episodes.some((episode) => episode.available !== false)) ?? seasons[0];
+  const selectedSeason = seasons.find((season) => season.number === selectedSeasonNumber) ?? defaultSeason;
+  const episodes = [...(selectedSeason?.episodes ?? [])].sort((left, right) => left.number - right.number);
+  const defaultEpisodeNumber = episodes.find((episode) => episode.available !== false)?.number ?? null;
   const effectiveSelectedEpisodeNumber = selectedEpisodeNumber ?? defaultEpisodeNumber;
-  const selectedEpisode = selectedSeason?.episodes.find((episode) => episode.number === effectiveSelectedEpisodeNumber);
+  const selectedEpisode = episodes.find((episode) => episode.number === effectiveSelectedEpisodeNumber && episode.available !== false);
   const telegramPostUrl = kind === 'series' ? selectedEpisode?.telegramPostUrl : item.telegramPostUrl;
   const needsEpisodeSelection = kind === 'series' && !selectedEpisode;
   const title = kind === 'movie' ? 'movie' : 'series';
@@ -572,7 +577,7 @@ function ReviewTabs({
 
   return (
     <section className="review-tabs" aria-label={`${item.title} review actions`}>
-      <div className="review-tabs__list" role="tablist" aria-label="Review sections">
+      <div className="review-tabs__list" role="group" aria-label="Review and viewing options">
         {([
           ['review', 'Review'],
           ['watch', 'Watch'],
@@ -582,9 +587,7 @@ function ReviewTabs({
             className={activeTab === tab ? 'review-tab review-tab--active' : 'review-tab'}
             type="button"
             key={tab}
-            role="tab"
-            aria-selected={activeTab === tab}
-            aria-controls={`review-panel-${tab}`}
+            aria-pressed={activeTab === tab}
             onClick={() => setActiveTab(tab)}
           >
             {label}
@@ -592,32 +595,24 @@ function ReviewTabs({
         ))}
       </div>
 
-      {kind === 'series' && <div className="series-source-picker" aria-label="Series episode selector">
-        {seasons.length > 1 && <div className="series-source-picker__group">
-          <span>1. Choose Season</span>
-          <div className="series-source-picker__choices" role="list" aria-label="Choose season">
-            {seasons.map((season) => <button key={String(season.id)} type="button" className={selectedSeasonNumber === season.number ? 'series-source-choice series-source-choice--active' : 'series-source-choice'} onClick={() => { setSelectedSeasonNumber(season.number); setSelectedEpisodeNumber(null); }}>Season {season.number}</button>)}
-          </div>
-        </div>}
-        <div className="series-source-picker__group">
-          <span>{seasons.length > 1 ? '2. Choose Episode' : 'Choose Episode'}</span>
-          {selectedSeason ? selectedSeason.episodes.length ? <div className="series-source-picker__choices" role="list" aria-label={`Choose episode from Season ${selectedSeason.number}`}>
-            {[...selectedSeason.episodes].sort((left, right) => left.number - right.number).map((episode) => <button key={String(episode.id)} type="button" className={selectedEpisodeNumber === episode.number ? 'series-source-choice series-source-choice--active' : 'series-source-choice'} onClick={() => setSelectedEpisodeNumber(episode.number)}>EP {episode.number}</button>)}
-          </div> : <small className="series-source-picker__hint">No Episode has been published in this Season yet.</small> : <small className="series-source-picker__hint">Select a Season first.</small>}
-        </div>
+      {kind === 'series' && activeTab !== 'review' && <div className="series-source-picker" aria-label="Series episode selector">
+        {seasons.length ? <>
+          <label className="series-source-picker__field"><span>Season</span><select value={selectedSeason?.number ?? ''} onChange={(event) => { setSelectedSeasonNumber(Number(event.target.value)); setSelectedEpisodeNumber(null); }}>{seasons.map((season) => <option key={String(season.id)} value={season.number}>Season {season.number} — {season.title}</option>)}</select></label>
+          <label className="series-source-picker__field"><span>Episode</span><select value={selectedEpisode?.number ?? ''} disabled={!episodes.some((episode) => episode.available !== false)} onChange={(event) => setSelectedEpisodeNumber(Number(event.target.value))}>{!selectedEpisode && <option value="">No released episodes in this season</option>}{episodes.map((episode) => <option key={String(episode.id)} value={episode.number} disabled={episode.available === false}>EP {episode.number} — {episode.title}{episode.available === false ? ' (Coming soon)' : ''}</option>)}</select></label>
+        </> : <p className="series-source-picker__empty">Episodes are not available for this series yet. Please check back soon.</p>}
         {selectedEpisode && <p className="series-source-picker__selected">Selected: Season {selectedSeason?.number} · Episode {selectedEpisode.number} — {selectedEpisode.title}</p>}
       </div>}
 
       {activeTab === 'review' ? (
-        <div className="review-tabs__panel" id="review-panel-review" role="tabpanel">
+        <div className="review-tabs__panel" role="region" aria-label="Review">
           <span className="eyebrow">Review</span>
           <p>{item.synopsis || item.description || 'No review is available for this title yet.'}</p>
         </div>
       ) : (
-        <div className="review-tabs__actions" id={`review-panel-${activeTab}`} role="tabpanel">
+        <div className="review-tabs__actions" role="region" aria-label={activeTab === 'watch' ? 'Watch options' : 'Download options'}>
           <button className="review-action review-action--direct" type="button" onClick={() => onDirectAction(activeTab, selectedSeason?.number, selectedEpisode?.number)} disabled={needsEpisodeSelection}>
             <span className="review-action__mark" aria-hidden="true">YT</span>
-            <span><b>{directLabel}</b><small>{needsEpisodeSelection ? 'Choose a Season and Episode first' : activeTab === 'watch' ? 'Open this selection in Yangon TV player' : 'Open separate download options'}</small></span>
+            <span><b>{directLabel}</b><small>{needsEpisodeSelection ? 'No released episode is available yet' : activeTab === 'watch' ? 'Open this selection in Yangon TV player' : 'Open separate download options'}</small></span>
             {activeTab === 'watch' ? <Play size={18} fill="currentColor" /> : <Download size={18} />}
           </button>
           {telegramPostUrl ? (
@@ -628,12 +623,12 @@ function ReviewTabs({
           ) : (
             <div className="review-action review-action--unavailable" aria-disabled="true">
               <Send size={20} />
-              <span><b>{telegramLabel}</b><small>The Telegram post link has not been added yet.</small></span>
+              <span><b>{telegramLabel}</b><small>{needsEpisodeSelection ? 'Choose a released episode first' : 'No Telegram option is available for this selection.'}</small></span>
             </div>
           )}
         </div>
       )}
-      <p className="review-tabs__note">{activeTab === 'review' ? `Browse this ${title} publicly. Direct Watch and Direct Download require a Yangon TV account.` : kind === 'series' ? 'Choose a Season, then an Episode. Sources are specific to the selected episode.' : 'Direct actions continue to the protected Yangon TV player.'}</p>
+      <p className="review-tabs__note">{activeTab === 'review' ? kind === 'series' ? 'Browse episode titles in the guide below. Choose Watch or Download to select an episode.' : `Browse this ${title} publicly. Direct Watch and Download require a Yangon TV account with Premium access.` : kind === 'series' ? 'Sources match the selected episode. Direct Watch and Download require a Yangon TV account with Premium access.' : 'Direct actions continue to the protected Yangon TV player.'}</p>
     </section>
   );
 }
@@ -774,6 +769,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
               </div>
               {kind === 'movie' && <p className="detail-production-credit"><span>Translated &amp; Encoded by</span> <strong>YGNTV – Production Unit</strong></p>}
               <ReviewTabs
+                key={`${kind}:${item.id}`}
                 item={item}
                 kind={kind}
                 onDirectAction={(action, seasonNumber, episodeNumber) => {
@@ -788,7 +784,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
       {kind === 'series' && (
         <section id="episode-guide" className="container detail-section" aria-label="Episode guide">
           <SectionHeading eyebrow="Series episodes" title="Episode guide" />
-          <SeriesEpisodes item={item} />
+          <SeriesEpisodes key={String(item.id)} item={item} />
         </section>
       )}
       <section className="container detail-section detail-extra-grid">
@@ -799,8 +795,12 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
   );
 }
 
+function PlayerState({ title, copy, action }: { title: string; copy: string; action?: ReactNode }) {
+  return <div className="player-placeholder player-empty" role="status"><AlertCircle size={28} /><span>{title}</span><small>{copy}</small>{action}</div>;
+}
+
 function PremiumGate({ onJoin }: { onJoin: () => void }) {
-  return <div className="premium-gate" role="dialog" aria-label="Premium membership required">
+  return <div className="premium-gate" role="region" aria-label="Premium membership required">
     <span className="eyebrow">Premium access</span>
     <h2>Premium membership required</h2>
     <p>Join Premium to watch and download this video.</p>
@@ -825,6 +825,8 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const [playback, setPlayback] = useState<TvPlaybackPayload | null>(null);
   const [playbackLoading, setPlaybackLoading] = useState(false);
   const [playbackError, setPlaybackError] = useState('');
+  const [playbackFailure, setPlaybackFailure] = useState<'auth' | 'premium' | 'request' | null>(null);
+  const [playbackRetry, setPlaybackRetry] = useState(0);
   const [resumeProgress, setResumeProgress] = useState<{ key: string; seconds: number } | null>(null);
 
   const episodeSequence = useMemo(() => [...(item?.seasons ?? [])]
@@ -840,8 +842,8 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const resumePosition = resumeProgress?.key === historyKey ? resumeProgress.seconds : 0;
 
   useEffect(() => {
-    if (!loading && !user) openAuth('login', `${window.location.pathname}${window.location.search}`);
-  }, [loading, user, openAuth]);
+    if (!loading && item && !user && (kind === 'movie' || (selectedEpisode && selectedEpisode.available !== false))) openAuth('login', `${window.location.pathname}${window.location.search}`);
+  }, [item, kind, loading, selectedEpisode, user, openAuth]);
 
   useEffect(() => {
     let mounted = true;
@@ -862,31 +864,34 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   }, [kind, navigate, slug]);
 
   useEffect(() => {
-    if (loading || !item || !user) return;
-    if (kind === 'series' && !selectedEpisode) {
-      setPlaybackError('Choose a series episode to begin playback.');
-      return;
-    }
+    if (loading || !item) return;
+    setPlayback(null);
+    setPlaybackLoading(false);
+    setPlaybackError('');
+    setPlaybackFailure(null);
+    setSourceIndex(0);
+    if (!user || (kind === 'series' && (!selectedEpisode || selectedEpisode.available === false))) return;
     let mounted = true;
     if (!Number.isFinite(historyContentId) || historyContentId < 1) {
-      setPlaybackError('This title is not ready for protected playback.');
+      setPlaybackError('This title is not available for playback yet. Please try another episode.');
+      setPlaybackFailure('request');
       return;
     }
     setPlaybackLoading(true);
-    setPlaybackError('');
-    setPlayback(null);
-    setSourceIndex(0);
     getTvPlayback(historyContentType, historyContentId).then((value) => {
       if (mounted) setPlayback(value);
     }).catch((cause) => {
       if (!mounted) return;
       const response = (cause as { response?: { status?: number; data?: { data?: unknown; message?: string } } })?.response;
-      setPlaybackError(response?.data?.message || 'Premium membership is required to watch this title.');
+      const detail = response?.data?.data as { access?: string | { access?: string } } | undefined;
+      const access = typeof detail?.access === 'string' ? detail.access : detail?.access?.access;
+      setPlaybackFailure(response?.status === 401 ? 'auth' : response?.status === 402 || access === 'purchase_required' ? 'premium' : 'request');
+      setPlaybackError(response?.data?.message || 'Playback could not be loaded. Please try again.');
     }).finally(() => {
       if (mounted) setPlaybackLoading(false);
     });
     return () => { mounted = false; };
-  }, [historyContentId, historyContentType, item, kind, loading, selectedEpisode, user]);
+  }, [historyContentId, historyContentType, item, kind, loading, playbackRetry, selectedEpisode, user]);
 
   useEffect(() => {
     if (loading || !item || !user || (kind === 'series' && !selectedEpisode)) return;
@@ -912,10 +917,25 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       ? playback.playback.hls_url
       : currentSource;
   const currentTitle = playback?.title || (selectedEpisode ? `${item.title} — ${selectedEpisode.title}` : item.title);
-  const currentEpisodeIndex = selectedEpisodeEntry ? episodeSequence.findIndex(({ episode }) => String(episode.id) === String(selectedEpisodeEntry.episode.id)) : -1;
-  const previousEpisode = currentEpisodeIndex > 0 ? episodeSequence[currentEpisodeIndex - 1] : undefined;
-  const nextEpisode = currentEpisodeIndex >= 0 ? episodeSequence[currentEpisodeIndex + 1] : undefined;
+  const releasedEpisodes = episodeSequence.filter(({ episode }) => episode.available !== false);
+  const currentEpisodeIndex = selectedEpisodeEntry ? releasedEpisodes.findIndex(({ episode }) => String(episode.id) === String(selectedEpisodeEntry.episode.id)) : -1;
+  const previousEpisode = currentEpisodeIndex > 0 ? releasedEpisodes[currentEpisodeIndex - 1] : undefined;
+  const nextEpisode = currentEpisodeIndex >= 0 ? releasedEpisodes[currentEpisodeIndex + 1] : undefined;
   const embeddedSource = playback?.playback?.mode === 'custom_embed' || Boolean(currentSource && providerEmbedUrl(mediaUrl(currentSource)));
+  const signIn = () => openAuth('login', `${window.location.pathname}${window.location.search}`);
+  const playerContent = kind === 'series' && (!selectedEpisode || selectedEpisode.available === false)
+    ? <PlayerState title={selectedEpisode ? 'Episode coming soon' : 'Choose an episode'} copy={selectedEpisode ? 'This episode is not available yet.' : 'The requested episode could not be found. Choose an episode from the series page.'} action={<Link className="button button--outline" to={mediaDetailPath(item)}>Back to series</Link>} />
+    : !user || playbackFailure === 'auth'
+      ? <PlayerState title="Sign in to continue" copy="Sign in to your Yangon TV account to check playback access." action={<button className="button button--primary" type="button" onClick={signIn}>Sign in</button>} />
+      : playbackLoading || (!playback && !playbackError)
+        ? <PlayerState title="Checking playback access…" copy="Yangon TV is confirming your viewing access." />
+        : playbackFailure === 'premium' || (playback && playback.access.access !== 'premium')
+          ? <PremiumGate onJoin={() => navigate('/subscription')} />
+          : playbackError
+            ? <PlayerState title="Playback could not be loaded" copy={playbackError} action={<button className="button button--outline" type="button" onClick={() => setPlaybackRetry((value) => value + 1)}>Try again</button>} />
+            : downloadMode
+              ? <DownloadPanel links={downloadLinks} title={currentTitle} canDownload onRequireAuth={signIn} />
+              : <VideoPlayer key={`${historyKey}:${sourceIndex}`} source={resolvedPlaybackSource} playbackSource={playback?.playback} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} historyContentType={historyContentType} historyContentId={Number.isFinite(historyContentId) ? historyContentId : undefined} initialPosition={resumePosition} />;
 
 
   return (
@@ -923,15 +943,15 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       <section className="container watch-top">
         <Link className="back-link watch-back-link" to={mediaDetailPath(item)}><ArrowLeft size={16} /> <span>Back to details</span></Link>
         <div className="player-shell">
-          {downloadMode ? (playback?.access.access === 'premium' ? <DownloadPanel links={downloadLinks} title={currentTitle} canDownload={Boolean(user)} onRequireAuth={() => openAuth('login', `${window.location.pathname}${window.location.search}`)} /> : <PremiumGate onJoin={() => navigate('/subscription')} />) : playbackLoading ? <div className="player-placeholder player-empty"><div className="player-play"><Play size={26} fill="currentColor" /></div><span>Checking playback access…</span><small>Yangon TV is confirming your viewing entitlement.</small></div> : playback && playback.access.access !== 'premium' ? <PremiumGate onJoin={() => navigate('/subscription')} /> : <VideoPlayer source={resolvedPlaybackSource} playbackSource={playback?.playback} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} historyContentType={user ? historyContentType : undefined} historyContentId={user && Number.isFinite(historyContentId) ? historyContentId : undefined} initialPosition={resumePosition} />}
+          {playerContent}
         </div>
         {sources.length > 1 && <div className="player-sources" aria-label="Video sources">{sources.map((_, index) => <button key={index} className={index === sourceIndex ? 'player-source player-source--active' : 'player-source'} onClick={() => setSourceIndex(index)}>Source {index + 1}</button>)}</div>}
         <div className="watch-heading">
-          <div><span className="eyebrow">Now watching</span><h1>{currentTitle}</h1></div>
+          <div><span className="eyebrow">{downloadMode ? 'Download options' : 'Now watching'}</span><h1>{currentTitle}</h1></div>
         </div>
         {kind === 'series' && selectedEpisode && selectedEpisodeEntry && <nav className="watch-episode-nav" aria-label="Episode navigation">
           {previousEpisode ? <Link className="watch-episode-nav__link" to={mediaWatchPath(item, { season: previousEpisode.season.number, episode: previousEpisode.episode.number })}><ChevronLeft size={16} /><span><small>Previous episode</small><b>{previousEpisode.episode.title}</b></span></Link> : <span className="watch-episode-nav__link watch-episode-nav__link--disabled" aria-disabled="true"><ChevronLeft size={16} /><span><small>Previous episode</small><b>First episode</b></span></span>}
-          <span className="watch-episode-nav__position">Season {selectedEpisodeEntry.season.number} · Episode {selectedEpisode.number} of {episodeSequence.length}</span>
+          <span className="watch-episode-nav__position">Season {selectedEpisodeEntry.season.number} · Episode {selectedEpisode.number}</span>
           {nextEpisode ? <Link className="watch-episode-nav__link watch-episode-nav__link--next" to={mediaWatchPath(item, { season: nextEpisode.season.number, episode: nextEpisode.episode.number })}><span><small>Next episode</small><b>{nextEpisode.episode.title}</b></span><ChevronRight size={16} /></Link> : <span className="watch-episode-nav__link watch-episode-nav__link--disabled watch-episode-nav__link--next" aria-disabled="true"><span><small>Next episode</small><b>Last episode</b></span><ChevronRight size={16} /></span>}
         </nav>}
       </section>
