@@ -645,7 +645,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
       }
       const previous = element.getAttribute('content');
       if (value) element.setAttribute('content', value);
-      else element.remove();
+      else element.removeAttribute('content');
       return () => {
         if (created) element?.remove();
         else if (previous === null) element?.removeAttribute('content');
