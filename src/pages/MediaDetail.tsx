@@ -625,10 +625,15 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
 
   useEffect(() => {
     if (!item) return;
-    const title = `${item.title} - MMsub`;
+    const kindLabel = kind === 'series' ? 'Series' : 'Movie';
+    const title = `${item.title}${item.year ? ` (${item.year})` : ''} | ${kindLabel} | Yangon TV`;
     const canonicalUrl = `${activeSiteOrigin()}${mediaDetailPath(item)}`;
-    const description = `Watch ${item.title} on Yangon TV.`;
-    const image = mediaUrl(item.backdrop || item.poster);
+    const rawDescription = (item.synopsis || item.description || `Explore ${item.title}, a ${kindLabel.toLowerCase()} on Yangon TV.`).replace(/\s+/g, ' ').trim();
+    const description = Array.from(rawDescription).length > 160 ? `${Array.from(rawDescription).slice(0, 157).join('').trimEnd()}…` : rawDescription;
+    const imageSource = item.backdrop || item.poster;
+    const image = mediaUrl(imageSource);
+    const imageExtension = (() => { try { return new URL(imageSource).pathname.match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase(); } catch { return ''; } })();
+    const imageType = imageExtension === 'png' ? 'image/png' : imageExtension === 'webp' ? 'image/webp' : imageExtension === 'avif' ? 'image/avif' : imageExtension === 'jpg' || imageExtension === 'jpeg' ? 'image/jpeg' : '';
     const originalTitle = document.title;
     const updateMeta = (attribute: 'name' | 'property', key: string, value: string) => {
       let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
@@ -639,7 +644,8 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
         document.head.appendChild(element);
       }
       const previous = element.getAttribute('content');
-      element.setAttribute('content', value);
+      if (value) element.setAttribute('content', value);
+      else element.remove();
       return () => {
         if (created) element?.remove();
         else if (previous === null) element?.removeAttribute('content');
@@ -662,13 +668,36 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
       updateMeta('property', 'og:description', description),
       updateMeta('property', 'og:type', kind === 'series' ? 'video.tv_show' : 'video.movie'),
       updateMeta('property', 'og:url', canonicalUrl),
+      updateMeta('property', 'og:image', image),
+      updateMeta('property', 'og:image:type', imageType),
+      updateMeta('property', 'og:image:alt', `${item.title}${item.year ? ` (${item.year})` : ''} ${kindLabel.toLowerCase()} poster`),
+      updateMeta('property', 'og:image:width', ''),
+      updateMeta('property', 'og:image:height', ''),
+      updateMeta('name', 'twitter:card', 'summary_large_image'),
       updateMeta('name', 'twitter:title', title),
       updateMeta('name', 'twitter:description', description),
+      updateMeta('name', 'twitter:image', image),
+      updateMeta('name', 'twitter:image:alt', `${item.title} poster`),
     ];
-    if (image) restore.push(updateMeta('property', 'og:image', image), updateMeta('name', 'twitter:image', image));
+    const schema = {
+      '@context': 'https://schema.org',
+      '@type': kind === 'series' ? 'TVSeries' : 'Movie',
+      name: item.title,
+      description,
+      image: image || undefined,
+      genre: item.genres?.length ? item.genres : undefined,
+      actor: item.casts?.length ? item.casts.map((name) => ({ '@type': 'Person', name })) : undefined,
+      mainEntityOfPage: canonicalUrl,
+    };
+    const schemaScript = document.createElement('script');
+    schemaScript.id = 'yangon-tv-media-schema';
+    schemaScript.type = 'application/ld+json';
+    schemaScript.text = JSON.stringify(schema).replace(/</g, '\\u003c');
+    document.head.appendChild(schemaScript);
     return () => {
       document.title = originalTitle;
       restore.forEach((entry) => entry());
+      schemaScript.remove();
       if (createdCanonical) canonical?.remove();
       else if (previousCanonical === null) canonical?.removeAttribute('href');
       else canonical?.setAttribute('href', previousCanonical);
