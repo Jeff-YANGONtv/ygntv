@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Play, Sparkles, Star } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AutoSlider, EmptyState, ErrorState, MediaCard, SkeletonGrid } from '../components/ui/Primitives';
 import { useAuth } from '../lib/auth';
-import { AutoSlider, EmptyState, ErrorState, SkeletonGrid } from '../components/ui/Primitives';
 import { getAds, getBlogs, getMovies, getSeries, mediaUrl } from '../lib/api';
 import { blogPath, mediaDetailPath, mediaWatchPath } from '../lib/paths';
 import type { AdBanner, BlogPost, MediaItem } from '../lib/types';
+import '../styles/streaming-home.css';
 
 export function Home() {
   const [movies, setMovies] = useState<MediaItem[]>([]);
@@ -35,7 +36,12 @@ export function Home() {
 
   useEffect(() => { loadHome(); }, []);
 
-  const featured = useMemo(() => [...movies, ...series].slice(0, 8), [movies, series]);
+  const featured = useMemo(
+    () => [...movies, ...series].find((item) => Boolean(item.backdrop || item.poster)) || movies[0] || series[0],
+    [movies, series],
+  );
+  const hasContent = Boolean(movies.length || series.length || blogs.length || headerAds.length || footerAds.length);
+
   const watch = (item: MediaItem) => {
     const path = mediaWatchPath(item);
     if (user) navigate(path);
@@ -44,31 +50,66 @@ export function Home() {
 
   if (loading) return <div className="page page-loading container"><SkeletonGrid count={6} /></div>;
   if (error) return <div className="page page-state container"><ErrorState onRetry={loadHome} /></div>;
-  if (!featured.length && !headerAds.length && !footerAds.length) return <div className="page page-state container"><EmptyState title="No content available" copy="The backend has not published any banners, movies, or series yet." /></div>;
+  if (!hasContent) return <div className="page page-state container"><EmptyState title="No content available" copy="The backend has not published any banners, movies, or series yet." /></div>;
 
-  return <div className="page page-home page-home--sliders">
-    {headerAds.length > 0 && <AutoSlider className="container home-banner-slider home-banner-slider--header" title="Yangon TV header banners" hideHeadingText interval={5600}>{headerAds.map((ad) => <AdBannerSlide ad={ad} key={ad.id} />)}</AutoSlider>}
-    {blogs.length > 0 && <AutoSlider className="container home-banner-slider" eyebrow="Latest from Yangon TV" title="Blog Post Covers" action={{ label: 'View all blogs', to: '/blog' }}>{blogs.slice(0, 8).map((post) => <BlogBanner post={post} key={post.id} />)}</AutoSlider>}
-    {movies.length > 0 && <AutoSlider className="container home-banner-slider home-banner-slider--media-16by9" eyebrow="Trending now" title="Trending Movies" action={{ label: 'View all movies', to: '/movies' }} autoPlay interval={4800}>{movies.slice(0, 8).map((item, index) => <MediaBanner item={item} key={item.id} onWatch={() => watch(item)} featured={index === 0} />)}</AutoSlider>}
-    {series.length > 0 && <AutoSlider className="container home-banner-slider home-banner-slider--media-16by9" eyebrow="Binge-worthy stories" title="Popular Series" action={{ label: 'View all series', to: '/series' }} autoPlay interval={5200}>{series.slice(0, 8).map((item, index) => <MediaBanner item={item} key={item.id} onWatch={() => watch(item)} featured={index === 0 && movies.length === 0} />)}</AutoSlider>}
-    {footerAds.length > 0 && <AutoSlider className="container home-banner-slider home-banner-slider--footer" eyebrow="From our partners" title="Yangon TV Banners" hideHeadingText interval={5600}>{footerAds.map((ad) => <AdBannerSlide ad={ad} key={ad.id} />)}</AutoSlider>}
+  return <div className="page page-home page-home--streaming">
+    {featured && <FeaturedHero item={featured} onWatch={() => watch(featured)} />}
+    <div className={`stream-home__catalog ${featured ? 'stream-home__catalog--with-hero' : ''}`}>
+      {headerAds.length > 0 && <AutoSlider className="container stream-home__rail stream-home__partner-rail" eyebrow="Partner spotlight" title="From our partners" autoPlay={false}>{headerAds.map((ad) => <AdBanner ad={ad} key={ad.id} />)}</AutoSlider>}
+      {movies.length > 0 && <AutoSlider className="container stream-home__rail" eyebrow="Find your next story" title="Movies to discover" action={{ label: 'Explore movies', to: '/movies' }} autoPlay={false}>{movies.slice(0, 12).map((item) => <MediaCard item={item} key={item.id} />)}</AutoSlider>}
+      {series.length > 0 && <AutoSlider className="container stream-home__rail" eyebrow="One more episode" title="Series to binge" action={{ label: 'Explore series', to: '/series' }} autoPlay={false}>{series.slice(0, 12).map((item) => <MediaCard item={item} key={item.id} />)}</AutoSlider>}
+      {blogs.length > 0 && <AutoSlider className="container stream-home__rail stream-home__stories" eyebrow="Behind the stories" title="Recaps & reads" action={{ label: 'Visit the blog', to: '/blog' }} autoPlay={false}>{blogs.slice(0, 12).map((post) => <StoryCard post={post} key={post.id} />)}</AutoSlider>}
+      {footerAds.length > 0 && <AutoSlider className="container stream-home__rail stream-home__partner-rail stream-home__partner-rail--footer" eyebrow="More from our partners" title="Partner spotlights" autoPlay={false}>{footerAds.map((ad) => <AdBanner ad={ad} key={ad.id} />)}</AutoSlider>}
+    </div>
   </div>;
 }
 
-function MediaBanner({ item, onWatch, featured = false }: { item: MediaItem; onWatch: () => void; featured?: boolean }) {
+function FeaturedHero({ item, onWatch }: { item: MediaItem; onWatch: () => void }) {
+  const seasonCount = item.seasonCount ?? item.seasons?.length ?? 0;
   const detailPath = mediaDetailPath(item);
-  return <article className={`home-banner-card ${featured ? 'home-banner-card--featured' : ''}`}>
-    <img src={mediaUrl(item.backdrop, item.poster)} alt="" loading={featured ? 'eager' : 'lazy'} decoding="async" fetchPriority={featured ? 'high' : 'low'} width="1280" height="720" />
-    <div className="home-banner-card__shade" />
-    <div className="home-banner-card__content">{featured && <span className="eyebrow eyebrow--light"><Sparkles size={13} /> Yangon TV original pick</span>}<h2>{item.title}</h2><p>{item.synopsis || item.description}</p><div className="home-banner-card__meta"><span><Star size={12} fill="currentColor" /> {item.rating.toFixed(1)}</span><i /><span>{item.year || 'New release'}</span><i /><span>{item.kind === 'series' ? 'Series' : 'Movie'}</span></div><div className="home-banner-card__actions"><button className="button button--primary" type="button" onClick={onWatch}><Play size={15} fill="currentColor" /> Watch now</button><Link className="button button--glass" to={detailPath}>Details <ArrowRight size={15} /></Link></div></div>
-  </article>;
+  const image = mediaUrl(item.backdrop || item.poster);
+
+  return <section className="stream-home__hero" aria-label={`Featured ${item.kind}`}>
+    {image && <img className="stream-home__hero-image" src={image} alt="" loading="eager" decoding="async" fetchPriority="high" width="1920" height="1080" />}
+    <div className="stream-home__hero-shade" aria-hidden="true" />
+    <div className="container stream-home__hero-inner">
+      <div className="stream-home__hero-copy">
+        <span className="stream-home__eyebrow"><Sparkles size={14} /> Yangon TV spotlight</span>
+        <span className="stream-home__hero-type">Featured {item.kind}</span>
+        <h1>{item.title}</h1>
+        <div className="stream-home__hero-meta">
+          {item.rating > 0 && <span className="stream-home__rating"><Star size={14} fill="currentColor" /> {item.rating.toFixed(1)}</span>}
+          {item.year && <span>{item.year}</span>}
+          <span>{item.kind === 'series' ? 'Series' : 'Movie'}</span>
+          {item.kind === 'series' && seasonCount > 0 && <span>{seasonCount} {seasonCount === 1 ? 'season' : 'seasons'}</span>}
+          {item.kind === 'movie' && item.runtime && <span>{item.runtime}</span>}
+        </div>
+        {item.genres.length > 0 && <div className="stream-home__genres">{item.genres.slice(0, 3).map((genre) => <span key={genre}>{genre}</span>)}</div>}
+        <p className="stream-home__hero-summary">{item.synopsis || item.description}</p>
+        <div className="stream-home__hero-actions">
+          <button className="button button--primary" type="button" onClick={onWatch}><Play size={17} fill="currentColor" /> Watch now</button>
+          <Link className="button button--glass" to={detailPath}>More info <ArrowRight size={16} /></Link>
+        </div>
+      </div>
+      <span className="stream-home__hero-index" aria-hidden="true">YANGON TV <i /> FEATURED</span>
+    </div>
+  </section>;
 }
 
-function BlogBanner({ post }: { post: BlogPost }) {
-  return <Link className="home-banner-card home-banner-card--blog" to={blogPath(post)}><img src={mediaUrl(post.cover || post.image)} alt={post.cover_alt || post.title} loading="lazy" decoding="async" width="1280" height="720" /><div className="home-banner-card__shade" /><div className="home-banner-card__content"><span className="eyebrow eyebrow--light">{post.topic || post.category} · {post.date}</span><h2>{post.title}</h2><p>{post.excerpt}</p><span className="button button--glass">Read story <ArrowRight size={15} /></span></div></Link>;
+function StoryCard({ post }: { post: BlogPost }) {
+  return <Link className="stream-home__story" to={blogPath(post)}>
+    <div className="stream-home__story-image"><img src={mediaUrl(post.cover || post.image)} alt={post.cover_alt || post.title} loading="lazy" decoding="async" width="1280" height="720" /></div>
+    <div className="stream-home__story-copy">
+      <span>{post.topic || post.category} <i /> {post.readTime}</span>
+      <h3>{post.title}</h3>
+      <small>Read story <ArrowRight size={13} /></small>
+    </div>
+  </Link>;
 }
 
-function AdBannerSlide({ ad }: { ad: AdBanner }) {
+function AdBanner({ ad }: { ad: AdBanner }) {
   const image = <img src={mediaUrl(ad.content)} alt={ad.name} loading="lazy" decoding="async" width="1280" height="360" />;
-  return ad.link_url ? <a className="home-banner-ad" href={ad.link_url} target="_blank" rel="noopener noreferrer">{image}</a> : <div className="home-banner-ad">{image}</div>;
+  return ad.link_url
+    ? <a className="stream-home__ad" href={ad.link_url} target="_blank" rel="noopener noreferrer">{image}</a>
+    : <div className="stream-home__ad">{image}</div>;
 }
