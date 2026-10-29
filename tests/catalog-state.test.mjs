@@ -7,9 +7,9 @@ const source = readFileSync(new URL('../src/lib/catalog-state.ts', import.meta.u
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 } });
 const { catalogView } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`);
 const items = [
-  { id: 1, title: 'The Boys', genres: ['Drama', 'Action'], year: 2019, rating: 8.4 },
-  { id: 2, title: 'Human Vapor', genres: ['Drama', 'Mystery'], year: 2026, rating: 7.4 },
-  { id: 3, title: 'Alpha', genres: ['Comedy'], year: 2025, rating: 9 },
+  { id: 1, title: 'The Boys', genres: ['Drama', 'Action'], year: '2019', rating: 8.4 },
+  { id: 2, title: 'Human Vapor', genres: ['Drama', 'Mystery'], year: '2026', rating: 7.4 },
+  { id: 3, title: 'Alpha', genres: ['Comedy'], year: '2025', rating: 9 },
 ];
 
 test('search is case-insensitive and combines with genre', () => {
