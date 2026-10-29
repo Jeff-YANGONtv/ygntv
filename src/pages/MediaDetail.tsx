@@ -293,6 +293,7 @@ const revealControls = () => {
     if (!video || embedUrl || isUnsupportedWatchPage || initialPosition <= 0) return;
     const resume = () => {
       if (!Number.isFinite(video.duration) || video.duration <= 0) return;
+      if (video.currentTime > 1) return;
       const target = Math.min(initialPosition, Math.max(0, video.duration - 1));
       video.currentTime = target;
       setCurrentTime(target);
@@ -503,7 +504,7 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
               aria-expanded={isOpen}
               onClick={() => setOpenSeasons((current) => ({ ...current, [key]: !isOpen }))}
             >
-              <span><b>Season {season.number}</b><strong>{season.title}</strong></span>
+              <span><b>Season {season.number}</b>{season.title && season.title.trim().toLowerCase() !== `season ${season.number}` && <strong>{season.title}</strong>}</span>
               <span>{episodes.length} {episodes.length === 1 ? 'episode' : 'episodes'} <ChevronDown size={16} /></span>
             </button>
             {isOpen && (
@@ -597,7 +598,7 @@ function ReviewTabs({
 
       {kind === 'series' && activeTab !== 'review' && <div className="series-source-picker" aria-label="Series episode selector">
         {seasons.length ? <>
-          <label className="series-source-picker__field"><span>Season</span><select value={selectedSeason?.number ?? ''} onChange={(event) => { setSelectedSeasonNumber(Number(event.target.value)); setSelectedEpisodeNumber(null); }}>{seasons.map((season) => <option key={String(season.id)} value={season.number}>Season {season.number} — {season.title}</option>)}</select></label>
+          <label className="series-source-picker__field"><span>Season</span><select value={selectedSeason?.number ?? ''} onChange={(event) => { setSelectedSeasonNumber(Number(event.target.value)); setSelectedEpisodeNumber(null); }}>{seasons.map((season) => <option key={String(season.id)} value={season.number}>Season {season.number}{season.title && season.title.trim().toLowerCase() !== `season ${season.number}` ? ` — ${season.title}` : ''}</option>)}</select></label>
           <label className="series-source-picker__field"><span>Episode</span><select value={selectedEpisode?.number ?? ''} disabled={!episodes.some((episode) => episode.available !== false)} onChange={(event) => setSelectedEpisodeNumber(Number(event.target.value))}>{!selectedEpisode && <option value="">No released episodes in this season</option>}{episodes.map((episode) => <option key={String(episode.id)} value={episode.number} disabled={episode.available === false}>EP {episode.number} — {episode.title}{episode.available === false ? ' (Coming soon)' : ''}</option>)}</select></label>
         </> : <p className="series-source-picker__empty">Episodes are not available for this series yet. Please check back soon.</p>}
         {selectedEpisode && <p className="series-source-picker__selected">Selected: Season {selectedSeason?.number} · Episode {selectedEpisode.number} — {selectedEpisode.title}</p>}
@@ -822,7 +823,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const [sourceIndex, setSourceIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [playback, setPlayback] = useState<TvPlaybackPayload | null>(null);
+  const [playbackResult, setPlayback] = useState<{ key: string; value: TvPlaybackPayload } | null>(null);
   const [playbackLoading, setPlaybackLoading] = useState(false);
   const [playbackError, setPlaybackError] = useState('');
   const [playbackFailure, setPlaybackFailure] = useState<'auth' | 'premium' | 'request' | null>(null);
@@ -839,6 +840,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
   const historyContentType = kind === 'series' ? 'episode' : 'movie';
   const historyContentId = Number(kind === 'series' ? selectedEpisode?.id : item?.id);
   const historyKey = `${historyContentType}:${historyContentId}`;
+  const playback = playbackResult?.key === historyKey ? playbackResult.value : null;
   const resumePosition = resumeProgress?.key === historyKey ? resumeProgress.seconds : 0;
 
   useEffect(() => {
@@ -879,7 +881,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
     }
     setPlaybackLoading(true);
     getTvPlayback(historyContentType, historyContentId).then((value) => {
-      if (mounted) setPlayback(value);
+      if (mounted) setPlayback({ key: historyKey, value });
     }).catch((cause) => {
       if (!mounted) return;
       const response = (cause as { response?: { status?: number; data?: { data?: unknown; message?: string } } })?.response;
@@ -891,7 +893,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
       if (mounted) setPlaybackLoading(false);
     });
     return () => { mounted = false; };
-  }, [historyContentId, historyContentType, item, kind, loading, playbackRetry, selectedEpisode, user]);
+  }, [historyContentId, historyContentType, historyKey, item, kind, loading, playbackRetry, selectedEpisode, user]);
 
   useEffect(() => {
     if (loading || !item || !user || (kind === 'series' && !selectedEpisode)) return;
