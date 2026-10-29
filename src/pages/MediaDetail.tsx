@@ -938,6 +938,12 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
             : downloadMode
               ? <DownloadPanel links={downloadLinks} title={currentTitle} canDownload onRequireAuth={signIn} />
               : <VideoPlayer key={`${historyKey}:${sourceIndex}`} source={resolvedPlaybackSource} playbackSource={playback?.playback} poster={selectedEpisode?.thumbnail || item.backdrop || item.poster} title={currentTitle} historyContentType={historyContentType} historyContentId={Number.isFinite(historyContentId) ? historyContentId : undefined} initialPosition={resumePosition} />;
+  const watchMessage = kind === 'series' && (!selectedEpisode || selectedEpisode.available === false)
+    ? 'Choose a released episode from the series page to continue.'
+    : !user ? 'Sign in to check your playback access.'
+      : playbackError || (resumePosition > 0
+        ? embeddedSource ? `Saved progress at ${formatPlaybackTime(resumePosition)}. Use the source player controls to seek.` : `Saved progress: ${formatPlaybackTime(resumePosition)}. The player resumes there unless you have already started watching.`
+        : resolvedPlaybackSource ? 'Choose the video controls above to start playback.' : playback?.access.access === 'purchase_required' ? 'Premium membership is required to watch this title.' : 'Playback information will appear here when available.');
 
 
   return (
@@ -957,7 +963,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
           {nextEpisode ? <Link className="watch-episode-nav__link watch-episode-nav__link--next" to={mediaWatchPath(item, { season: nextEpisode.season.number, episode: nextEpisode.episode.number })}><span><small>Next episode</small><b>{nextEpisode.episode.title}</b></span><ChevronRight size={16} /></Link> : <span className="watch-episode-nav__link watch-episode-nav__link--disabled watch-episode-nav__link--next" aria-disabled="true"><span><small>Next episode</small><b>Last episode</b></span><ChevronRight size={16} /></span>}
         </nav>}
       </section>
-      <section className="container watch-lower"><div className="watch-note"><Users size={18} /><div><b>{playback?.access.access === 'premium' ? 'Premium access active.' : 'Make it a Yangon TV night.'}</b><p>{playbackError || (resumePosition > 0 ? embeddedSource ? `Saved progress at ${formatPlaybackTime(resumePosition)}. Use the source player controls to seek.` : `The player will resume from ${formatPlaybackTime(resumePosition)} when you press play.` : resolvedPlaybackSource ? 'Choose the video controls above to start playback.' : 'Premium membership is required to watch this title.')}</p></div></div></section>
+      <section className="container watch-lower"><div className="watch-note"><Users size={18} /><div><b>{playback?.access.access === 'premium' ? 'Premium access active.' : 'Your viewing options.'}</b><p>{watchMessage}</p></div></div></section>
     </div>
   );
 }
