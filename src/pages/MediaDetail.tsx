@@ -142,6 +142,7 @@ const [speedOpen, setSpeedOpen] = useState(false);
   const [qualityOpen, setQualityOpen] = useState(false);
   const [qualityOptions, setQualityOptions] = useState<Array<{ value: number; label: 'Auto' | 'SD' | 'HD' }>>([{ value: -1, label: 'Auto' }]);
   const [qualityLevel, setQualityLevel] = useState(-1);
+  const [playbackSpeed, setPlaybackSpeedValue] = useState(1);
 const hideControlsTimer = useRef<number | null>(null);
   const hlsRef = useRef<Hls | null>(null);
   const lastSavedPosition = useRef(0);
@@ -196,12 +197,16 @@ const revealControls = () => {
     const showError = () => {
       setIsLoading(false);
       window.clearTimeout(timeoutId);
-      setPlayerError('This video server did not return playable data. Please replace the streaming URL in the admin panel.');
+      if (video.error?.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) {
+        setPlayerError('This browser or device cannot decode this video. H.265/HEVC requires compatible system support; try H.264 or an HEVC-capable device.');
+      } else setPlayerError('This video server did not return playable data. Please replace the streaming URL in the admin panel.');
     };
 
     setPlayerError('');
     setIsLoading(true);
     setIsPlaying(false);
+    video.playbackRate = 1;
+    setPlaybackSpeedValue(1);
     setCurrentTime(0);
     setDuration(0);
     setSpeedOpen(false);
@@ -220,7 +225,7 @@ const revealControls = () => {
 
     const setupPlayer = async () => {
       if (isHls) {
-        const { default: HlsModule } = await import('hls.js/light');
+        const { default: HlsModule } = await import('hls.js');
         if (!active) return;
         if (HlsModule.isSupported()) {
           hls = new HlsModule({ enableWorker: true, lowLatencyMode: false });
@@ -238,7 +243,15 @@ const revealControls = () => {
           hls.on(HlsModule.Events.ERROR, (_event, data) => {
             if (data.fatal) {
               if (data.type === HlsModule.ErrorTypes.NETWORK_ERROR) hls?.startLoad();
-              else if (data.type === HlsModule.ErrorTypes.MEDIA_ERROR) hls?.recoverMediaError();
+              else if (data.type === HlsModule.ErrorTypes.MEDIA_ERROR) {
+                if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                  hls?.destroy();
+                  hls = null;
+                  hlsRef.current = null;
+                  video.src = resolvedSource;
+                  video.load();
+                } else hls?.recoverMediaError();
+              }
               else showError();
             }
           });
@@ -314,7 +327,9 @@ video.removeEventListener('volumechange', onVolumeChange);
   const seekBy = (seconds: number) => {
     const video = videoRef.current;
     if (!video || !Number.isFinite(video.duration)) return;
-    video.currentTime = Math.min(Math.max(0, video.currentTime + seconds), video.duration);
+    const nextTime = Math.min(Math.max(0, video.currentTime + seconds), video.duration);
+    video.currentTime = nextTime;
+    setCurrentTime(nextTime);
     revealControls();
   };
 
@@ -347,6 +362,7 @@ video.removeEventListener('volumechange', onVolumeChange);
     const video = videoRef.current;
     if (!video) return;
     video.playbackRate = value;
+    setPlaybackSpeedValue(value);
     setSpeedOpen(false);
     revealControls();
   };
@@ -423,7 +439,7 @@ video.removeEventListener('volumechange', onVolumeChange);
             <span className="player-custom__time">{formatTime(currentTime)} <i>/</i> {formatTime(duration)}</span>
             <div className="player-custom__volume"><button type="button" className="player-custom__icon" onClick={toggleMute} aria-label={isMuted ? 'Unmute' : 'Mute'}>{isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button><input type="range" min="0" max="1" step="0.05" value={isMuted ? 0 : volume} onChange={(event) => setPlayerVolume(Number(event.target.value))} aria-label="Volume" /></div>
             {isHls && qualityOptions.length > 1 && <div className="player-custom__quality"><button type="button" className="player-custom__icon player-custom__speed-toggle" onClick={() => { setQualityOpen((value) => !value); setSpeedOpen(false); }} aria-label="Video quality"><Settings2 size={17} /><span>{qualityOptions.find((option) => option.value === qualityLevel)?.label || 'Auto'}</span></button>{qualityOpen && <div className="player-custom__speed-menu" role="menu">{qualityOptions.map((option) => <button type="button" key={option.value} onClick={() => setPlaybackQuality(option.value)}>{option.label}</button>)}</div>}</div>}
-            <div className="player-custom__speed"><button type="button" className="player-custom__icon player-custom__speed-toggle" onClick={() => { setSpeedOpen((value) => !value); setQualityOpen(false); }} aria-label="Playback speed"><Settings2 size={17} /><span>Speed</span></button>{speedOpen && <div className="player-custom__speed-menu" role="menu">{[1.5, 2, 2.5, 3].map((speed) => <button type="button" key={speed} onClick={() => setPlaybackSpeed(speed)}>{speed}×</button>)}</div>}</div>
+            <div className="player-custom__speed"><button type="button" className="player-custom__icon player-custom__speed-toggle" onClick={() => { setSpeedOpen((value) => !value); setQualityOpen(false); }} aria-label={`Playback speed ${playbackSpeed}x`}><Settings2 size={17} /><span>{playbackSpeed}×</span></button>{speedOpen && <div className="player-custom__speed-menu" role="menu">{[1, 2, 3, 5].map((speed) => <button type="button" key={speed} aria-pressed={playbackSpeed === speed} onClick={() => setPlaybackSpeed(speed)}>{speed}×</button>)}</div>}</div>
             <button type="button" className="player-custom__icon" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}>{isFullscreen ? <Expand size={18} /> : <Maximize size={18} />}</button>
           </div>
         </div>

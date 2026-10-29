@@ -202,7 +202,7 @@
 - [x] Add explicit Movie and Episode playback metadata for `custom_embed` and `bunny_stream`, preserving legacy streaming links for existing titles
 - [x] Update the Admin Bot to select Custom Embed or Bunny Stream and collect only the relevant URL or Bunny Video ID
 - [x] Update protected playback responses and the website player to select the chosen source type without access-rule bypass
-- [x] Set Yangon TV custom-player speed choices to 1.5×, 2×, 2.5×, and 3×, and retain 10-second previous/next seek controls
+- [x] Support H.264 and H.265 on capable browsers/devices, provide 1×/2×/3×/5× speed choices, and retain 10-second previous/next seek controls
 - [x] Label Bunny custom-player quality options as Auto, SD (360p), and HD (720p), without showing raw resolution labels in the UI
 - [x] Fix the Review-to-player back-navigation loop by routing Review Back to the relevant Movies or Series catalogue
 - [x] Verify and repair the deployed Series review/player flow so users can visibly select a Season, then an Episode, before using that episode’s Watch or Download source
