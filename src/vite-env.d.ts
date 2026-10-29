@@ -11,3 +11,8 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+declare module 'hls.js/light' {
+  import Hls from 'hls.js';
+  export default Hls;
+}

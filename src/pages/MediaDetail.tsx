@@ -220,7 +220,7 @@ const revealControls = () => {
 
     const setupPlayer = async () => {
       if (isHls) {
-        const { default: HlsModule } = await import('hls.js');
+        const { default: HlsModule } = await import('hls.js/light');
         if (!active) return;
         if (HlsModule.isSupported()) {
           hls = new HlsModule({ enableWorker: true, lowLatencyMode: false });
