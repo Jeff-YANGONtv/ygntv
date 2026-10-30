@@ -1,8 +1,8 @@
-.series-source-picker__field { display: grid; gap: 6px; min-width: 0; }
-.series-source-picker__field > span { color: var(--muted); font-size: 11px; font-weight: 700; }
-.series-source-picker__field select { background: var(--surface-3); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font: inherit; font-size: 13px; min-height: 44px; padding: 9px 11px; width: 100%; }
-.series-source-picker__field select:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-.series-source-picker__empty { color: var(--muted); font-size: 13px; margin: 0; }
+.detail-layout--series { align-items: flex-start; }
+.series-tab-guide { margin-top: 14px; min-width: 0; }
+.series-tab-guide > .section-heading { margin-bottom: 14px; }
+.series-tab-guide .section-heading h2 { font-size: clamp(28px, 3.5vw, 36px); }
+.series-tab-guide__hint { color: var(--muted); font-size: 12px; margin: 0 0 13px; }
 .season-list .episode-row { gap: 12px; grid-template-columns: 80px 24px minmax(0, 1fr) 36px; min-height: 65px; }
 .season-list .episode-row img { border-radius: 6px; height: 47px; object-fit: cover; width: 80px; }
 .season-list .episode-title { min-width: 0; }

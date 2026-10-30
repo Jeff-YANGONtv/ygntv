@@ -1,4 +1,9 @@
 {
+  "git": {
+    "deploymentEnabled": {
+      "review/series-episode-tabs-guide-2026-10-30": false
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",

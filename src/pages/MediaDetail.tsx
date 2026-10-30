@@ -477,14 +477,15 @@ video.removeEventListener('volumechange', onVolumeChange);
   );
 }
 
-function SeriesEpisodes({ item }: { item: MediaItem }) {
+function SeriesEpisodes({ item, action, openSeasonId, onSelectSeason }: {
+  item: MediaItem;
+  action: 'watch' | 'download';
+  openSeasonId: string | null;
+  onSelectSeason: (seasonId: string | null) => void;
+}) {
   const { user, openAuth } = useAuth();
   const seasons = [...(item.seasons ?? [])].sort((left, right) => left.number - right.number);
-  const [openSeasons, setOpenSeasons] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    setOpenSeasons(Object.fromEntries(seasons.map((season, index) => [String(season.id), index === 0])));
-  }, [item.id]);
+  const verb = action === 'download' ? 'Download' : 'Watch';
 
   if (!seasons.length) {
     return <EmptyState title="Episodes are not available yet" copy="Please check back soon for this series' episode guide." />;
@@ -495,41 +496,43 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
       {seasons.map((season) => {
         const key = String(season.id);
         const episodes = [...season.episodes].sort((left, right) => left.number - right.number);
-        const isOpen = openSeasons[key] ?? key === String(seasons[0]?.id);
+        const isOpen = openSeasonId === key;
         return (
           <div className="season" key={key}>
             <button
               className="season-heading"
               type="button"
               aria-expanded={isOpen}
-              onClick={() => setOpenSeasons((current) => ({ ...current, [key]: !isOpen }))}
+              onClick={() => onSelectSeason(isOpen ? null : key)}
             >
               <span><b>Season {season.number}</b>{season.title && season.title.trim().toLowerCase() !== `season ${season.number}` && <strong>{season.title}</strong>}</span>
               <span>{episodes.length} {episodes.length === 1 ? 'episode' : 'episodes'} <ChevronDown size={16} /></span>
             </button>
             {isOpen && (
-              <div className="season-content">
+              <div className="season-content" id={`season-${item.id}-${season.number}`}>
                 {season.review && <p className="season-review">{season.review}</p>}
                 {season.year && <span className="season-year">{season.year}</span>}
                 {episodes.length ? (
                   <div className="episode-list">
                     {episodes.map((episode) => {
+                      const episodePath = mediaWatchPath(item, { season: season.number, episode: episode.number });
+                      const actionPath = action === 'download' ? `${episodePath}${episodePath.includes('?') ? '&' : '?'}action=download` : episodePath;
                       const content = <>
                         <img src={mediaUrl(episode.thumbnail || item.poster)} alt="" loading="lazy" width="80" height="47" />
                         <span className="episode-number">{String(episode.number).padStart(2, '0')}</span>
                         <span className="episode-title"><b>{episode.title}</b><small>{[episode.duration, episode.review || `Season ${season.number} · Episode ${episode.number}`].filter(Boolean).join(' · ')}</small></span>
-                        {episode.available === false ? <span className="episode-availability">Soon</span> : <Play size={16} fill="currentColor" />}
+                        {episode.available === false ? <span className="episode-availability">Soon</span> : action === 'download' ? <Download size={16} /> : <Play size={16} fill="currentColor" />}
                       </>;
                       if (episode.available === false) return <div className="episode-row episode-row--disabled" key={String(episode.id)} aria-disabled="true">{content}</div>;
                       return <Link
                         className="episode-row"
                         key={String(episode.id)}
-                        aria-label={`Watch Season ${season.number}, Episode ${episode.number}: ${episode.title}`}
-                        to={mediaWatchPath(item, { season: season.number, episode: episode.number })}
+                        aria-label={`${verb} Season ${season.number}, Episode ${episode.number}: ${episode.title}`}
+                        to={actionPath}
                         onClick={(event) => {
                           if (!user) {
                             event.preventDefault();
-                            openAuth('login', mediaWatchPath(item, { season: season.number, episode: episode.number }));
+                            openAuth('login', actionPath);
                           }
                         }}
                       >
@@ -558,20 +561,12 @@ function ReviewTabs({
 }: {
   item: MediaItem;
   kind: 'movie' | 'series';
-  onDirectAction: (action: 'watch' | 'download', seasonNumber?: number, episodeNumber?: number) => void;
+  onDirectAction: (action: 'watch' | 'download') => void;
 }) {
   const [activeTab, setActiveTab] = useState<ReviewTab>('review');
-  const [selectedSeasonNumber, setSelectedSeasonNumber] = useState<number | null>(null);
-  const [selectedEpisodeNumber, setSelectedEpisodeNumber] = useState<number | null>(null);
   const seasons = [...(item.seasons ?? [])].sort((left, right) => left.number - right.number);
-  const defaultSeason = seasons.find((season) => season.episodes.some((episode) => episode.available !== false)) ?? seasons[0];
-  const selectedSeason = seasons.find((season) => season.number === selectedSeasonNumber) ?? defaultSeason;
-  const episodes = [...(selectedSeason?.episodes ?? [])].sort((left, right) => left.number - right.number);
-  const defaultEpisodeNumber = episodes.find((episode) => episode.available !== false)?.number ?? null;
-  const effectiveSelectedEpisodeNumber = selectedEpisodeNumber ?? defaultEpisodeNumber;
-  const selectedEpisode = episodes.find((episode) => episode.number === effectiveSelectedEpisodeNumber && episode.available !== false);
-  const telegramPostUrl = kind === 'series' ? selectedEpisode?.telegramPostUrl : item.telegramPostUrl;
-  const needsEpisodeSelection = kind === 'series' && !selectedEpisode;
+  const [openSeasonId, setOpenSeasonId] = useState<string | null>(() => seasons.length === 1 ? String(seasons[0].id) : null);
+  const telegramPostUrl = item.telegramPostUrl;
   const title = kind === 'movie' ? 'movie' : 'series';
   const directLabel = activeTab === 'watch' ? 'Direct Watch' : 'Download Options';
   const telegramLabel = activeTab === 'watch' ? 'Watch Via Telegram' : 'Download Via Telegram';
@@ -596,24 +591,22 @@ function ReviewTabs({
         ))}
       </div>
 
-      {kind === 'series' && activeTab !== 'review' && <div className="series-source-picker" aria-label="Series episode selector">
-        {seasons.length ? <>
-          <label className="series-source-picker__field"><span>Season</span><select value={selectedSeason?.number ?? ''} onChange={(event) => { setSelectedSeasonNumber(Number(event.target.value)); setSelectedEpisodeNumber(null); }}>{seasons.map((season) => <option key={String(season.id)} value={season.number}>Season {season.number}{season.title && season.title.trim().toLowerCase() !== `season ${season.number}` ? ` — ${season.title}` : ''}</option>)}</select></label>
-          <label className="series-source-picker__field"><span>Episode</span><select value={selectedEpisode?.number ?? ''} disabled={!episodes.some((episode) => episode.available !== false)} onChange={(event) => setSelectedEpisodeNumber(Number(event.target.value))}>{!selectedEpisode && <option value="">No released episodes in this season</option>}{episodes.map((episode) => <option key={String(episode.id)} value={episode.number} disabled={episode.available === false}>EP {episode.number} — {episode.title}{episode.available === false ? ' (Coming soon)' : ''}</option>)}</select></label>
-        </> : <p className="series-source-picker__empty">Episodes are not available for this series yet. Please check back soon.</p>}
-        {selectedEpisode && <p className="series-source-picker__selected">Selected: Season {selectedSeason?.number} · Episode {selectedEpisode.number} — {selectedEpisode.title}</p>}
-      </div>}
-
       {activeTab === 'review' ? (
         <div className="review-tabs__panel" role="region" aria-label="Review">
           <span className="eyebrow">Review</span>
           <p>{item.synopsis || item.description || 'No review is available for this title yet.'}</p>
         </div>
+      ) : kind === 'series' ? (
+        <div className="series-tab-guide" role="region" aria-label={activeTab === 'watch' ? 'Watch episodes' : 'Download episodes'}>
+          <SectionHeading eyebrow={activeTab === 'watch' ? 'Watch by season' : 'Download by season'} title="Episode guide" />
+          <p className="series-tab-guide__hint">{activeTab === 'watch' ? 'Choose a season, then select an episode to watch.' : 'Choose a season, then select an episode to open its download options.'}</p>
+          <SeriesEpisodes item={item} action={activeTab} openSeasonId={openSeasonId} onSelectSeason={setOpenSeasonId} />
+        </div>
       ) : (
         <div className="review-tabs__actions" role="region" aria-label={activeTab === 'watch' ? 'Watch options' : 'Download options'}>
-          <button className="review-action review-action--direct" type="button" onClick={() => onDirectAction(activeTab, selectedSeason?.number, selectedEpisode?.number)} disabled={needsEpisodeSelection}>
+          <button className="review-action review-action--direct" type="button" onClick={() => onDirectAction(activeTab)}>
             <span className="review-action__mark" aria-hidden="true">YT</span>
-            <span><b>{directLabel}</b><small>{needsEpisodeSelection ? 'No released episode is available yet' : activeTab === 'watch' ? 'Open this selection in Yangon TV player' : 'Open separate download options'}</small></span>
+            <span><b>{directLabel}</b><small>{activeTab === 'watch' ? 'Open this movie in Yangon TV player' : 'Open separate download options'}</small></span>
             {activeTab === 'watch' ? <Play size={18} fill="currentColor" /> : <Download size={18} />}
           </button>
           {telegramPostUrl ? (
@@ -624,12 +617,12 @@ function ReviewTabs({
           ) : (
             <div className="review-action review-action--unavailable" aria-disabled="true">
               <Send size={20} />
-              <span><b>{telegramLabel}</b><small>{needsEpisodeSelection ? 'Choose a released episode first' : 'No Telegram option is available for this selection.'}</small></span>
+              <span><b>{telegramLabel}</b><small>No Telegram option is available for this title.</small></span>
             </div>
           )}
         </div>
       )}
-      <p className="review-tabs__note">{activeTab === 'review' ? kind === 'series' ? 'Browse episode titles in the guide below. Choose Watch or Download to select an episode.' : `Browse this ${title} publicly. Direct Watch and Download require a Yangon TV account with Premium access.` : kind === 'series' ? 'Sources match the selected episode. Direct Watch and Download require a Yangon TV account with Premium access.' : 'Direct actions continue to the protected Yangon TV player.'}</p>
+      {(kind === 'movie' || activeTab === 'review') && <p className="review-tabs__note">{kind === 'series' ? 'Choose Watch to browse seasons and episodes for playback, or Download to browse episode download options.' : activeTab === 'review' ? `Browse this ${title} publicly. Direct Watch and Download require a Yangon TV account with Premium access.` : 'Direct actions continue to the protected Yangon TV player.'}</p>}
     </section>
   );
 }
@@ -755,7 +748,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
         <div className="detail-shade" />
         <div className="container detail-hero-content">
           <Link className="back-link detail-back-button" to={kind === 'movie' ? '/movies' : '/series'} aria-label={kind === 'movie' ? 'Back to Movies' : 'Back to Series'}><ArrowLeft size={16} /> <span>Back</span></Link>
-          <div className="detail-layout">
+          <div className={kind === 'series' ? 'detail-layout detail-layout--series' : 'detail-layout'}>
             <img className="detail-poster" src={mediaUrl(item.poster)} alt={`${item.title} poster`} decoding="async" width="342" height="513" />
             <div className="detail-copy">
               <div className="pills">
@@ -773,8 +766,8 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
                 key={`${kind}:${item.id}`}
                 item={item}
                 kind={kind}
-                onDirectAction={(action, seasonNumber, episodeNumber) => {
-                  const path = kind === 'movie' ? mediaWatchPath(item) : mediaWatchPath(item, { season: seasonNumber, episode: episodeNumber });
+                onDirectAction={(action) => {
+                  const path = mediaWatchPath(item);
                   startWatching(action === 'download' ? `${path}${path.includes('?') ? '&' : '?'}action=download` : path);
                 }}
               />
@@ -782,12 +775,6 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
           </div>
         </div>
       </section>
-      {kind === 'series' && (
-        <section id="episode-guide" className="container detail-section" aria-label="Episode guide">
-          <SectionHeading eyebrow="Series episodes" title="Episode guide" />
-          <SeriesEpisodes key={String(item.id)} item={item} />
-        </section>
-      )}
       <section className="container detail-section detail-extra-grid">
         <div className="detail-extra-card"><span className="eyebrow">Cast</span>{item.casts?.length ? <div className="cast-list">{item.casts.map((cast) => <span className="cast-chip" key={cast}>{cast}</span>)}</div> : <p>No cast information available.</p>}</div>
       </section>
