@@ -549,30 +549,23 @@ function SeriesEpisodes({ item }: { item: MediaItem }) {
   );
 }
 
+function SeriesOverview({ item }: { item: MediaItem }) {
+  return (
+    <section className="review-tabs" aria-label={`${item.title} series overview`}>
+      <div className="review-tabs__panel" role="region" aria-label="Series overview">
+        <span className="eyebrow">Series overview</span>
+        <p>{item.synopsis || item.description || 'No overview is available for this series yet.'}</p>
+      </div>
+      <p className="review-tabs__note">Choose an episode from the Episode Guide below to open the player. Viewing access is checked after you select an episode.</p>
+    </section>
+  );
+}
+
 type ReviewTab = 'review' | 'watch' | 'download';
 
-function ReviewTabs({
-  item,
-  kind,
-  onDirectAction,
-}: {
-  item: MediaItem;
-  kind: 'movie' | 'series';
-  onDirectAction: (action: 'watch' | 'download', seasonNumber?: number, episodeNumber?: number) => void;
-}) {
+function ReviewTabs({ item, onDirectAction }: { item: MediaItem; onDirectAction: (action: 'watch' | 'download') => void }) {
   const [activeTab, setActiveTab] = useState<ReviewTab>('review');
-  const [selectedSeasonNumber, setSelectedSeasonNumber] = useState<number | null>(null);
-  const [selectedEpisodeNumber, setSelectedEpisodeNumber] = useState<number | null>(null);
-  const seasons = [...(item.seasons ?? [])].sort((left, right) => left.number - right.number);
-  const defaultSeason = seasons.find((season) => season.episodes.some((episode) => episode.available !== false)) ?? seasons[0];
-  const selectedSeason = seasons.find((season) => season.number === selectedSeasonNumber) ?? defaultSeason;
-  const episodes = [...(selectedSeason?.episodes ?? [])].sort((left, right) => left.number - right.number);
-  const defaultEpisodeNumber = episodes.find((episode) => episode.available !== false)?.number ?? null;
-  const effectiveSelectedEpisodeNumber = selectedEpisodeNumber ?? defaultEpisodeNumber;
-  const selectedEpisode = episodes.find((episode) => episode.number === effectiveSelectedEpisodeNumber && episode.available !== false);
-  const telegramPostUrl = kind === 'series' ? selectedEpisode?.telegramPostUrl : item.telegramPostUrl;
-  const needsEpisodeSelection = kind === 'series' && !selectedEpisode;
-  const title = kind === 'movie' ? 'movie' : 'series';
+  const telegramPostUrl = item.telegramPostUrl;
   const directLabel = activeTab === 'watch' ? 'Direct Watch' : 'Download Options';
   const telegramLabel = activeTab === 'watch' ? 'Watch Via Telegram' : 'Download Via Telegram';
 
@@ -596,14 +589,6 @@ function ReviewTabs({
         ))}
       </div>
 
-      {kind === 'series' && activeTab !== 'review' && <div className="series-source-picker" aria-label="Series episode selector">
-        {seasons.length ? <>
-          <label className="series-source-picker__field"><span>Season</span><select value={selectedSeason?.number ?? ''} onChange={(event) => { setSelectedSeasonNumber(Number(event.target.value)); setSelectedEpisodeNumber(null); }}>{seasons.map((season) => <option key={String(season.id)} value={season.number}>Season {season.number}{season.title && season.title.trim().toLowerCase() !== `season ${season.number}` ? ` — ${season.title}` : ''}</option>)}</select></label>
-          <label className="series-source-picker__field"><span>Episode</span><select value={selectedEpisode?.number ?? ''} disabled={!episodes.some((episode) => episode.available !== false)} onChange={(event) => setSelectedEpisodeNumber(Number(event.target.value))}>{!selectedEpisode && <option value="">No released episodes in this season</option>}{episodes.map((episode) => <option key={String(episode.id)} value={episode.number} disabled={episode.available === false}>EP {episode.number} — {episode.title}{episode.available === false ? ' (Coming soon)' : ''}</option>)}</select></label>
-        </> : <p className="series-source-picker__empty">Episodes are not available for this series yet. Please check back soon.</p>}
-        {selectedEpisode && <p className="series-source-picker__selected">Selected: Season {selectedSeason?.number} · Episode {selectedEpisode.number} — {selectedEpisode.title}</p>}
-      </div>}
-
       {activeTab === 'review' ? (
         <div className="review-tabs__panel" role="region" aria-label="Review">
           <span className="eyebrow">Review</span>
@@ -611,9 +596,9 @@ function ReviewTabs({
         </div>
       ) : (
         <div className="review-tabs__actions" role="region" aria-label={activeTab === 'watch' ? 'Watch options' : 'Download options'}>
-          <button className="review-action review-action--direct" type="button" onClick={() => onDirectAction(activeTab, selectedSeason?.number, selectedEpisode?.number)} disabled={needsEpisodeSelection}>
+          <button className="review-action review-action--direct" type="button" onClick={() => onDirectAction(activeTab)}>
             <span className="review-action__mark" aria-hidden="true">YT</span>
-            <span><b>{directLabel}</b><small>{needsEpisodeSelection ? 'No released episode is available yet' : activeTab === 'watch' ? 'Open this selection in Yangon TV player' : 'Open separate download options'}</small></span>
+            <span><b>{directLabel}</b><small>{activeTab === 'watch' ? 'Open this movie in Yangon TV player' : 'Open separate download options'}</small></span>
             {activeTab === 'watch' ? <Play size={18} fill="currentColor" /> : <Download size={18} />}
           </button>
           {telegramPostUrl ? (
@@ -624,12 +609,12 @@ function ReviewTabs({
           ) : (
             <div className="review-action review-action--unavailable" aria-disabled="true">
               <Send size={20} />
-              <span><b>{telegramLabel}</b><small>{needsEpisodeSelection ? 'Choose a released episode first' : 'No Telegram option is available for this selection.'}</small></span>
+              <span><b>{telegramLabel}</b><small>No Telegram option is available for this title.</small></span>
             </div>
           )}
         </div>
       )}
-      <p className="review-tabs__note">{activeTab === 'review' ? kind === 'series' ? 'Browse episode titles in the guide below. Choose Watch or Download to select an episode.' : `Browse this ${title} publicly. Direct Watch and Download require a Yangon TV account with Premium access.` : kind === 'series' ? 'Sources match the selected episode. Direct Watch and Download require a Yangon TV account with Premium access.' : 'Direct actions continue to the protected Yangon TV player.'}</p>
+      <p className="review-tabs__note">{activeTab === 'review' ? 'Browse this movie publicly. Direct Watch and Download require a Yangon TV account with Premium access.' : 'Direct actions continue to the protected Yangon TV player.'}</p>
     </section>
   );
 }
@@ -769,15 +754,12 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
                 <span><Tags size={14} /> {(item.genres || []).join(', ') || 'Genre unavailable'}</span>
               </div>
               {kind === 'movie' && <p className="detail-production-credit"><span>Translated &amp; Encoded by</span> <strong>YGNTV – Production Unit</strong></p>}
-              <ReviewTabs
-                key={`${kind}:${item.id}`}
-                item={item}
-                kind={kind}
-                onDirectAction={(action, seasonNumber, episodeNumber) => {
-                  const path = kind === 'movie' ? mediaWatchPath(item) : mediaWatchPath(item, { season: seasonNumber, episode: episodeNumber });
+              {kind === 'series'
+                ? <SeriesOverview item={item} />
+                : <ReviewTabs key={`movie:${item.id}`} item={item} onDirectAction={(action) => {
+                  const path = mediaWatchPath(item);
                   startWatching(action === 'download' ? `${path}${path.includes('?') ? '&' : '?'}action=download` : path);
-                }}
-              />
+                }} />}
             </div>
           </div>
         </div>
