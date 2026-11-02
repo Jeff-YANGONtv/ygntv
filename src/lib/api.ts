@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { AdBanner, ApiPage, BlogInteractions, BlogPost, BlogReactionType, ContactAudienceChannel, Episode, MediaItem, PaymentAccount, PaymentOrder, PremiumPlan, PublicProfile, Season, SocialLink, SupportConversation, SupportMessage, SupportMessagesResponse, TvCommentHistoryEntry, TvNotificationFeed, TvMembershipRedemption, TvPlaybackPayload, TvProfileData, TvWatchHistoryEntry, UserNotification } from './types';
 import { publicMediaSlug } from './paths';
+import { resizeTmdbImageSource, type TmdbImageSize } from './media-images';
 
 const remoteApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.ygntv.org/api';
 const isVercelWebsite = typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app');
@@ -20,6 +21,26 @@ export function mediaUrl(value?: string | null, fallback = ''): string {
   }
   if (/^https?:\/\//i.test(value)) return value;
   return `${mediaBaseUrl.replace(/\/$/, '')}/${value.replace(/^\//, '')}`;
+}
+
+export function mediaImageUrl(value: string | null | undefined, size: TmdbImageSize, fallback = ''): string {
+  if (!value) return fallback;
+  const resized = resizeTmdbImageSource(value, size);
+  if (resized) return `${mediaBaseUrl.replace(/\/$/, '')}/api/poster-proxy?url=${encodeURIComponent(resized)}`;
+  return mediaUrl(value, fallback);
+}
+
+export function mediaImageSrcSet(value?: string | null): string | undefined {
+  if (!value) return undefined;
+  const candidates: string[] = [];
+  for (const size of ['w780', 'w1280'] as const) {
+    const resized = resizeTmdbImageSource(value, size);
+    if (!resized) continue;
+    const width = Number(size.slice(1));
+    const url = `${mediaBaseUrl.replace(/\/$/, '')}/api/poster-proxy?url=${encodeURIComponent(resized)}`;
+    candidates.push(`${url} ${width}w`);
+  }
+  return candidates.length ? candidates.join(', ') : undefined;
 }
 
 export function mediaPlaybackUrl(value: string): string {
@@ -203,7 +224,7 @@ export async function getSeries(params: { page?: number; search?: string; genre?
   return normalizePage(pageFrom<MediaItem>(response.data, page), 'series');
 }
 
-export async function getMediaBySlug(kind: 'movie' | 'series', slug: string): Promise<MediaItem | null> {
+export async function getMediaBySlug(kind: 'movie' | 'series', slug: string, firstPageRequest?: Promise<ApiPage<MediaItem>>): Promise<MediaItem | null> {
   const cacheKey = `yangon-tv:media:${kind}:${slug}`;
   try {
     const cached = JSON.parse(sessionStorage.getItem(cacheKey) || 'null') as { savedAt?: number; item?: MediaItem } | null;
@@ -224,7 +245,7 @@ export async function getMediaBySlug(kind: 'movie' | 'series', slug: string): Pr
   }
 
   const loader = kind === 'movie' ? getMovies : getSeries;
-  const firstPage = await loader({ page: 1 });
+  const firstPage = await (firstPageRequest ?? loader({ page: 1 }));
   const matchingFirstPage = firstPage.data.find((item) => publicMediaSlug(item.slug) === slug);
   if (matchingFirstPage) return matchingFirstPage;
 

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Children, type ReactNode } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, Play, Search, Star } from 'lucide-react';
 import type { MediaItem } from '../../lib/types';
-import { mediaUrl } from '../../lib/api';
+import { mediaImageUrl } from '../../lib/api';
 import { mediaDetailPath } from '../../lib/paths';
 
 export function Logo() {
@@ -17,7 +17,7 @@ export function SectionHeading({ eyebrow, title, action }: { eyebrow?: string; t
 export function MediaCard({ item, compact = false }: { item: MediaItem; compact?: boolean }) {
   return <Link to={mediaDetailPath(item)} className={`media-card ${compact ? 'media-card--compact' : ''}`}>
     <div className="poster-wrap">
-      <img src={mediaUrl(item.poster, item.poster)} alt={`${item.title} poster`} loading="lazy" decoding="async" width="342" height="513" />
+      <img src={mediaImageUrl(item.poster, 'w500', item.poster)} alt={`${item.title} poster`} loading="lazy" decoding="async" width="342" height="513" />
       <div className="poster-gradient" />
       {item.badge && <span className="media-badge">{item.badge}</span>}
       <span className="poster-play"><Play size={16} fill="currentColor" /></span>

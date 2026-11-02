@@ -3,12 +3,13 @@ import { AlertCircle, ArrowLeft, CalendarDays, ChevronDown, ChevronLeft, Chevron
 import type Hls from 'hls.js';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
-import { MediaCard, Pill, SectionHeading, EmptyState, ErrorState } from '../components/ui/Primitives';
-import { getMediaBySlug, getMovies, getSeries, getTvPlayback, getTvWatchHistory, mediaPlaybackUrl, mediaUrl, saveTvViewingProgress } from '../lib/api';
+import { MediaCard, Pill, SectionHeading, EmptyState, ErrorState, SkeletonGrid } from '../components/ui/Primitives';
+import { getMediaBySlug, getMovies, getSeries, getTvPlayback, getTvWatchHistory, mediaImageSrcSet, mediaImageUrl, mediaPlaybackUrl, mediaUrl, saveTvViewingProgress } from '../lib/api';
 import { mediaDetailPath, mediaWatchPath, publicMediaSlug } from '../lib/paths';
 import { activeSiteOrigin } from '../lib/siteOrigin';
 import type { MediaItem, TvPlaybackPayload, TvPlaybackSource } from '../lib/types';
 import '../styles/episode-navigation.css';
+import '../styles/route-loading.css';
 
 function safeFilename(title: string): string {
   return `${title.replace(/[^a-z0-9ก-๙\u1000-\u109f]+/gi, '-').replace(/^-|-$/g, '') || 'yangon-tv-video'}.mp4`;
@@ -155,10 +156,11 @@ const [speedOpen, setSpeedOpen] = useState(false);
 const hideControlsTimer = useRef<number | null>(null);
   const hlsRef = useRef<Hls | null>(null);
   const lastSavedPosition = useRef(0);
+  const lastUiUpdateAt = useRef(0);
 const sourceUrl = mediaUrl(source);
   const embedUrl = playbackSource?.mode === 'custom_embed' ? playbackSource.embed_url : providerEmbedUrl(sourceUrl);
   const resolvedSource = mediaPlaybackUrl(directMediaUrl(sourceUrl));
-  const resolvedPoster = poster ? mediaUrl(poster) : undefined;
+  const resolvedPoster = poster ? mediaImageUrl(poster, 'w500') : undefined;
   const provider = providerLabel(sourceUrl);
   const isNstreamEmbed = Boolean(embedUrl && /(^|\.)nstream\.cc(?:[/:]|$)/i.test(embedUrl));
   const isUnsupportedWatchPage = /\/watch(?:\/|$)/i.test(resolvedSource);
@@ -217,6 +219,7 @@ const revealControls = () => {
     video.playbackRate = 1;
     setPlaybackSpeedValue(1);
     setCurrentTime(0);
+    lastUiUpdateAt.current = 0;
     setDuration(0);
     setSpeedOpen(false);
     setQualityOpen(false);
@@ -297,6 +300,7 @@ const revealControls = () => {
       const target = Math.min(initialPosition, Math.max(0, video.duration - 1));
       video.currentTime = target;
       setCurrentTime(target);
+      lastUiUpdateAt.current = performance.now();
       lastSavedPosition.current = target;
     };
     if (video.readyState >= HTMLMediaElement.HAVE_METADATA) resume();
@@ -312,7 +316,12 @@ const player = playerRef.current;
 if (!video || !player || isUnsupportedWatchPage || embedUrl) return;
     const onTimeUpdate = () => {
       const position = video.currentTime || 0;
-      setCurrentTime(position);
+      // The visible readout uses whole seconds; cap playback-driven React updates at 2/s.
+      const now = performance.now();
+      if (now - lastUiUpdateAt.current >= 500) {
+        lastUiUpdateAt.current = now;
+        setCurrentTime(position);
+      }
       if (position - lastSavedPosition.current >= 30) saveProgress(false);
     };
 const onDurationChange = () => setDuration(Number.isFinite(video.duration) ? video.duration : 0);
@@ -356,6 +365,7 @@ video.removeEventListener('volumechange', onVolumeChange);
     if (!video || !Number.isFinite(video.duration)) return;
     const nextTime = Math.min(Math.max(0, video.currentTime + seconds), video.duration);
     video.currentTime = nextTime;
+    lastUiUpdateAt.current = performance.now();
     setCurrentTime(nextTime);
     revealControls();
   };
@@ -364,6 +374,7 @@ video.removeEventListener('volumechange', onVolumeChange);
     const video = videoRef.current;
     if (!video || !Number.isFinite(video.duration)) return;
     video.currentTime = value;
+    lastUiUpdateAt.current = performance.now();
     setCurrentTime(value);
     revealControls();
   };
@@ -484,7 +495,10 @@ function SeriesEpisodes({ item, action, openSeasonId, onSelectSeason }: {
   onSelectSeason: (seasonId: string | null) => void;
 }) {
   const { user, openAuth } = useAuth();
-  const seasons = [...(item.seasons ?? [])].sort((left, right) => left.number - right.number);
+  const seasons = useMemo(() => [...(item.seasons ?? [])].sort((left, right) => left.number - right.number), [item.seasons]);
+  const episodesBySeason = useMemo(() => new Map((item.seasons ?? []).map((season) => [
+    String(season.id), [...season.episodes].sort((left, right) => left.number - right.number),
+  ] as const)), [item.seasons]);
   const verb = action === 'download' ? 'Download' : 'Watch';
 
   if (!seasons.length) {
@@ -495,7 +509,7 @@ function SeriesEpisodes({ item, action, openSeasonId, onSelectSeason }: {
     <div className="season-list">
       {seasons.map((season) => {
         const key = String(season.id);
-        const episodes = [...season.episodes].sort((left, right) => left.number - right.number);
+        const episodes = episodesBySeason.get(key) ?? [];
         const isOpen = openSeasonId === key;
         return (
           <div className="season" key={key}>
@@ -518,7 +532,7 @@ function SeriesEpisodes({ item, action, openSeasonId, onSelectSeason }: {
                       const episodePath = mediaWatchPath(item, { season: season.number, episode: episode.number });
                       const actionPath = action === 'download' ? `${episodePath}${episodePath.includes('?') ? '&' : '?'}action=download` : episodePath;
                       const content = <>
-                        <img src={mediaUrl(episode.thumbnail || item.poster)} alt="" loading="lazy" width="80" height="47" />
+                        <img src={mediaImageUrl(episode.thumbnail || item.poster, 'w500')} alt="" loading="lazy" width="80" height="47" />
                         <span className="episode-number">{String(episode.number).padStart(2, '0')}</span>
                         <span className="episode-title"><b>{episode.title}</b><small>{[episode.duration, episode.review || `Season ${season.number} · Episode ${episode.number}`].filter(Boolean).join(' · ')}</small></span>
                         {episode.available === false ? <span className="episode-availability">Soon</span> : action === 'download' ? <Download size={16} /> : <Play size={16} fill="currentColor" />}
@@ -564,7 +578,7 @@ function ReviewTabs({
   onDirectAction: (action: 'watch' | 'download') => void;
 }) {
   const [activeTab, setActiveTab] = useState<ReviewTab>('review');
-  const seasons = [...(item.seasons ?? [])].sort((left, right) => left.number - right.number);
+  const seasons = useMemo(() => [...(item.seasons ?? [])].sort((left, right) => left.number - right.number), [item.seasons]);
   const [openSeasonId, setOpenSeasonId] = useState<string | null>(() => seasons.length === 1 ? String(seasons[0].id) : null);
   const telegramPostUrl = item.telegramPostUrl;
   const title = kind === 'movie' ? 'movie' : 'series';
@@ -627,6 +641,41 @@ function ReviewTabs({
   );
 }
 
+function DetailPageLoading({ kind }: { kind: 'movie' | 'series' }) {
+  return <div className="page page-detail page-detail--loading" role="status" aria-label={`Loading ${kind} details`} aria-busy="true">
+    <section className="detail-hero">
+      <div className="detail-shade" aria-hidden="true" />
+      <div className="container detail-hero-content">
+        <div className="skeleton detail-loading-back" aria-hidden="true" />
+        <div className={kind === 'series' ? 'detail-layout detail-layout--series' : 'detail-layout'}>
+          <div className="skeleton detail-poster detail-loading-poster" aria-hidden="true" />
+          <div className="detail-copy detail-loading-copy" aria-hidden="true">
+            <div className="detail-loading-pills"><span className="skeleton detail-loading-pill" /><span className="skeleton detail-loading-pill detail-loading-pill--wide" /></div>
+            <div className="skeleton detail-loading-title" />
+            <div className="detail-loading-meta"><span className="skeleton" /><span className="skeleton" /><span className="skeleton" /></div>
+            {kind === 'movie' && <div className="skeleton detail-loading-credit" />}
+            <section className="review-tabs detail-loading-tabs">
+              <div className="review-tabs__list"><div className="review-tab detail-loading-tab" /><div className="review-tab detail-loading-tab" /><div className="review-tab detail-loading-tab" /></div>
+              <div className="review-tabs__panel">
+                <span className="eyebrow">Review</span>
+                <div className="detail-loading-panel-lines"><span className="skeleton detail-loading-panel-line" /><span className="skeleton detail-loading-panel-line" /><span className="skeleton detail-loading-panel-line detail-loading-panel-line--short" /></div>
+              </div>
+              <div className="detail-loading-note"><span className="skeleton detail-loading-note-line" /><span className="skeleton detail-loading-note-line detail-loading-note-line--short" /></div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section className="container detail-section detail-extra-grid">
+      <div className="detail-extra-card"><span className="eyebrow">Cast</span><div className="detail-loading-cast" aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <span className="skeleton" key={index} />)}</div></div>
+    </section>
+    <section className="container detail-section detail-loading-related">
+      <SectionHeading eyebrow="You might also like" title="More to discover" />
+      <SkeletonGrid count={3} />
+    </section>
+  </div>;
+}
+
 export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
   const { slug = '' } = useParams();
   const navigate = useNavigate();
@@ -641,7 +690,8 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
     setLoading(true);
     setError(false);
     const loader = kind === 'movie' ? getMovies : getSeries;
-    Promise.all([getMediaBySlug(kind, slug), loader({ page: 1 })]).then(([value, listing]) => {
+    const firstPageRequest = loader({ page: 1 });
+    Promise.all([getMediaBySlug(kind, slug, firstPageRequest), firstPageRequest]).then(([value, listing]) => {
       if (!mounted) return;
       setItem(value);
       setRelated(listing.data.filter((entry) => entry.slug !== slug).slice(0, 3));
@@ -735,7 +785,7 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
     };
   }, [item, kind]);
 
-  if (loading) return <div className="container page-loading"><div className="skeleton skeleton-detail" /></div>;
+  if (loading) return <DetailPageLoading kind={kind} />;
     if (error || !item) return <div className="container page-state"><ErrorState onRetry={() => window.location.reload()} /></div>;
   const startWatching = (path: string) => {
     if (user) navigate(path);
@@ -744,12 +794,12 @@ export function MediaDetail({ kind }: { kind: 'movie' | 'series' }) {
   return (
     <div className="page page-detail">
       <section className="detail-hero">
-        <img src={mediaUrl(item.backdrop, item.poster)} alt="" fetchPriority="high" decoding="async" width="1280" height="720" />
+        <img src={mediaImageUrl(item.backdrop || item.poster, 'w1280')} srcSet={mediaImageSrcSet(item.backdrop || item.poster)} sizes="100vw" alt="" fetchPriority="high" decoding="async" width="1280" height="720" />
         <div className="detail-shade" />
         <div className="container detail-hero-content">
           <Link className="back-link detail-back-button" to={kind === 'movie' ? '/movies' : '/series'} aria-label={kind === 'movie' ? 'Back to Movies' : 'Back to Series'}><ArrowLeft size={16} /> <span>Back</span></Link>
           <div className={kind === 'series' ? 'detail-layout detail-layout--series' : 'detail-layout'}>
-            <img className="detail-poster" src={mediaUrl(item.poster)} alt={`${item.title} poster`} decoding="async" width="342" height="513" />
+            <img className="detail-poster" src={mediaImageUrl(item.poster, 'w500')} alt={`${item.title} poster`} decoding="async" width="342" height="513" />
             <div className="detail-copy">
               <div className="pills">
                 <Pill>{kind === 'movie' ? 'Movie' : 'Series'}</Pill>
@@ -793,6 +843,27 @@ function PremiumGate({ onJoin }: { onJoin: () => void }) {
     <h2>Premium membership required</h2>
     <p>Join Premium to watch and download this video.</p>
     <button className="button button--primary" type="button" onClick={onJoin}>View Premium membership</button>
+  </div>;
+}
+
+function WatchPageLoading({ kind, hasEpisodeNavigation }: { kind: 'movie' | 'series'; hasEpisodeNavigation: boolean }) {
+  return <div className="page page-watch page-watch--loading" role="status" aria-label="Loading player" aria-busy="true">
+    <section className="container watch-top">
+      <div className="skeleton watch-loading-back" aria-hidden="true" />
+      <div className="player-shell">
+        <div className="player-placeholder watch-loading-player" aria-hidden="true">
+          <div className="skeleton watch-loading-icon" />
+          <div className="skeleton watch-loading-title" />
+          <div className="skeleton watch-loading-copy" />
+          <div className="skeleton watch-loading-action" />
+        </div>
+      </div>
+      <div className="watch-heading"><div><span className="eyebrow">Now watching</span><div className="skeleton watch-loading-heading" aria-hidden="true" /></div></div>
+      {hasEpisodeNavigation && <nav className="watch-episode-nav watch-loading-episode-nav" aria-hidden="true"><span className="skeleton" /><span className="skeleton watch-loading-episode-position" /><span className="skeleton" /></nav>}
+    </section>
+    <section className="container watch-lower">
+      <div className="watch-note"><span className="skeleton watch-loading-note-icon" aria-hidden="true" /><div className="watch-loading-note-copy" aria-hidden="true"><span className="skeleton" /><span className="skeleton" /><span className="skeleton" /></div></div>
+    </section>
   </div>;
 }
 
@@ -894,7 +965,7 @@ export function WatchPage({ kind }: { kind: 'movie' | 'series' }) {
     return () => { mounted = false; };
   }, [historyContentId, historyContentType, historyKey, item, kind, loading, resumeAt, selectedEpisode, user]);
 
-  if (loading) return <div className="container page-loading"><div className="skeleton skeleton-player" /></div>;
+  if (loading) return <WatchPageLoading kind={kind} hasEpisodeNavigation={kind === 'series' && (selectedSeasonNumber > 0 || selectedEpisodeNumber > 0 || Boolean(selectedEpisodeId))} />;
   if (error || !item) return <div className="container page-state"><ErrorState onRetry={() => window.location.reload()} /></div>;
 
   const sources = playback?.streaming_links ?? [];

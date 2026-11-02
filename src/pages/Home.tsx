@@ -3,7 +3,7 @@ import { ArrowRight, Play, Sparkles, Star } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AutoSlider, EmptyState, ErrorState, MediaCard, SkeletonGrid } from '../components/ui/Primitives';
 import { useAuth } from '../lib/auth';
-import { getAds, getBlogs, getMovies, getSeries, mediaUrl } from '../lib/api';
+import { getAds, getBlogs, getMovies, getSeries, mediaImageSrcSet, mediaImageUrl, mediaUrl } from '../lib/api';
 import { blogPath, mediaDetailPath, mediaWatchPath } from '../lib/paths';
 import type { AdBanner, BlogPost, MediaItem } from '../lib/types';
 import '../styles/streaming-home.css';
@@ -22,16 +22,32 @@ export function Home() {
   const loadHome = () => {
     setLoading(true);
     setError(false);
-    Promise.all([getMovies({ page: 1 }), getSeries({ page: 1 }), getBlogs({ page: 1 }), getAds('home_header'), getAds('home_footer')])
-      .then(([moviePage, seriesPage, blogPage, headerBanners, footerBanners]) => {
+    const secondaryPromise = Promise.allSettled([getBlogs({ page: 1 }), getAds('home_header'), getAds('home_footer')]);
+    void secondaryPromise.then(([blogResult, headerResult, footerResult]) => {
+      if (blogResult.status === 'fulfilled') setBlogs(blogResult.value.data);
+      if (headerResult.status === 'fulfilled') setHeaderAds(headerResult.value.filter((ad) => ad.type === 'banner' && Boolean(ad.content)));
+      if (footerResult.status === 'fulfilled') setFooterAds(footerResult.value.filter((ad) => ad.type === 'banner' && Boolean(ad.content)));
+    });
+    Promise.all([getMovies({ page: 1 }), getSeries({ page: 1 })])
+      .then(async ([moviePage, seriesPage]) => {
         setMovies(moviePage.data);
         setSeries(seriesPage.data);
-        setBlogs(blogPage.data);
-        setHeaderAds(headerBanners.filter((ad) => ad.type === 'banner' && Boolean(ad.content)));
-        setFooterAds(footerBanners.filter((ad) => ad.type === 'banner' && Boolean(ad.content)));
+        if (moviePage.data.length || seriesPage.data.length) {
+          setLoading(false);
+          return;
+        }
+        const [blogResult, headerResult, footerResult] = await secondaryPromise;
+        const hasSecondaryContent = (blogResult.status === 'fulfilled' && blogResult.value.data.length > 0)
+          || (headerResult.status === 'fulfilled' && headerResult.value.some((ad) => ad.type === 'banner' && Boolean(ad.content)))
+          || (footerResult.status === 'fulfilled' && footerResult.value.some((ad) => ad.type === 'banner' && Boolean(ad.content)));
+        const hasSecondaryError = [blogResult, headerResult, footerResult].some((result) => result.status === 'rejected');
+        if (!hasSecondaryContent && hasSecondaryError) setError(true);
+        setLoading(false);
       })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        setError(true);
+        setLoading(false);
+      });
   };
 
   useEffect(() => { loadHome(); }, []);
@@ -67,10 +83,12 @@ export function Home() {
 function FeaturedHero({ item, onWatch }: { item: MediaItem; onWatch: () => void }) {
   const seasonCount = item.seasonCount ?? item.seasons?.length ?? 0;
   const detailPath = mediaDetailPath(item);
-  const image = mediaUrl(item.backdrop || item.poster);
+  const imageSource = item.backdrop || item.poster;
+  const image = mediaImageUrl(imageSource, 'w1280');
+  const imageSrcSet = mediaImageSrcSet(imageSource);
 
   return <section className="stream-home__hero" aria-label={`Featured ${item.kind}`}>
-    {image && <img className="stream-home__hero-image" src={image} alt="" loading="eager" decoding="async" fetchPriority="high" width="1920" height="1080" />}
+    {image && <img className="stream-home__hero-image" src={image} srcSet={imageSrcSet} sizes="100vw" alt="" loading="eager" decoding="async" fetchPriority="high" width="1920" height="1080" />}
     <div className="stream-home__hero-shade" aria-hidden="true" />
     <div className="container stream-home__hero-inner">
       <div className="stream-home__hero-copy">

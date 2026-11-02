@@ -16,6 +16,12 @@ test('search is case-insensitive and combines with genre', () => {
   assert.deepEqual(catalogView(items, { query: '  THE BOYS ', genre: 'drama' }).data.map((item) => item.id), [1]);
   assert.equal(catalogView(items, { query: 'The Boys', genre: 'Comedy' }).total, 0);
 });
+test('successive searches preserve NFKC matching for cached item text', () => {
+  const fullWidth = { ...items[0], id: 4, title: 'Ｔｈｅ　Ｂｏｙｓ', genres: ['Ｄｒａｍａ'] };
+  assert.deepEqual(catalogView([fullWidth], { query: 'the boys' }).data.map((item) => item.id), [4]);
+  assert.deepEqual(catalogView([fullWidth], { query: 'boys', genre: 'Ｄｒａｍａ' }).data.map((item) => item.id), [4]);
+});
+
 test('empty results have a valid first page', () => {
   assert.deepEqual(catalogView(items, { query: 'nonexistent', page: 9 }), { data: [], total: 0, currentPage: 1, lastPage: 1 });
 });

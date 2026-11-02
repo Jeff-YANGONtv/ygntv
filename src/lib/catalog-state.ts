@@ -1,10 +1,19 @@
 import type { MediaItem } from './types';
 
 export type CatalogSort = 'default' | 'title' | 'year' | 'rating';
+
+const searchTextCache = new WeakMap<MediaItem, string>();
+function searchableText(item: MediaItem): string {
+  const cached = searchTextCache.get(item);
+  if (cached !== undefined) return cached;
+  const value = `${item.title} ${(item.genres || []).join(' ')}`.normalize('NFKC').toLocaleLowerCase();
+  searchTextCache.set(item, value);
+  return value;
+}
 export function catalogView(items: MediaItem[], options: { query?: string; genre?: string; sort?: CatalogSort; page?: number; pageSize?: number }) {
   const query = (options.query || '').normalize('NFKC').trim().toLocaleLowerCase();
   const genre = (options.genre || '').toLocaleLowerCase();
-  const filtered = items.filter((item) => (!query || `${item.title} ${(item.genres || []).join(' ')}`.normalize('NFKC').toLocaleLowerCase().includes(query)) && (!genre || (item.genres || []).some((value) => value.toLocaleLowerCase() === genre)));
+  const filtered = items.filter((item) => (!query || searchableText(item).includes(query)) && (!genre || (item.genres || []).some((value) => value.toLocaleLowerCase() === genre)));
   if (options.sort === 'title') filtered.sort((a, b) => a.title.localeCompare(b.title));
   if (options.sort === 'year') filtered.sort((a, b) => (Number(b.year) || 0) - (Number(a.year) || 0) || a.title.localeCompare(b.title));
   if (options.sort === 'rating') filtered.sort((a, b) => b.rating - a.rating || a.title.localeCompare(b.title));
