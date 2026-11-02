@@ -1,0 +1,28 @@
+.subscription-tabs--loading .subscription-tab{cursor:default;pointer-events:none}
+.subscription-stage--loading .membership-plans__track{transform:none!important;transition:none;will-change:auto}
+.subscription-stage--loading .membership-plans__item{padding:4px}
+.membership-plan--skeleton{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;cursor:default;pointer-events:none}
+.membership-plan--skeleton:hover{transform:none}
+.subscription-plan-skeleton__bar{background:rgba(255,255,255,.14);border-radius:999px;display:block;height:10px;max-width:100%}
+.subscription-plan-skeleton__bar--icon{border-radius:50%;height:12px;width:12px}
+.subscription-plan-skeleton__bar--counter{height:9px;width:58px}
+.subscription-plan-skeleton__bar--eyebrow{height:8px;width:128px}
+.subscription-plan-skeleton__bar--title{height:1em;width:min(62vw,230px)}
+.subscription-plan-skeleton__bar--label{height:8px;width:72px}
+.subscription-plan-skeleton__bar--price{height:1em;width:min(38vw,150px)}
+.subscription-plan-skeleton__bar--term{height:9px;width:68px}
+.subscription-plan-skeleton__bar--feature{height:9px;width:74%}
+.subscription-plan-skeleton__bar--feature-short{height:9px;width:58%}
+.membership-plan--skeleton .membership-plan__footer{min-height:28px}
+.membership-plan--skeleton .membership-plan__footer svg{flex:none}
+.membership-plan--skeleton .membership-plan__term{gap:6px}
+.membership-plan--skeleton .membership-plan__features{grid-template-columns:repeat(2,minmax(0,1fr))}
+.membership-plan--skeleton .membership-plan__feature{align-items:center}
+.membership-plan--skeleton .membership-plan__price-label{align-self:end}
+.membership-plan--skeleton .membership-plan__price{align-self:start}
+.membership-plans__button--loading{cursor:default;pointer-events:none}
+@media(max-width:640px){
+  .membership-plan--skeleton .membership-plan__features{grid-template-columns:1fr}
+  .subscription-plan-skeleton__bar--title{width:min(72vw,230px)}
+  .subscription-plan-skeleton__bar--price{width:min(48vw,150px)}
+}

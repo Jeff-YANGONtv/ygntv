@@ -1,10 +1,11 @@
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Clipboard, Clock3, Copy, Crown, FileImage, Film, Gift, LoaderCircle, LockKeyhole, Monitor, MonitorPlay, RefreshCw, ScanText, ShieldCheck, Smartphone, Sparkles, UploadCloud, WalletCards } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, ChevronRight, Clipboard, Clock3, Copy, Crown, FileImage, Film, Gift, LoaderCircle, LockKeyhole, Monitor, MonitorPlay, RefreshCw, ScanText, ShieldCheck, Smartphone, Sparkles, UploadCloud, WalletCards } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPaymentOrder, getPremiumPlans, getPublicPaymentAccounts, redeemMembershipCode, submitOrderReceipt } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import type { PaymentAccount, PaymentOrder, PremiumPlan } from '../lib/types';
 import '../styles/subscription-tabs.css';
+import '../styles/subscription-loading.css';
 
 type Step = 'plans' | 'methods' | 'payment' | 'confirmed';
 
@@ -141,7 +142,7 @@ export function SubscriptionPage() {
   return <section className="subscription-page container">
     <div className="subscription-heading"><span className="eyebrow">Yangon TV membership</span><h1><em>Premium</em> Subscription</h1><p>{step === 'plans' ? 'Choose a plan, select a payment method, then submit your transfer receipt for review.' : 'Premium activates automatically after the Yangon TV team verifies your submitted receipt.'}</p></div>
     <div className="purchase-progress" aria-label="Subscription purchase progress"><span className={step === 'plans' ? 'purchase-progress__item purchase-progress__item--active' : 'purchase-progress__item purchase-progress__item--done'}><b>1</b>Plan</span><i /><span className={step === 'methods' ? 'purchase-progress__item purchase-progress__item--active' : step === 'payment' || step === 'confirmed' ? 'purchase-progress__item purchase-progress__item--done' : 'purchase-progress__item'}><b>2</b>Payment</span><i /><span className={step === 'payment' ? 'purchase-progress__item purchase-progress__item--active' : step === 'confirmed' ? 'purchase-progress__item purchase-progress__item--done' : 'purchase-progress__item'}><b>3</b>Receipt</span></div>
-    {loading && <div className="profile-loading" role="status"><LoaderCircle className="spin" size={18} /> Loading current subscription options…</div>}
+    {loading && step === 'plans' && <SubscriptionPlanLoading signedIn={Boolean(token)} />}
     {error && <div className="profile-alert subscription-alert" role="alert">{error}</div>}
     {!loading && step === 'plans' && <><div className="subscription-tabs" role="tablist" aria-label="Subscription options"><button type="button" role="tab" aria-selected={subscriptionTab === 'plans'} className={subscriptionTab === 'plans' ? 'subscription-tab subscription-tab--active' : 'subscription-tab'} onClick={() => setSubscriptionTab('plans')}><Crown size={15} /> Membership plans</button><button type="button" role="tab" aria-selected={subscriptionTab === 'promo'} className={subscriptionTab === 'promo' ? 'subscription-tab subscription-tab--active' : 'subscription-tab'} onClick={() => setSubscriptionTab('promo')}><Gift size={15} /> Promo code redeem</button></div>{subscriptionTab === 'plans' ? <PlanStep plans={orderedPlans} signedIn={Boolean(token)} onChoose={choosePlan} /> : <section className="subscription-card-redeem" aria-labelledby="promo-code-title"><div className="subscription-stage__heading"><div><span className="profile-card-label">Have a promo code?</span><h2 id="promo-code-title">Redeem your membership code</h2><p>Enter a code from Yangon TV to activate Premium access instantly.</p></div><Gift size={22} /></div><div className="subscription-card-redeem__form"><input value={promoCode} onChange={(event) => setPromoCode(event.target.value.toUpperCase())} onKeyDown={(event) => { if (event.key === 'Enter') redeemPromo(); }} placeholder="Enter promo code" aria-label="Promo code" autoComplete="off" /><button className="button button--primary" type="button" onClick={redeemPromo} disabled={promoBusy || !promoCode.trim()}>{promoBusy ? <><LoaderCircle className="spin" size={16} /> Redeeming…</> : 'Redeem code'}</button></div>{!token && <small className="subscription-redeem-note">Sign in is required to redeem a code.</small>}{promoSuccess && <p className="subscription-card-success" role="status"><CheckCircle2 size={16} /> {promoSuccess}</p>}</section>}</>}
     {!loading && step === 'methods' && plan && <MethodStep plan={plan} accounts={accounts} busy={busy} onChoose={chooseAccount} onBack={() => setStep('plans')} />}
@@ -150,27 +151,91 @@ export function SubscriptionPage() {
   </section>;
 }
 
+function SubscriptionPlanLoading({ signedIn }: { signedIn: boolean }) {
+  return <>
+    <div className="subscription-tabs subscription-tabs--loading" aria-hidden="true">
+      <div className="subscription-tab subscription-tab--active"><Crown size={15} /> Membership plans</div>
+      <div className="subscription-tab"><Gift size={15} /> Promo code redeem</div>
+    </div>
+    <section className="subscription-stage subscription-stage--plans subscription-stage--loading" aria-busy="true">
+      <div className="subscription-stage__heading">
+        <div><span className="profile-card-label">Step 1 of 3 · Yangon TV membership</span><h2>Choose your access</h2><p>Unlock new releases, Myanmar subtitles, and a smoother way to watch.</p></div><Crown aria-hidden="true" />
+      </div>
+      <div className="membership-plans__controls" aria-hidden="true">
+        <span className="membership-plans__counter"><span className="subscription-plan-skeleton__bar subscription-plan-skeleton__bar--counter" /></span>
+        <div className="membership-plans__buttons">
+          <span className="membership-plans__button membership-plans__button--loading"><ChevronLeft size={18} /></span>
+          <span className="membership-plans__button membership-plans__button--loading"><ChevronRight size={18} /></span>
+        </div>
+      </div>
+      <div className="membership-plans">
+        <div className="membership-plans__track">
+          <div className="membership-plans__item">
+            <div className="membership-plan membership-plan--skeleton">
+              <span className="membership-plan__top" aria-hidden="true"><span className="membership-plan__icon"><span className="subscription-plan-skeleton__bar subscription-plan-skeleton__bar--icon" /></span></span>
+              <span className="membership-plan__eyebrow" aria-hidden="true"><span className="subscription-plan-skeleton__bar subscription-plan-skeleton__bar--eyebrow" /></span>
+              <strong aria-hidden="true"><span className="subscription-plan-skeleton__bar subscription-plan-skeleton__bar--title" /></strong>
+              <span className="membership-plan__price-label" aria-hidden="true"><span className="subscription-plan-skeleton__bar subscription-plan-skeleton__bar--label" /></span>
+              <b className="membership-plan__price" aria-hidden="true"><span className="subscription-plan-skeleton__bar subscription-plan-skeleton__bar--price" /></b>
+              <span className="membership-plan__term" aria-hidden="true"><Clock3 size={13} /><span className="subscription-plan-skeleton__bar subscription-plan-skeleton__bar--term" /></span>
+              <span className="membership-plan__features" aria-hidden="true">
+                <span className="membership-plan__feature"><span className="subscription-plan-skeleton__bar subscription-plan-skeleton__bar--feature" /></span>
+                <span className="membership-plan__feature"><span className="subscription-plan-skeleton__bar subscription-plan-skeleton__bar--feature-short" /></span>
+              </span>
+              <span className="membership-plan__footer" role="status"><span>Loading membership options…</span><LoaderCircle className="spin" size={15} /></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="membership-plans__pagination" aria-hidden="true">
+        <span className="membership-plans__dot membership-plans__dot--active" />
+        <span className="membership-plans__dot" />
+        <span className="membership-plans__dot" />
+        <span className="membership-plans__dot" />
+      </div>
+    </section>
+    {!signedIn && <p className="subscription-signin-note"><LockKeyhole size={14} /> Sign in is required before a payment order can be created.</p>}
+  </>;
+}
+
 function PlanStep({ plans, signedIn, onChoose }: { plans: PremiumPlan[]; signedIn: boolean; onChoose: (plan: PremiumPlan) => void }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const moveTo = (index: number) => setActiveIndex(Math.max(0, Math.min(index, plans.length - 1)));
+
   return <div className="subscription-stage subscription-stage--plans">
     <div className="subscription-stage__heading"><div><span className="profile-card-label">Step 1 of 3 · Yangon TV membership</span><h2>Choose your access</h2><p>Unlock new releases, Myanmar subtitles, and a smoother way to watch.</p></div><Crown /></div>
-    {plans.length === 0 ? <div className="subscription-empty"><WalletCards size={24} /><strong>No Premium plans are available right now.</strong><span>Please check back shortly.</span></div> : <div className="membership-plans" role="list" aria-label="Membership plans">
-      {plans.map((plan, index) => <div className="membership-plans__item" role="listitem" key={plan.key}>
-        <button className={`membership-plan${index === plans.length - 1 ? ' membership-plan--featured' : ''}`} type="button" onClick={() => onChoose(plan)} aria-label={`${plan.label}: ${price(plan.amount_ks)}, ${plan.access_months} month${plan.access_months === 1 ? '' : 's'} access. Compatible with Desktop and Mobile. All Contents From ygntv.org.`}>
-        <span className="membership-plan__glow" />
-        <span className="membership-plan__top"><span className="membership-plan__icon"><MonitorPlay size={19} /></span>{index === plans.length - 1 && <span className="membership-plan__badge"><Sparkles size={12} /> Best value</span>}</span>
-        <span className="membership-plan__eyebrow">YGNTV MEMBERSHIP</span>
-        <strong>{plan.label}</strong>
-        <span className="membership-plan__price-label">Plan price</span>
-        <b className="membership-plan__price">{price(plan.amount_ks)}</b>
-        <span className="membership-plan__term"><Clock3 size={13} aria-hidden="true" /><span>{plan.access_months} month{plan.access_months === 1 ? '' : 's'} access</span></span>
-        <span className="membership-plan__features">
-          <span className="membership-plan__feature"><span className="membership-plan__device-icons" aria-hidden="true"><Monitor size={13} /><Smartphone size={12} /></span><span>Desktop · Mobile</span></span>
-          <span className="membership-plan__feature"><Film size={14} aria-hidden="true" /><span>All Contents From ygntv.org</span></span>
-        </span>
-        <span className="membership-plan__footer"><span>{signedIn ? 'Select plan' : 'Sign in to select'}</span><Crown size={15} /></span>
-        </button>
-      </div>)}
-    </div>}
+    {plans.length === 0 ? <div className="subscription-empty"><WalletCards size={24} /><strong>No Premium plans are available right now.</strong><span>Please check back shortly.</span></div> : <>
+      <div className="membership-plans__controls">
+        <span className="membership-plans__counter" aria-live="polite">Plan {activeIndex + 1} of {plans.length}</span>
+        {plans.length > 1 && <div className="membership-plans__buttons">
+          <button className="membership-plans__button" type="button" onClick={() => moveTo(activeIndex - 1)} disabled={activeIndex === 0} aria-label="Previous plan"><ChevronLeft size={18} /></button>
+          <button className="membership-plans__button" type="button" onClick={() => moveTo(activeIndex + 1)} disabled={activeIndex === plans.length - 1} aria-label="Next plan"><ChevronRight size={18} /></button>
+        </div>}
+      </div>
+      <div className="membership-plans" role="region" aria-roledescription="carousel" aria-label="Membership plans" tabIndex={0} onKeyDown={(event) => { if (event.key === 'ArrowLeft') { event.preventDefault(); moveTo(activeIndex - 1); } if (event.key === 'ArrowRight') { event.preventDefault(); moveTo(activeIndex + 1); } }}>
+        <div className="membership-plans__track" style={{ transform: `translateX(-${activeIndex * 100}%)` }}>
+          {plans.map((plan, index) => <div className="membership-plans__item" role="group" aria-roledescription="slide" aria-label={`Plan ${index + 1} of ${plans.length}`} aria-hidden={index !== activeIndex} key={plan.key}>
+            <button className={`membership-plan${index === plans.length - 1 ? ' membership-plan--featured' : ''}`} type="button" onClick={() => onChoose(plan)} tabIndex={index === activeIndex ? 0 : -1} aria-label={`${plan.label}: ${price(plan.amount_ks)}, ${plan.access_months} month${plan.access_months === 1 ? '' : 's'} access. Compatible with Desktop and Mobile. All Contents From ygntv.org.`}>
+              <span className="membership-plan__glow" />
+              <span className="membership-plan__top"><span className="membership-plan__icon"><MonitorPlay size={19} /></span>{index === plans.length - 1 && <span className="membership-plan__badge"><Sparkles size={12} /> Best value</span>}</span>
+              <span className="membership-plan__eyebrow">YGNTV MEMBERSHIP</span>
+              <strong>{plan.label}</strong>
+              <span className="membership-plan__price-label">Plan price</span>
+              <b className="membership-plan__price">{price(plan.amount_ks)}</b>
+              <span className="membership-plan__term"><Clock3 size={13} aria-hidden="true" /><span>{plan.access_months} month{plan.access_months === 1 ? '' : 's'} access</span></span>
+              <span className="membership-plan__features">
+                <span className="membership-plan__feature"><span className="membership-plan__device-icons" aria-hidden="true"><Monitor size={13} /><Smartphone size={12} /></span><span>Desktop · Mobile</span></span>
+                <span className="membership-plan__feature"><Film size={14} aria-hidden="true" /><span>All Contents From ygntv.org</span></span>
+              </span>
+              <span className="membership-plan__footer"><span>{signedIn ? 'Select plan' : 'Sign in to select'}</span><Crown size={15} /></span>
+            </button>
+          </div>)}
+        </div>
+      </div>
+      {plans.length > 1 && <div className="membership-plans__pagination" aria-label="Choose a plan">
+        {plans.map((plan, index) => <button className={`membership-plans__dot${index === activeIndex ? ' membership-plans__dot--active' : ''}`} type="button" key={plan.key} onClick={() => moveTo(index)} aria-label={`Show plan ${index + 1}: ${plan.label}`} aria-current={index === activeIndex ? 'true' : undefined} />)}
+      </div>}
+    </>}
     {!signedIn && <p className="subscription-signin-note"><LockKeyhole size={14} /> Sign in is required before a payment order can be created.</p>}
   </div>;
 }
