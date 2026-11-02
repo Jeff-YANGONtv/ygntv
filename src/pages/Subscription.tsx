@@ -1,5 +1,5 @@
 import { type ChangeEvent, useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Clipboard, Clock3, Copy, Crown, FileImage, Gift, LoaderCircle, LockKeyhole, MonitorPlay, RefreshCw, ScanText, ShieldCheck, Sparkles, UploadCloud, WalletCards } from 'lucide-react';
+import { CheckCircle2, Clipboard, Clock3, Copy, Crown, FileImage, Film, Gift, LoaderCircle, LockKeyhole, Monitor, MonitorPlay, RefreshCw, ScanText, ShieldCheck, Smartphone, Sparkles, UploadCloud, WalletCards } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPaymentOrder, getPremiumPlans, getPublicPaymentAccounts, redeemMembershipCode, submitOrderReceipt } from '../lib/api';
 import { useAuth } from '../lib/auth';
@@ -155,7 +155,7 @@ function PlanStep({ plans, signedIn, onChoose }: { plans: PremiumPlan[]; signedI
     <div className="subscription-stage__heading"><div><span className="profile-card-label">Step 1 of 3 · Yangon TV membership</span><h2>Choose your access</h2><p>Unlock new releases, Myanmar subtitles, and a smoother way to watch.</p></div><Crown /></div>
     {plans.length === 0 ? <div className="subscription-empty"><WalletCards size={24} /><strong>No Premium plans are available right now.</strong><span>Please check back shortly.</span></div> : <div className="membership-plans" role="list" aria-label="Membership plans">
       {plans.map((plan, index) => <div className="membership-plans__item" role="listitem" key={plan.key}>
-        <button className={`membership-plan${index === plans.length - 1 ? ' membership-plan--featured' : ''}`} type="button" onClick={() => onChoose(plan)} aria-label={`${plan.label}: ${price(plan.amount_ks)}, ${plan.access_months} month${plan.access_months === 1 ? '' : 's'} access`}>
+        <button className={`membership-plan${index === plans.length - 1 ? ' membership-plan--featured' : ''}`} type="button" onClick={() => onChoose(plan)} aria-label={`${plan.label}: ${price(plan.amount_ks)}, ${plan.access_months} month${plan.access_months === 1 ? '' : 's'} access. Compatible with Desktop and Mobile. All Contents From ygntv.org.`}>
         <span className="membership-plan__glow" />
         <span className="membership-plan__top"><span className="membership-plan__icon"><MonitorPlay size={19} /></span>{index === plans.length - 1 && <span className="membership-plan__badge"><Sparkles size={12} /> Best value</span>}</span>
         <span className="membership-plan__eyebrow">YGNTV MEMBERSHIP</span>
@@ -163,6 +163,10 @@ function PlanStep({ plans, signedIn, onChoose }: { plans: PremiumPlan[]; signedI
         <span className="membership-plan__price-label">Plan price</span>
         <b className="membership-plan__price">{price(plan.amount_ks)}</b>
         <span className="membership-plan__term"><Clock3 size={13} aria-hidden="true" /><span>{plan.access_months} month{plan.access_months === 1 ? '' : 's'} access</span></span>
+        <span className="membership-plan__features">
+          <span className="membership-plan__feature"><span className="membership-plan__device-icons" aria-hidden="true"><Monitor size={13} /><Smartphone size={12} /></span><span>Desktop · Mobile</span></span>
+          <span className="membership-plan__feature"><Film size={14} aria-hidden="true" /><span>All Contents From ygntv.org</span></span>
+        </span>
         <span className="membership-plan__footer"><span>{signedIn ? 'Select plan' : 'Sign in to select'}</span><Crown size={15} /></span>
         </button>
       </div>)}
