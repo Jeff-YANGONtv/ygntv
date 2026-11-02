@@ -151,7 +151,24 @@ export function SubscriptionPage() {
 }
 
 function PlanStep({ plans, signedIn, onChoose }: { plans: PremiumPlan[]; signedIn: boolean; onChoose: (plan: PremiumPlan) => void }) {
-  return <div className="subscription-stage subscription-stage--plans"><div className="subscription-stage__heading"><div><span className="profile-card-label">Step 1 of 3 · Yangon TV membership</span><h2>Choose your access</h2><p>Unlock new releases, Myanmar subtitles, and a smoother way to watch.</p></div><Crown /></div>{plans.length === 0 ? <div className="subscription-empty"><WalletCards size={24} /><strong>No Premium plans are available right now.</strong><span>Please check back shortly.</span></div> : <div className="membership-plans" role="list" aria-label="Membership plans">{plans.map((plan, index) => <button className={`membership-plan${index === plans.length - 1 ? ' membership-plan--featured' : ''}`} type="button" key={plan.key} onClick={() => onChoose(plan)} role="listitem"><span className="membership-plan__glow" /><span className="membership-plan__top"><span className="membership-plan__icon"><MonitorPlay size={19} /></span>{index === plans.length - 1 && <span className="membership-plan__badge"><Sparkles size={12} /> Best value</span>}</span><span className="membership-plan__eyebrow">YGNTV MEMBERSHIP</span><strong>{plan.label}</strong><b className="membership-plan__price">{price(plan.amount_ks)}</b><span className="membership-plan__term">{plan.access_months} month{plan.access_months === 1 ? '' : 's'} access</span><span className="membership-plan__footer"><span>{signedIn ? 'Select plan' : 'Sign in to select'}</span><Crown size={15} /></span></button>)}</div>}{!signedIn && <p className="subscription-signin-note"><LockKeyhole size={14} /> Sign in is required before a payment order can be created.</p>}</div>;
+  return <div className="subscription-stage subscription-stage--plans">
+    <div className="subscription-stage__heading"><div><span className="profile-card-label">Step 1 of 3 · Yangon TV membership</span><h2>Choose your access</h2><p>Unlock new releases, Myanmar subtitles, and a smoother way to watch.</p></div><Crown /></div>
+    {plans.length === 0 ? <div className="subscription-empty"><WalletCards size={24} /><strong>No Premium plans are available right now.</strong><span>Please check back shortly.</span></div> : <div className="membership-plans" role="list" aria-label="Membership plans">
+      {plans.map((plan, index) => <div className="membership-plans__item" role="listitem" key={plan.key}>
+        <button className={`membership-plan${index === plans.length - 1 ? ' membership-plan--featured' : ''}`} type="button" onClick={() => onChoose(plan)} aria-label={`${plan.label}: ${price(plan.amount_ks)}, ${plan.access_months} month${plan.access_months === 1 ? '' : 's'} access`}>
+        <span className="membership-plan__glow" />
+        <span className="membership-plan__top"><span className="membership-plan__icon"><MonitorPlay size={19} /></span>{index === plans.length - 1 && <span className="membership-plan__badge"><Sparkles size={12} /> Best value</span>}</span>
+        <span className="membership-plan__eyebrow">YGNTV MEMBERSHIP</span>
+        <strong>{plan.label}</strong>
+        <span className="membership-plan__price-label">Plan price</span>
+        <b className="membership-plan__price">{price(plan.amount_ks)}</b>
+        <span className="membership-plan__term"><Clock3 size={13} aria-hidden="true" /><span>{plan.access_months} month{plan.access_months === 1 ? '' : 's'} access</span></span>
+        <span className="membership-plan__footer"><span>{signedIn ? 'Select plan' : 'Sign in to select'}</span><Crown size={15} /></span>
+        </button>
+      </div>)}
+    </div>}
+    {!signedIn && <p className="subscription-signin-note"><LockKeyhole size={14} /> Sign in is required before a payment order can be created.</p>}
+  </div>;
 }
 
 function MethodStep({ plan, accounts, busy, onChoose, onBack }: { plan: PremiumPlan; accounts: PaymentAccount[]; busy: boolean; onChoose: (account: PaymentAccount) => void; onBack: () => void }) {
