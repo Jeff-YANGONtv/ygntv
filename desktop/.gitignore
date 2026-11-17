@@ -1,0 +1,11 @@
+# Dart and Flutter generated state
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Platform-specific transient files
+windows/flutter/ephemeral/
+
+# Editor metadata
+.idea/

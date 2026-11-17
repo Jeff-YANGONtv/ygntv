@@ -1,0 +1,72 @@
+name: YGNTV Windows desktop build
+
+on:
+  push:
+    branches:
+      - feat/windows-desktop-flutter
+    paths:
+      - 'desktop/**'
+      - '.github/workflows/windows-desktop-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ygntv-windows-desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Test and package Windows app
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.50.0'
+
+      - name: Install dependencies
+        working-directory: desktop
+        run: flutter pub get
+
+      - name: Check formatting
+        working-directory: desktop
+        run: dart format --set-exit-if-changed lib test
+
+      - name: Analyze
+        working-directory: desktop
+        run: flutter analyze
+
+      - name: Run tests
+        working-directory: desktop
+        run: flutter test --reporter expanded
+
+      - name: Build Windows release
+        working-directory: desktop
+        run: flutter build windows --release
+
+      - name: Package release bundle
+        working-directory: desktop
+        shell: pwsh
+        run: |
+          $releaseDir = 'build/windows/x64/runner/Release'
+          if (-not (Test-Path "$releaseDir/YGNTV.Desktop.exe")) {
+            throw 'Windows executable was not produced.'
+          }
+          Compress-Archive -Path "$releaseDir/*" -DestinationPath 'YGNTV-Desktop-Windows.zip' -CompressionLevel Optimal
+
+      - name: Upload Windows app
+        uses: actions/upload-artifact@v4
+        with:
+          name: YGNTV-Desktop-Windows
+          path: desktop/YGNTV-Desktop-Windows.zip
+          if-no-files-found: error
+          retention-days: 14
